@@ -1,0 +1,89 @@
+<app-site-header></app-site-header>
+
+<main class="vouchers-page">
+  <div class="vouchers-shell">
+    <section class="vouchers-hero">
+      <div class="vouchers-hero__icon" aria-hidden="true">
+        <mat-icon>confirmation_number</mat-icon>
+      </div>
+
+      <div class="vouchers-hero__copy">
+        <p class="vouchers-hero__eyebrow">Beneficios activos</p>
+        <h1>Vouchers disponibles</h1>
+        <p>Revisa descuentos habilitados, codigos de uso y beneficios activos para tus colaboradores.</p>
+      </div>
+
+      <button type="button" class="vouchers-hero__refresh" (click)="refresh()" [disabled]="loading" aria-label="Actualizar vouchers">
+        <mat-icon [class.is-spinning]="loading" aria-hidden="true">refresh</mat-icon>
+        <span>Actualizar</span>
+      </button>
+    </section>
+
+    <section class="vouchers-overview" *ngIf="!loading && items.length">
+      <article class="vouchers-overview__card vouchers-overview__card--primary">
+        <span>Total activos</span>
+        <strong>{{ items.length }}</strong>
+        <p>Vouchers visibles para asignacion y uso.</p>
+      </article>
+
+      <article class="vouchers-overview__card">
+        <span>Por porcentaje</span>
+        <strong>{{ percentageCount }}</strong>
+        <p>Descuentos proporcionales sobre el servicio.</p>
+      </article>
+
+      <article class="vouchers-overview__card">
+        <span>Monto fijo</span>
+        <strong>{{ fixedAmountCount }}</strong>
+        <p>Beneficios con rebaja directa en valor.</p>
+      </article>
+    </section>
+
+    <div *ngIf="loading" class="vouchers-state vouchers-state--loading">
+      <div class="vouchers-spinner" aria-hidden="true"></div>
+      <p>Cargando vouchers...</p>
+    </div>
+
+    <div *ngIf="error" class="vouchers-state vouchers-state--error" role="alert">
+      <mat-icon aria-hidden="true">error</mat-icon>
+      <div>
+        <strong>No se pudieron cargar los vouchers</strong>
+        <p>{{ error }}</p>
+      </div>
+    </div>
+
+    <div *ngIf="!loading && !error && !items.length" class="vouchers-state">
+      <mat-icon class="vouchers-state__icon" aria-hidden="true">confirmation_number</mat-icon>
+      <h2>No hay vouchers disponibles</h2>
+      <p>Cuando existan beneficios activos para tu cuenta, apareceran aqui con su codigo y descuento.</p>
+    </div>
+
+    <section *ngIf="!loading && items.length" class="vouchers-grid" aria-label="Listado de vouchers">
+      <article *ngFor="let item of items" class="voucher-card">
+        <div class="voucher-card__head">
+          <div>
+            <div class="voucher-card__label">Voucher activo</div>
+            <h3>{{ item.title }}</h3>
+          </div>
+          <span class="voucher-card__badge">Activo</span>
+        </div>
+
+        <p class="voucher-card__description">
+          {{ item.description || 'Beneficio disponible para uso segun condiciones definidas por company pet.' }}
+        </p>
+
+        <div class="voucher-card__meta">
+          <div class="voucher-card__code">
+            <span>Codigo</span>
+            <strong>{{ item.code }}</strong>
+          </div>
+          <div class="voucher-card__discount">
+            {{ discountLabel(item) }}
+          </div>
+        </div>
+      </article>
+    </section>
+  </div>
+</main>
+
+<app-site-footer></app-site-footer>

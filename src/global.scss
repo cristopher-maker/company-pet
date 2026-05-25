@@ -1,0 +1,260 @@
+
+// Custom Theming for Angular Material
+// For more information: https://material.angular.io/guide/theming
+@use '@angular/material' as mat;
+// Plus imports for other components in your app.
+
+// Include the common styles for Angular Material. We include this here so that you only
+// have to load a single css file for Angular Material in your app.
+// Be sure that you only ever include this mixin once!
+@include mat.core();
+
+// Define the theme object.
+$app-theme: mat.define-theme((
+  color: (
+    theme-type: light,
+    primary: mat.$azure-palette,
+    tertiary: mat.$blue-palette,
+  ),
+  density: (
+    scale: 0,
+  )
+));
+
+// Include theme styles for core and each component used in your app.
+// Alternatively, you can import and @include the theme mixins for each component
+// that you are using.
+:root {
+  @include mat.all-component-themes($app-theme);
+
+  --cc-color-primary: #123c4a;
+  --cc-color-primary-dark: #0b2832;
+  --cc-color-primary-soft: #e8f0ef;
+  --cc-color-accent: #f27a5e;
+  --cc-color-accent-dark: #d85f46;
+  --cc-color-sage: #2f8f83;
+  --cc-color-ink: #17242b;
+  --cc-color-muted: #64727a;
+  --cc-color-line: #dce7e5;
+  --cc-color-surface: #fbfaf7;
+}
+
+// Comment out the line below if you want to use the pre-defined typography utility classes.
+// For more information: https://material.angular.io/guide/typography#using-typography-styles-in-your-application.
+// @include mat.typography-hierarchy($app-theme);
+
+// Comment out the line below if you want to use the deprecated `color` inputs.
+// @include mat.color-variants-backwards-compatibility($app-theme);
+/*
+ * App Global CSS
+ * ----------------------------------------------------------------------------
+ * Put style rules here that you want to apply globally.
+ */
+
+/* Tailwind CSS Directives */
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+html,
+body {
+  margin: 0;
+  min-height: 100%;
+}
+
+
+/* --- Estilos de Navegación Comunes --- */
+.cc-nav {
+  width: 100%;
+  box-sizing: border-box;
+  height: 64px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 2rem;
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 1000;
+  transition: background-color 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+.cc-nav--scrolled {
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+  background: rgba(0, 0, 0, 0.94);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.26);
+}
+
+.cc-nav--light {
+  background: rgba(0, 0, 0, 0.94);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.24);
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+}
+
+.cc-nav--light .cc-menu-btn {
+  border-color: rgba(255, 255, 255, 0.12);
+  background: rgba(255, 255, 255, 0.06);
+  color: rgba(255, 255, 255, 0.9);
+}
+
+.cc-nav--light .cc-brand .cc-brand-text .name {
+  color: #ffffff;
+}
+
+.cc-nav--light .cc-brand .cc-brand-text .sub {
+  color: rgba(255, 255, 255, 0.56);
+}
+
+.cc-nav--light .cc-nav-links a {
+  color: rgba(255, 255, 255, 0.74);
+}
+
+.cc-nav--light .cc-nav-links a:hover,
+.cc-nav--light .cc-nav-links a.active-link {
+  color: #ffffff;
+}
+
+.cc-nav--light .cc-nav-actions .btn-ghost {
+  color: #ffffff;
+  border-color: rgba(255, 255, 255, 0.18);
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.cc-menu-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 38px;
+  height: 38px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.05);
+  color: rgba(255, 255, 255, 0.86);
+  cursor: pointer;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06);
+  transition: all 0.2s ease;
+  
+  &:hover {
+    background: rgba(255, 255, 255, 0.1);
+    background: linear-gradient(135deg, rgba(242, 122, 94, 0.22), rgba(47, 143, 131, 0.18));
+}
+}
+.cc-nav-left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.cc-brand {
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+
+  .cc-brand-text {
+    .name {
+      font-size: 14px;
+      font-weight: 500;
+      color: #ffffff;
+      line-height: 1.2;
+    }
+    .sub {
+      font-size: 10px;
+      color: rgba(255, 255, 255, 0.5);
+    }
+  }
+}
+
+.cc-nav-links {
+  display: none;
+  gap: 1.8rem;
+  list-style: none;
+  margin: 0 auto;
+  padding: 0;
+
+  a {
+    position: relative;
+    padding-bottom: 6px;
+    font-size: 13px;
+    color: rgba(255, 255, 255, 0.7);
+    text-decoration: none;
+    font-weight: 400;
+    transition: color 0.2s ease;
+
+    &:hover,
+    &.active-link {
+      color: #ffffff;
+    }
+
+    &.active-link::after {
+      content: '';
+      position: absolute;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      height: 3px;
+      border-radius: 999px;
+      background: linear-gradient(90deg, var(--cc-color-accent), #f6a06d);
+
+    }
+
+    &.active-link:hover::after {
+      animation: activeNavPulse 1.2s ease-in-out infinite;
+    }
+  }
+}
+
+@keyframes activeNavPulse {
+  0%,
+  100% {
+    box-shadow: 0 0 0 rgba(246, 160, 109, 0);
+  }
+  50% {
+    box-shadow: 0 0 16px rgba(246, 160, 109, 0.62);
+  }
+}
+
+.cc-nav-actions {
+  display: flex;
+  gap: 12px;
+
+  .btn-ghost {
+    background: transparent;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 8px;
+    color: #ffffff;
+    font-size: 12px;
+    padding: 8px 16px;
+    cursor: pointer;
+    font-weight: 500;
+    transition: background 0.2s;
+
+    &:hover {
+      background: rgba(255, 255, 255, 0.05);
+    }
+  }
+
+  .btn-glow {
+    background: linear-gradient(135deg, var(--cc-color-accent), var(--cc-color-accent-dark));
+    border: none;
+    border-radius: 8px;
+    color: #ffffff;
+    font-size: 12px;
+    padding: 8px 18px;
+    font-weight: 700;
+    box-shadow: 0 10px 22px rgba(242, 122, 94, 0.26);
+    cursor: pointer;
+  }
+}
+
+@media (min-width: 992px) {
+  .cc-nav-links {
+    display: flex;
+  }
+}
+
+html, body { height: 100%; }
+body { margin: 0; font-family: Roboto, "Helvetica Neue", sans-serif; }

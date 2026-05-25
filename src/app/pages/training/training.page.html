@@ -1,0 +1,170 @@
+<app-site-header></app-site-header>
+
+<main class="training-page">
+  <div class="training-shell">
+    <section class="training-hero">
+      <div class="training-hero__icon" aria-hidden="true">
+        <mat-icon>school</mat-icon>
+      </div>
+
+      <div class="training-hero__copy">
+        <p class="training-hero__eyebrow">Learning hub</p>
+        <h1>Tu formacion</h1>
+        <p>Modulos y eventos breves para apoyar a empleados con mascotas con herramientas concretas.</p>
+      </div>
+
+      <a *ngIf="isStaff" routerLink="/training/admin" class="training-hero__admin">
+        <mat-icon aria-hidden="true">tune</mat-icon>
+        <span>Administrar</span>
+      </a>
+    </section>
+
+    <section class="training-overview">
+      <article class="training-overview__card training-overview__card--primary">
+        <span>Progreso general</span>
+        <strong>{{ overallProgressPercent }}%</strong>
+        <p>{{ completedCount }} de {{ courses.length }} cursos completados</p>
+      </article>
+
+      <article class="training-overview__card">
+        <span>En curso</span>
+        <strong>{{ inProgressCount }}</strong>
+        <p>Modulos retomables desde tu ultima actividad</p>
+      </article>
+
+      <article class="training-overview__card">
+        <span>Por iniciar</span>
+        <strong>{{ notStartedCount }}</strong>
+        <p>Contenidos disponibles para empezar ahora</p>
+      </article>
+
+      <article class="training-overview__card">
+        <span>Eventos</span>
+        <strong>{{ events.length }}</strong>
+        <p>Instancias en vivo para reforzar aprendizajes</p>
+      </article>
+    </section>
+
+    <section class="training-tabs" aria-label="Secciones de formacion">
+      <button type="button" class="training-tabs__button" [class.is-active]="tab === 'Cursos'" (click)="tab = 'Cursos'">
+        Cursos
+      </button>
+      <button type="button" class="training-tabs__button" [class.is-active]="tab === 'Eventos'" (click)="tab = 'Eventos'">
+        Eventos
+      </button>
+    </section>
+
+    <div [ngSwitch]="tab">
+      <section *ngSwitchCase="'Cursos'" class="training-section">
+        <div class="training-progress-card" *ngIf="courses.length > 0">
+          <div class="training-progress-card__copy">
+            <span>Ruta activa</span>
+            <strong>{{ overallProgressPercent }}%</strong>
+            <p>Avanza en micro-modulos practicos y retoma donde quedaste.</p>
+          </div>
+          <div class="training-progress-card__bar">
+            <div class="training-progress-card__track">
+              <span [style.width.%]="overallProgressPercent"></span>
+            </div>
+            <small>{{ completedCount }} completados · {{ inProgressCount }} en curso</small>
+          </div>
+        </div>
+
+        <div *ngIf="courses.length === 0" class="training-empty">
+          <mat-icon aria-hidden="true">auto_stories</mat-icon>
+          <h2>No hay cursos publicados</h2>
+          <p>Cuando el equipo cargue nuevos modulos, apareceran aqui para iniciar o continuar.</p>
+        </div>
+
+        <div *ngIf="courses.length > 0" class="training-courses">
+          <article
+            *ngFor="let c of courseCards; trackBy: trackById"
+            class="training-course-card"
+            [class.is-active]="c.isActive"
+            [class.is-completed]="c.state === 'completed'"
+            [class.is-progress]="c.state === 'in_progress'"
+          >
+            <div class="training-course-card__top">
+              <div class="training-course-card__icon" [ngClass]="courseStateClass(c.state)" aria-hidden="true">
+                <mat-icon>{{ courseStateIcon(c.state) }}</mat-icon>
+              </div>
+
+              <div class="training-course-card__copy">
+                <div class="training-course-card__badges">
+                  <span>{{ c.level }}</span>
+                  <span>{{ c.duration }}</span>
+                  <span *ngIf="c.isActive">Activo</span>
+                </div>
+                <h3>{{ c.title }}</h3>
+                <p>
+                  {{
+                    c.state === 'completed'
+                      ? 'Contenido completado y disponible para repaso.'
+                      : c.state === 'in_progress'
+                      ? 'Tienes avance guardado para continuar sin perder contexto.'
+                      : 'Listo para iniciar con una lectura breve y accionable.'
+                  }}
+                </p>
+              </div>
+            </div>
+
+            <div class="training-course-card__progress" *ngIf="c.state !== 'not_started'">
+              <div class="training-course-card__track">
+                <span [style.width.%]="c.progress"></span>
+              </div>
+              <small>{{ c.progress }}% completado</small>
+            </div>
+
+            <div class="training-course-card__footer">
+              <span class="training-course-card__state">
+                {{
+                  c.state === 'completed'
+                    ? 'Completado'
+                    : c.state === 'in_progress'
+                    ? 'En progreso'
+                    : 'Disponible'
+                }}
+              </span>
+
+              <button type="button" class="training-course-card__action" [disabled]="!userId" (click)="onCourseAction(c)">
+                <span>{{ c.actionLabel }}</span>
+                <mat-icon *ngIf="c.actionArrow" aria-hidden="true">arrow_forward</mat-icon>
+              </button>
+            </div>
+          </article>
+        </div>
+      </section>
+
+      <section *ngSwitchCase="'Eventos'" class="training-section">
+        <div class="training-events" *ngIf="events.length > 0; else noEvents">
+          <article *ngFor="let e of events; trackBy: trackById" class="training-event-card">
+            <div class="training-event-card__calendar" aria-hidden="true">
+              <mat-icon>event</mat-icon>
+            </div>
+
+            <div class="training-event-card__copy">
+              <div class="training-event-card__meta">
+                <span>{{ e.format }}</span>
+                <span>{{ e.date }}</span>
+              </div>
+              <h3>{{ e.title }}</h3>
+              <p>Sesion breve orientada a resolver dudas y aterrizar herramientas de apoyo.</p>
+            </div>
+
+            <button type="button" class="training-event-card__action">Reservar cupo</button>
+          </article>
+        </div>
+
+        <ng-template #noEvents>
+          <div class="training-empty">
+            <mat-icon aria-hidden="true">event_busy</mat-icon>
+            <h2>No hay eventos agendados</h2>
+            <p>Cuando publiquemos nuevos talleres o webinars, podras verlos y reservarlos aqui.</p>
+          </div>
+        </ng-template>
+      </section>
+    </div>
+  </div>
+</main>
+
+<app-site-footer></app-site-footer>

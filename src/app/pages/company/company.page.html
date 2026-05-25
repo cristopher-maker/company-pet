@@ -1,0 +1,567 @@
+<main class="company-erp-host">
+  <div *ngIf="loading" class="company-state">
+    <svg class="company-spinner" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+      <circle opacity=".25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+      <path opacity=".75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+    </svg>
+    <p>Cargando datos de la empresa...</p>
+  </div>
+
+  <div *ngIf="!loading && error" class="company-alert" role="alert">
+    <strong>Error:</strong>
+    <span>{{ error }}</span>
+  </div>
+
+  <div *ngIf="!loading && !error && !company" class="company-state">
+    <mat-icon>business</mat-icon>
+    <h3>No se encontro la empresa</h3>
+    <p>No estas asociado a ninguna empresa o no tienes permisos para ver esta pagina.</p>
+  </div>
+
+  <div
+    *ngIf="!loading && !error && company && paymentReturnStatus"
+    class="company-payment-return"
+    [class.is-success]="paymentReturnStatus === 'success'"
+    [class.is-pending]="paymentReturnStatus === 'pending'"
+    [class.is-failure]="paymentReturnStatus === 'failure'"
+    role="status"
+  >
+    <mat-icon>{{ paymentReturnStatus === 'failure' ? 'error_outline' : paymentReturnStatus === 'pending' ? 'schedule' : 'check_circle' }}</mat-icon>
+    <div>
+      <strong>{{ paymentReturnTitle }}</strong>
+      <span>{{ paymentReturnMessage }}</span>
+    </div>
+    <button type="button" (click)="dismissPaymentReturn()" aria-label="Cerrar aviso de pago">
+      <mat-icon>close</mat-icon>
+    </button>
+  </div>
+
+  <app-admin-dashboard *ngIf="!loading && !error && company" [companyConfigMode]="true">
+    <section empleados-content class="company-panel">
+      <div class="company-panel__header">
+        <div>
+          <h2>Empleados</h2>
+          <p>{{ members.length }} colaboradores asociados a {{ company.name }}.</p>
+        </div>
+        <button type="button" class="company-primary" (click)="showInviteModal = true">Invitar empleado</button>
+      </div>
+
+      <div class="company-table-wrap">
+        <table class="company-table">
+          <thead>
+            <tr>
+              <th>Nombre</th>
+              <th>Rol</th>
+              <th>Acciones</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let member of members">
+              <td>
+                <div class="company-person">
+                  <span class="company-avatar">{{ (member.full_name || member.email || '?').slice(0,1) }}</span>
+                  <div>
+                    <strong>{{ member.full_name || 'Usuario sin nombre' }}</strong>
+                    <small>{{ member.email }}</small>
+                  </div>
+                </div>
+              </td>
+              <td>{{ memberRoleLabel(member.member_role) }}</td>
+              <td class="company-table__actions">
+                <button type="button" (click)="removeMember(member)">Eliminar</button>
+              </td>
+            </tr>
+            <tr *ngIf="members.length === 0">
+              <td colspan="3" class="company-empty">No hay empleados registrados.</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section vouchers-content class="company-panel">
+      <div class="company-panel__header">
+        <div>
+          <h2>Vouchers</h2>
+          <p>{{ activeVoucherCount }} activos de {{ vouchers.length }} creados.</p>
+        </div>
+        <button type="button" class="company-primary" (click)="newVoucher()">Nuevo voucher</button>
+      </div>
+
+      <div class="company-table-wrap">
+        <table class="company-table">
+          <thead>
+            <tr>
+              <th>Titulo / Codigo</th>
+              <th>Descuento</th>
+              <th>Estado</th>
+              <th>Acciones</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let voucher of vouchers">
+              <td>
+                <strong>{{ voucher.title }}</strong>
+                <small>{{ voucher.code }}</small>
+              </td>
+              <td>
+                <span *ngIf="voucher.discount_type === 'percentage'">{{ voucher.discount_value }}%</span>
+                <span *ngIf="voucher.discount_type !== 'percentage'">{{ voucher.discount_value | currency:'CLP':'symbol-narrow':'1.0-0' }}</span>
+              </td>
+              <td>
+                <span class="company-status" [class.is-active]="voucher.active">{{ voucher.active ? 'Activo' : 'Inactivo' }}</span>
+              </td>
+              <td class="company-table__actions">
+                <button type="button" (click)="editVoucher(voucher)">Editar</button>
+                <button type="button" (click)="toggleVoucherActive(voucher)">{{ voucher.active ? 'Desactivar' : 'Activar' }}</button>
+              </td>
+            </tr>
+            <tr *ngIf="vouchers.length === 0">
+              <td colspan="4" class="company-empty">No hay vouchers creados.</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section config-content class="company-panel company-panel--embedded">
+      <div class="company-panel__header">
+        <div>
+          <h2>Ficha empresa</h2>
+          <p>Datos operativos, contactos y plan activo de {{ company.name }}.</p>
+        </div>
+      </div>
+
+      <div class="company-profile-grid">
+        <article class="company-profile-card" *ngFor="let item of connectedModules">
+          <span>{{ item.label }}</span>
+          <strong>{{ item.value }}</strong>
+          <small>{{ item.detail }}</small>
+        </article>
+      </div>
+
+      <article class="company-plan-summary">
+        <div>
+          <span class="company-kicker">Plan actual</span>
+          <strong>{{ planTierLabel(currentSubscription?.plan_tier || activeContract?.plan_tier || company.plan_tier) }}</strong>
+          <small>{{ subscriptionStatusLabel(currentSubscription?.status || null) }} · {{ providerLabel(currentSubscription?.provider) }}</small>
+        </div>
+        <div>
+          <small>Periodo hasta: {{ (currentSubscription?.current_period_end | date:'dd/MM/yyyy') || 'Sin periodo' }}</small>
+          <small>Factura: {{ invoiceStatusLabel(latestInvoice?.status || null) }}</small>
+        </div>
+      </article>
+
+      <form (ngSubmit)="saveCompany()" class="company-form">
+        <label>
+          <span>Nombre comercial</span>
+          <input type="text" [(ngModel)]="company.name" name="companyName" required />
+        </label>
+        <label>
+          <span>Razon social</span>
+          <input type="text" [(ngModel)]="company.legal_name" name="companyLegalName" />
+        </label>
+        <label>
+          <span>RUT</span>
+          <input type="text" [(ngModel)]="company.tax_id" name="companyTaxId" />
+        </label>
+        <label>
+          <span>Estado operativo</span>
+          <select [(ngModel)]="company.operational_status" name="companyOperationalStatus">
+            <option value="onboarding">Onboarding</option>
+            <option value="active">Activa</option>
+            <option value="paused">Pausada</option>
+            <option value="inactive">Inactiva</option>
+          </select>
+        </label>
+        <label>
+          <span>Industria</span>
+          <input type="text" [(ngModel)]="company.industry" name="companyIndustry" />
+        </label>
+        <label>
+          <span>Dotacion estimada</span>
+          <input type="number" min="0" [(ngModel)]="company.employee_count" name="companyEmployeeCount" />
+        </label>
+        <label>
+          <span>Email facturacion</span>
+          <input type="email" [(ngModel)]="company.billing_email" name="companyBillingEmail" />
+        </label>
+        <label>
+          <span>Telefono</span>
+          <input type="text" [(ngModel)]="company.phone" name="companyPhone" />
+        </label>
+        <label>
+          <span>Dominio de email</span>
+          <input type="text" [(ngModel)]="company.domain" name="companyDomain" placeholder="ej: miempresa.com" />
+          <small>Permite asociar empleados automaticamente en futuros registros.</small>
+        </label>
+        <label>
+          <span>Direccion</span>
+          <input type="text" [(ngModel)]="company.address" name="companyAddress" />
+        </label>
+        <div class="company-form__footer">
+          <button type="submit" class="company-primary" [disabled]="saving">
+            {{ saving ? 'Guardando...' : 'Guardar cambios' }}
+          </button>
+        </div>
+      </form>
+
+      <div class="company-operational-grid">
+        <section class="company-subpanel">
+          <div class="company-panel__header">
+            <div>
+              <h2>Contactos por empresa</h2>
+              <p>{{ contacts.length }} contactos para coordinacion, RR.HH. y facturacion.</p>
+            </div>
+            <button type="button" class="company-primary" (click)="newContact()">Nuevo contacto</button>
+          </div>
+
+          <div class="company-list">
+            <article class="company-list-item" *ngFor="let contact of contacts">
+              <div>
+                <strong>{{ contact.full_name }}</strong>
+                <small>{{ contactTypeLabel(contact.contact_type) }} · {{ contact.role_title || 'Sin cargo' }}</small>
+                <small>{{ contact.email || 'Sin email' }} · {{ contact.phone || 'Sin telefono' }}</small>
+              </div>
+              <span class="company-status" [class.is-active]="contact.is_primary">{{ contact.is_primary ? 'Principal' : 'Contacto' }}</span>
+              <div class="company-table__actions">
+                <button type="button" (click)="editContact(contact)">Editar</button>
+                <button type="button" (click)="deleteContact(contact)">Eliminar</button>
+              </div>
+            </article>
+            <p *ngIf="contacts.length === 0" class="company-empty">Aun no hay contactos registrados.</p>
+          </div>
+        </section>
+
+        <section class="company-subpanel" *ngIf="false">
+          <div class="company-panel__header">
+            <div>
+              <h2>Plan / contrato activo</h2>
+              <p>El estado se actualiza desde el pago o por administracion interna.</p>
+            </div>
+          </div>
+
+          <article class="company-billing-card">
+            <div>
+              <span class="company-kicker">Estado de pago</span>
+              <h3>{{ subscriptionStatusLabel(currentSubscription?.status || null) }}</h3>
+              <p>{{ providerLabel(currentSubscription?.provider) }} · {{ planTierLabel(currentSubscription?.plan_tier || activeContract?.plan_tier || company.plan_tier) }}</p>
+            </div>
+            <div>
+              <small>Periodo hasta: {{ (currentSubscription?.current_period_end | date:'dd/MM/yyyy') || 'Sin periodo' }}</small>
+              <small>Factura: {{ invoiceStatusLabel(latestInvoice?.status || null) }}</small>
+              <strong *ngIf="latestInvoice?.amount_due">
+                {{ latestInvoice?.amount_due | currency:(latestInvoice?.currency || 'CLP'):'symbol-narrow':'1.0-0' }}
+              </strong>
+            </div>
+            <div class="company-plan-picker" *ngIf="!activeContract || currentSubscription?.status !== 'active'">
+              <button
+                *ngFor="let plan of paymentPlanOptions"
+                type="button"
+                class="company-plan-option"
+                [class.is-selected]="selectedPaymentPlan === plan.id"
+                [disabled]="requestingPaymentLink || currentSubscription?.status === 'active'"
+                (click)="selectedPaymentPlan = plan.id"
+              >
+                <span>
+                  <strong>{{ plan.label }}</strong>
+                  <small>{{ plan.description }}</small>
+                </span>
+                <b>{{ plan.price }}</b>
+              </button>
+            </div>
+            <a
+              *ngIf="paymentUrl"
+              class="company-payment-link"
+              [href]="paymentUrl"
+              target="_blank"
+              rel="noopener"
+            >
+              Pagar ahora
+            </a>
+            <button
+              *ngIf="!paymentUrl"
+              type="button"
+              class="company-payment-link company-payment-link--button"
+              [disabled]="requestingPaymentLink"
+              (click)="requestPaymentLink()"
+            >
+              {{ requestingPaymentLink ? 'Generando...' : 'Pagar con Mercado Pago' }}
+            </button>
+          </article>
+
+          <article class="company-contract-card" *ngIf="activeContract; else noContract">
+            <div>
+              <span class="company-kicker">Contrato actual</span>
+              <h3>{{ planTierLabel(activeContract.plan_tier) }}</h3>
+              <p>{{ contractStatusLabel(activeContract.status) }} · {{ billingCycleLabel(activeContract.billing_cycle) }}</p>
+            </div>
+            <div>
+              <strong *ngIf="activeContract.amount">{{ activeContract.amount | currency:activeContract.currency:'symbol-narrow':'1.0-0' }}</strong>
+              <small>Inicio: {{ (activeContract.starts_at | date:'dd/MM/yyyy') || 'Sin fecha' }}</small>
+              <small>Renovacion: {{ (activeContract.renews_at | date:'dd/MM/yyyy') || 'Sin fecha' }}</small>
+              <small>{{ documentTitle(activeContract.document_id) }}</small>
+            </div>
+          </article>
+          <ng-template #noContract>
+            <p class="company-empty">Aun no hay contrato registrado. company pet lo activara al confirmar el plan y el pago.</p>
+          </ng-template>
+        </section>
+      </div>
+    </section>
+
+    <section billing-content class="company-panel company-panel--embedded">
+      <div class="company-panel__header">
+        <div>
+          <h2>Plan / contrato activo</h2>
+          <p>El estado se actualiza desde el pago o por administracion interna.</p>
+        </div>
+      </div>
+
+      <section class="company-billing-surface">
+        <article class="company-billing-hero">
+          <div class="company-billing-hero__status">
+            <span class="company-kicker">Estado de pago</span>
+            <strong>{{ subscriptionStatusLabel(currentSubscription?.status || null) }}</strong>
+            <p>{{ providerLabel(currentSubscription?.provider) }} · {{ planTierLabel(currentSubscription?.plan_tier || activeContract?.plan_tier || company.plan_tier) }}</p>
+          </div>
+          <div class="company-billing-hero__meta">
+            <div>
+              <span>Periodo</span>
+              <strong>{{ (currentSubscription?.current_period_end | date:'dd/MM/yyyy') || 'Sin periodo' }}</strong>
+            </div>
+            <div>
+              <span>Factura</span>
+              <strong>{{ invoiceStatusLabel(latestInvoice?.status || null) }}</strong>
+            </div>
+            <div *ngIf="latestInvoice?.amount_due">
+              <span>Monto</span>
+              <strong>{{ latestInvoice?.amount_due | currency:(latestInvoice?.currency || 'CLP'):'symbol-narrow':'1.0-0' }}</strong>
+            </div>
+          </div>
+        </article>
+
+        <div class="company-plan-picker" *ngIf="!activeContract || currentSubscription?.status !== 'active'">
+          <button
+            *ngFor="let plan of paymentPlanOptions"
+            type="button"
+            class="company-plan-option"
+            [class.is-selected]="selectedPaymentPlan === plan.id"
+            [disabled]="requestingPaymentLink || currentSubscription?.status === 'active'"
+            (click)="selectedPaymentPlan = plan.id"
+          >
+            <div class="company-plan-option__copy">
+              <span class="company-plan-option__badge" *ngIf="selectedPaymentPlan === plan.id">Seleccionado</span>
+              <strong>{{ plan.label }}</strong>
+              <small>{{ plan.description }}</small>
+            </div>
+            <b>{{ plan.price }}</b>
+          </button>
+        </div>
+
+        <div class="company-billing-cta">
+          <div class="company-billing-cta__copy">
+            <strong>{{ activeContract && currentSubscription?.status === 'active' ? 'Plan activo' : 'Activar plan' }}</strong>
+            <small>{{ activeContract && currentSubscription?.status === 'active' ? 'La suscripcion ya esta operativa para esta empresa.' : 'Selecciona el plan correcto y genera el enlace de pago.' }}</small>
+            <small class="company-billing-cta__helper">{{ invoiceHelperText }}</small>
+          </div>
+          <div class="company-billing-cta__actions">
+            <a
+              *ngIf="invoiceUrl"
+              class="company-payment-link company-payment-link--secondary"
+              [href]="invoiceUrl"
+              target="_blank"
+              rel="noopener"
+            >
+              Ver boleta
+            </a>
+            <a
+              *ngIf="paymentUrl"
+              class="company-payment-link"
+              [href]="paymentUrl"
+              target="_blank"
+              rel="noopener"
+            >
+              Pagar ahora
+            </a>
+            <button
+              *ngIf="!paymentUrl"
+              type="button"
+              class="company-payment-link company-payment-link--button"
+              [disabled]="requestingPaymentLink"
+              (click)="requestPaymentLink()"
+            >
+              {{ requestingPaymentLink ? 'Generando...' : 'Pagar con Mercado Pago' }}
+            </button>
+          </div>
+        </div>
+      </section>
+
+      <article class="company-contract-card" *ngIf="activeContract; else noContractBilling">
+        <div class="company-contract-card__copy">
+          <span class="company-kicker">Contrato actual</span>
+          <h3>{{ planTierLabel(activeContract.plan_tier) }}</h3>
+          <p>{{ contractStatusLabel(activeContract.status) }} · {{ billingCycleLabel(activeContract.billing_cycle) }}</p>
+        </div>
+        <div class="company-contract-card__meta">
+          <div *ngIf="activeContract.amount">
+            <span>Monto</span>
+            <strong>{{ activeContract.amount | currency:activeContract.currency:'symbol-narrow':'1.0-0' }}</strong>
+          </div>
+          <div>
+            <span>Inicio</span>
+            <small>{{ (activeContract.starts_at | date:'dd/MM/yyyy') || 'Sin fecha' }}</small>
+          </div>
+          <div>
+            <span>Renovacion</span>
+            <small>{{ (activeContract.renews_at | date:'dd/MM/yyyy') || 'Sin fecha' }}</small>
+          </div>
+          <div>
+            <span>Documento</span>
+            <small>{{ documentTitle(activeContract.document_id) }}</small>
+          </div>
+        </div>
+      </article>
+      <ng-template #noContractBilling>
+        <p class="company-empty">Aun no hay contrato registrado. company pet lo activara al confirmar el plan y el pago.</p>
+      </ng-template>
+    </section>
+  </app-admin-dashboard>
+
+  <div *ngIf="showInviteModal" class="company-modal-backdrop" (click)="showInviteModal = false">
+    <div class="company-modal" (click)="$event.stopPropagation()">
+      <form (ngSubmit)="sendInvite()">
+        <header>
+          <h2>Invitar empleado</h2>
+          <button type="button" (click)="showInviteModal = false">
+            <mat-icon>close</mat-icon>
+          </button>
+        </header>
+        <div class="company-modal__body">
+          <label>
+            <span>Email del empleado</span>
+            <input type="email" [(ngModel)]="inviteEmail" name="inviteEmail" required />
+          </label>
+          <label>
+            <span>Rol</span>
+            <select [(ngModel)]="inviteRole" name="inviteRole">
+              <option value="employee">Empleado</option>
+              <option value="manager">Manager</option>
+              <option value="hr_admin">Admin RRHH</option>
+            </select>
+          </label>
+        </div>
+        <footer>
+          <button type="submit" class="company-primary" [disabled]="saving">
+            {{ saving ? 'Enviando...' : 'Enviar invitacion' }}
+          </button>
+        </footer>
+      </form>
+    </div>
+  </div>
+
+  <div *ngIf="showVoucherModal" class="company-modal-backdrop" (click)="showVoucherModal = false">
+    <div class="company-modal company-modal--wide" (click)="$event.stopPropagation()">
+      <form (ngSubmit)="saveVoucher()">
+        <header>
+          <h2>{{ voucherDraft.id ? 'Editar' : 'Nuevo' }} voucher</h2>
+          <button type="button" (click)="showVoucherModal = false">
+            <mat-icon>close</mat-icon>
+          </button>
+        </header>
+        <div class="company-modal__body">
+          <label>
+            <span>Titulo</span>
+            <input type="text" [(ngModel)]="voucherDraft.title" name="voucherTitle" required />
+          </label>
+          <label>
+            <span>Codigo</span>
+            <input type="text" [(ngModel)]="voucherDraft.code" name="voucherCode" required />
+          </label>
+          <div class="company-form company-form--compact">
+            <label>
+              <span>Tipo de descuento</span>
+              <select [(ngModel)]="voucherDraft.discount_type" name="voucherType">
+                <option value="percentage">Porcentaje</option>
+                <option value="fixed_amount">Monto fijo</option>
+              </select>
+            </label>
+            <label>
+              <span>Valor</span>
+              <input type="number" [(ngModel)]="voucherDraft.discount_value" name="voucherValue" required />
+            </label>
+          </div>
+          <label>
+            <span>Descripcion</span>
+            <textarea rows="2" [(ngModel)]="voucherDraft.description" name="voucherDescription"></textarea>
+          </label>
+        </div>
+        <footer>
+          <button type="submit" class="company-primary" [disabled]="saving">
+            {{ saving ? 'Guardando...' : 'Guardar voucher' }}
+          </button>
+        </footer>
+      </form>
+    </div>
+  </div>
+
+  <div *ngIf="showContactModal" class="company-modal-backdrop" (click)="showContactModal = false">
+    <div class="company-modal company-modal--wide" (click)="$event.stopPropagation()">
+      <form (ngSubmit)="saveContact()">
+        <header>
+          <h2>{{ contactDraft.id ? 'Editar' : 'Nuevo' }} contacto</h2>
+          <button type="button" (click)="showContactModal = false">
+            <mat-icon>close</mat-icon>
+          </button>
+        </header>
+        <div class="company-modal__body">
+          <label>
+            <span>Nombre completo</span>
+            <input type="text" [(ngModel)]="contactDraft.full_name" name="contactName" required />
+          </label>
+          <div class="company-form company-form--compact">
+            <label>
+              <span>Tipo</span>
+              <select [(ngModel)]="contactDraft.contact_type" name="contactType">
+                <option value="operations">Operacion</option>
+                <option value="hr">RR.HH.</option>
+                <option value="billing">Facturacion</option>
+                <option value="legal">Legal</option>
+                <option value="executive">Ejecutivo</option>
+                <option value="other">Otro</option>
+              </select>
+            </label>
+            <label>
+              <span>Cargo</span>
+              <input type="text" [(ngModel)]="contactDraft.role_title" name="contactRole" />
+            </label>
+          </div>
+          <div class="company-form company-form--compact">
+            <label>
+              <span>Email</span>
+              <input type="email" [(ngModel)]="contactDraft.email" name="contactEmail" />
+            </label>
+            <label>
+              <span>Telefono</span>
+              <input type="text" [(ngModel)]="contactDraft.phone" name="contactPhone" />
+            </label>
+          </div>
+          <label class="company-check">
+            <input type="checkbox" [(ngModel)]="contactDraft.is_primary" name="contactPrimary" />
+            <span>Contacto principal de la empresa</span>
+          </label>
+          <label>
+            <span>Notas</span>
+            <textarea rows="2" [(ngModel)]="contactDraft.notes" name="contactNotes"></textarea>
+          </label>
+        </div>
+        <footer>
+          <button type="submit" class="company-primary" [disabled]="saving">
+            {{ saving ? 'Guardando...' : 'Guardar contacto' }}
+          </button>
+        </footer>
+      </form>
+    </div>
+  </div>
+
+</main>

@@ -1,0 +1,1958 @@
+
+<div class="admin-shell" [ngStyle]="adminThemeVars" [ngClass]="adminThemeClasses">
+ 
+  <!-- Sidebar -->
+  <nav class="admin-sidebar">
+    <div class="sidebar-logo">
+      <div class="logo-mark">
+        <mat-icon style="font-size:16px;width:16px;height:16px;color:#fff">healing</mat-icon>
+      </div>
+      <div>
+        <div class="logo-text">Care Admin</div>
+        <div class="logo-sub">Panel de gesti&oacute;n</div>
+      </div>
+    </div>
+ 
+    <div class="nav-section">
+      <div class="nav-label">Gesti&oacute;n</div>
+      <button class="nav-item" [class.active]="currentView === 'metricas'" (click)="setView('metricas')">
+        <mat-icon class="nav-icon">monitoring</mat-icon>
+        M&eacute;tricas
+      </button>
+      <button class="nav-item" [class.active]="currentView === 'admisiones'" [class.is-locked]="isPlanLockedView('admisiones')" [disabled]="isPlanLockedView('admisiones')" (click)="setView('admisiones')">
+        <mat-icon class="nav-icon">view_kanban</mat-icon>
+        Admisiones
+      </button>
+      <button class="nav-item" [class.active]="currentView === 'tareas'" [class.is-locked]="isPlanLockedView('tareas')" [disabled]="isPlanLockedView('tareas')" (click)="setView('tareas')">
+        <mat-icon class="nav-icon">checklist</mat-icon>
+        Tareas
+      </button>
+      <button class="nav-item" [class.active]="currentView === 'sedes'" [class.is-locked]="isPlanLockedView('sedes')" [disabled]="isPlanLockedView('sedes')" (click)="setView('sedes')">
+        <mat-icon class="nav-icon">business</mat-icon>
+        Mis sedes
+      </button>
+      <button class="nav-item" [class.active]="currentView === 'camas'" [class.is-locked]="isPlanLockedView('camas')" [disabled]="isPlanLockedView('camas')" (click)="setView('camas')">
+        <mat-icon class="nav-icon">bed</mat-icon>
+        Camas y vacantes
+      </button>
+      <button class="nav-item" [class.active]="currentView === 'pacientes'" [class.is-locked]="isPlanLockedView('pacientes')" [disabled]="isPlanLockedView('pacientes')" (click)="setView('pacientes')">
+        <mat-icon class="nav-icon">people</mat-icon>
+        Pacientes
+      </button>
+      <button class="nav-item" [class.active]="currentView === 'facturacion'" [class.is-locked]="isPlanLockedView('facturacion')" [disabled]="isPlanLockedView('facturacion')" (click)="setView('facturacion')">
+        <mat-icon class="nav-icon">receipt_long</mat-icon>
+        Facturaci&oacute;n
+      </button>
+      <button class="nav-item" [class.active]="currentView === 'gastos'" [class.is-locked]="isPlanLockedView('gastos')" [disabled]="isPlanLockedView('gastos')" (click)="setView('gastos')">
+        <mat-icon class="nav-icon">account_balance_wallet</mat-icon>
+        Gastos y Finanzas
+      </button>
+    </div>
+ 
+    <div class="nav-divider"></div>
+ 
+    <div class="nav-section">
+      <div class="nav-label">Configuraci&oacute;n</div>
+      <button class="nav-item" [class.active]="currentView === 'empleados'" [class.is-locked]="isPlanLockedView('empleados')" [disabled]="isPlanLockedView('empleados')" (click)="setView('empleados')">
+        <mat-icon class="nav-icon">badge</mat-icon>
+        Empleados
+      </button>
+      <button class="nav-item" [class.active]="currentView === 'vouchers'" [class.is-locked]="isPlanLockedView('vouchers')" [disabled]="isPlanLockedView('vouchers')" (click)="setView('vouchers')">
+        <mat-icon class="nav-icon">local_activity</mat-icon>
+        Vouchers
+      </button>
+      <button class="nav-item" [class.active]="currentView === 'config'" (click)="setView('config')">
+        <mat-icon class="nav-icon">settings</mat-icon>
+        Configuraci&oacute;n
+      </button>
+      <a routerLink="/home" class="nav-item">
+        <mat-icon class="nav-icon">arrow_back</mat-icon>
+        Volver al portal
+      </a>
+    </div>
+ 
+    <div class="sidebar-footer">
+      <div class="user-row">
+        <div class="user-avatar">AD</div>
+        <div class="user-info">
+          <div class="user-name">Administrador</div>
+          <div class="user-role">Super admin</div>
+        </div>
+      </div>
+    </div>
+  </nav>
+ 
+  <!-- Main content -->
+  <div class="admin-main">
+ 
+    <!-- Topbar -->
+    <header class="admin-topbar">
+      <button class="topbar-menu-toggle" type="button" (click)="toggleMobileNav()" [attr.aria-expanded]="mobileNavOpen">
+        <mat-icon>{{ mobileNavOpen ? 'close' : 'menu' }}</mat-icon>
+      </button>
+      <div class="topbar-breadcrumb">
+        <span class="topbar-section">{{ currentViewLabel }}</span>
+        <span class="topbar-sep">/</span>
+        <span class="topbar-page">resumen</span>
+      </div>
+      <div class="topbar-right">
+        <span class="topbar-status" *ngIf="loading && hasLoadedOnce">Actualizando...</span>
+        <span class="status-dot"></span>
+        <span class="topbar-status">Sistema operativo</span>
+      </div>
+    </header>
+
+    <div class="mobile-nav-panel" *ngIf="mobileNavOpen">
+      <div class="mobile-nav-section" *ngFor="let section of mobileNavSections">
+        <div class="mobile-nav-section__label">{{ section.label }}</div>
+        <button
+          type="button"
+          class="mobile-nav-item"
+          *ngFor="let item of section.items"
+          [class.active]="currentView === item.view"
+          [class.is-locked]="item.locked && isPlanLockedView(item.view)"
+          [disabled]="item.locked && isPlanLockedView(item.view)"
+          (click)="setView(item.view)"
+        >
+          <span class="mobile-nav-item__main">
+            <mat-icon>{{ item.icon }}</mat-icon>
+            <span>{{ item.label }}</span>
+          </span>
+          <mat-icon *ngIf="item.locked && isPlanLockedView(item.view)">lock</mat-icon>
+        </button>
+      </div>
+
+      <a routerLink="/home" class="mobile-nav-item mobile-nav-item--link" (click)="closeMobileNav()">
+        <span class="mobile-nav-item__main">
+          <mat-icon>arrow_back</mat-icon>
+          <span>Volver al portal</span>
+        </span>
+      </a>
+    </div>
+
+    <div class="plan-gate-banner" *ngIf="!hasOperationalAccess">
+      <mat-icon>lock</mat-icon>
+      <div>
+        <strong>Modulo operativo bloqueado</strong>
+        <span>{{ planGateMessage }}</span>
+      </div>
+    </div>
+ 
+    <!-- Loading overlay -->
+    <div class="loading-overlay" *ngIf="loading && !hasLoadedOnce">
+      <div class="loading-spinner"></div>
+      <span class="loading-label">Cargando datos...</span>
+    </div>
+ 
+    <!-- Content area -->
+    <div class="admin-content">
+
+      <!-- View: M&eacute;tricas -->
+      <div *ngIf="currentView === 'metricas'" class="metrics-view">
+        <section class="dashboard-hero">
+          <div>
+            <span class="dashboard-hero__eyebrow">Panel de control</span>
+            <h1>{{ dashboardGreeting }}, Administrador</h1>
+            <p>Resumen operativo de admisiones, tareas, disponibilidad y alertas.</p>
+          </div>
+          <div class="dashboard-hero__meta" *ngIf="false">
+            <span>{{ activePlanTier || 'Sin plan activo' }}</span>
+            <strong>{{ hasActivePlan ? 'Operativo' : 'Bloqueado' }}</strong>
+          </div>
+        </section>
+
+        <div class="dashboard-summary-grid">
+          <button type="button" class="dashboard-summary-card" *ngFor="let card of dashboardSummaryCards" [ngClass]="'dashboard-summary-card--' + card.tone">
+            <span class="dashboard-summary-card__icon">
+              <mat-icon>{{ card.icon }}</mat-icon>
+            </span>
+            <span class="dashboard-summary-card__label">{{ card.label }}</span>
+            <strong>{{ card.value }}</strong>
+            <small>{{ card.detail }}</small>
+          </button>
+        </div>
+
+        <div class="dashboard-workbench">
+          <section class="table-card dashboard-panel dashboard-panel--actions">
+            <div class="dashboard-panel__header">
+              <div>
+                <h3>Pr&oacute;ximas acciones</h3>
+                <p>Prioridades sugeridas con los datos actuales.</p>
+              </div>
+            </div>
+            <div class="dashboard-action-list" *ngIf="dashboardActionItems.length">
+              <button type="button" class="dashboard-action" *ngFor="let item of dashboardActionItems" [ngClass]="'dashboard-action--' + item.tone" (click)="setView(item.view)">
+                <span><mat-icon>{{ item.icon }}</mat-icon></span>
+                <strong>{{ item.title }}</strong>
+                <small>{{ item.detail }}</small>
+                <mat-icon>chevron_right</mat-icon>
+              </button>
+            </div>
+            <div class="dashboard-empty" *ngIf="!dashboardActionItems.length">
+              No hay acciones urgentes pendientes.
+            </div>
+          </section>
+        </div>
+        <div class="view-header" *ngIf="false">
+          <span class="view-title">M&eacute;tricas Principales</span>
+        </div>
+        <!-- Stat cards -->
+        <div class="stats-grid" *ngIf="false">
+          <div class="stat-card">
+            <div class="stat-label">Total sedes</div>
+            <div class="stat-value">{{ totalSedes }}</div>
+            <div class="stat-delta" [class.delta-up]="totalSedes > 0">
+              {{ totalSedes > 0 ? 'Sedes registradas' : 'Sin sedes registradas' }}
+            </div>
+            <div class="stat-bar bar-green"></div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">Camas totales</div>
+            <div class="stat-value">{{ camasTotales }}</div>
+            <div class="stat-delta" [class.delta-down]="camasEnMantenimiento > 0">
+              {{ camasTotales > 0 ? (camasEnMantenimiento + ' en mantenimiento') : 'Sin camas registradas' }}
+            </div>
+            <div class="stat-bar bar-warn"></div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">Ocupaci&oacute;n</div>
+            <div class="stat-value">{{ porcentajeOcupacion }}%</div>
+            <div class="stat-delta" [class.delta-up]="camasTotales > 0 && porcentajeOcupacion > 0">
+              {{ camasTotales > 0 ? 'Ocupaci&oacute;n actual' : 'Sin variaci&oacute;n' }}
+            </div>
+            <div class="stat-bar bar-blue"></div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">Camas libres</div>
+            <div class="stat-value">{{ camasDisponibles }}</div>
+            <div class="stat-delta" [class.delta-available]="camasDisponibles > 0">
+              {{ camasTotales > 0 ? (camasDisponibles > 0 ? 'Disponibilidad inmediata' : 'Sin disponibilidad') : 'Sin camas registradas' }}
+            </div>
+            <div class="stat-bar bar-green"></div>
+          </div>
+        </div>
+
+        <div class="ops-overview">
+          <section class="table-card ops-panel" *ngIf="false">
+            <div class="ops-panel__header">
+              <h3 class="ops-panel__title">Resumen de tareas</h3>
+            </div>
+            <div class="ops-summary-grid">
+              <article class="ops-summary-card" *ngFor="let card of taskSummaryCards" [ngClass]="'ops-summary-card--' + card.tone">
+                <span class="ops-summary-card__label">{{ card.label }}</span>
+                <strong class="ops-summary-card__value">{{ card.value }}</strong>
+              </article>
+            </div>
+          </section>
+
+          <section class="table-card ops-panel">
+            <div class="ops-panel__header">
+              <h3 class="ops-panel__title">Alertas operativas</h3>
+            </div>
+            <div class="ops-alerts">
+              <article class="ops-alert" *ngFor="let alert of operationalAlerts" [ngClass]="'ops-alert--' + alert.level">
+                <div class="ops-alert__dot"></div>
+                <div class="ops-alert__body">
+                  <strong>{{ alert.title }}</strong>
+                  <p>{{ alert.detail }}</p>
+                </div>
+              </article>
+            </div>
+          </section>
+        </div>
+
+
+        <div class="metrics-charts">
+          <section class="table-card chart-card">
+            <div class="chart-card__header">
+              <h3 class="chart-card__title">Distribuci&oacute;n de Camas</h3>
+            </div>
+            <div class="chart-card__body">
+              <canvas *ngIf="camasTotales > 0"
+                baseChart
+                [labels]="doughnutChartLabels"
+                [datasets]="doughnutChartDatasets"
+                [options]="doughnutChartOptions"
+                [legend]="true"
+                type="doughnut">
+              </canvas>
+              <!-- Estado vac&iacute;o (Sin datos) -->
+              <div *ngIf="camasTotales === 0" style="display: flex; align-items: center; justify-content: center; width: 100%; height: 100%; padding-bottom: 1.5rem;">
+                <div style="width: 140px; height: 140px; border-radius: 50%; border: 18px solid #f1f5f9; display: flex; align-items: center; justify-content: center; color: #94a3b8; font-weight: 600; font-size: 13px;">
+                  Sin datos
+                </div>
+              </div>
+            </div>
+          </section>
+          <section class="table-card chart-card">
+            <div class="chart-card__header">
+              <h3 class="chart-card__title">Estado de Admisiones</h3>
+            </div>
+            <div class="chart-card__body">
+              <canvas *ngIf="totalLeads > 0"
+                baseChart
+                [labels]="barChartLabels"
+                [datasets]="barChartDatasets"
+                [options]="barChartOptions"
+                [legend]="false"
+                type="bar">
+              </canvas>
+              <div *ngIf="totalLeads === 0" style="display: flex; align-items: center; justify-content: center; width: 100%; height: 100%; padding-bottom: 1.5rem;">
+                <div style="width: 140px; height: 140px; border-radius: 50%; border: 18px solid #f1f5f9; display: flex; align-items: center; justify-content: center; color: #94a3b8; font-weight: 600; font-size: 13px;">
+                  Sin datos
+                </div>
+              </div>
+            </div>
+          </section>
+          <section class="table-card chart-card">
+            <div class="chart-card__header">
+              <h3 class="chart-card__title">Estado de Tareas</h3>
+            </div>
+            <div class="chart-card__body">
+              <canvas *ngIf="totalTareas > 0"
+                baseChart
+                [labels]="tasksChartLabels"
+                [datasets]="tasksChartDatasets"
+                [options]="tasksChartOptions"
+                [legend]="true"
+                type="doughnut">
+              </canvas>
+              <div *ngIf="totalTareas === 0" style="display: flex; align-items: center; justify-content: center; width: 100%; height: 100%; padding-bottom: 1.5rem;">
+                <div style="width: 140px; height: 140px; border-radius: 50%; border: 18px solid #f1f5f9; display: flex; align-items: center; justify-content: center; color: #94a3b8; font-weight: 600; font-size: 13px;">
+                  Sin datos
+                </div>
+              </div>
+            </div>
+          </section>
+        </div>
+        <section class="table-card dashboard-panel">
+          <div class="dashboard-panel__header">
+            <div>
+              <h3>Actividad reciente</h3>
+              <p>&Uacute;uultimos movimientos de tareas, admisiones y cobros.</p>
+            </div>
+          </div>
+          <div class="dashboard-event-list" *ngIf="latestOperationalEvents.length">
+            <article class="dashboard-event" *ngFor="let event of latestOperationalEvents">
+              <span><mat-icon>{{ event.icon }}</mat-icon></span>
+              <div>
+                <strong>{{ event.title }}</strong>
+                <small>{{ event.detail }} &middot; {{ getTimeAgo(event.created_at) }}</small>
+              </div>
+            </article>
+          </div>
+          <div class="dashboard-empty" *ngIf="!latestOperationalEvents.length">
+            A&uacute;n no hay actividad para mostrar.
+          </div>
+        </section>
+      </div>
+
+        <!-- View: Tareas -->
+      <div *ngIf="currentView === 'tareas'" class="mt-8">
+        <div class="view-header">
+          <span class="view-title">Gesti&oacute;n de Tareas</span>
+          <button class="btn-primary" (click)="openTareaModal()">
+            <mat-icon style="font-size:14px;width:14px;height:14px;margin-right:4px">add</mat-icon>
+            Nueva Tarea
+          </button>
+        </div>
+        <div class="table-filters">
+          <div class="field-group field-group--compact field-group--search">
+            <label class="field-label">Buscar</label>
+            <input class="field-input" type="search" [(ngModel)]="taskFilters.query" placeholder="Titulo, vinculo o responsable" />
+          </div>
+          <div class="field-group field-group--compact">
+            <label class="field-label">Estado</label>
+            <select class="field-input" [(ngModel)]="taskFilters.status">
+              <option value="all">Todos</option>
+              <option value="pending">Pendientes</option>
+              <option value="in_progress">En progreso</option>
+              <option value="done">Completadas</option>
+            </select>
+          </div>
+          <div class="field-group field-group--compact">
+            <label class="field-label">Vinculo</label>
+            <select class="field-input" [(ngModel)]="taskFilters.entityType">
+              <option value="all">Todos</option>
+              <option value="lead">Admision</option>
+              <option value="sede">Sede</option>
+              <option value="cama">Cama</option>
+              <option value="paciente">Paciente</option>
+              <option value="none">Sin vinculo</option>
+            </select>
+          </div>
+          <div class="field-group field-group--compact">
+            <label class="field-label">Prioridad</label>
+            <select class="field-input" [(ngModel)]="taskFilters.priority">
+              <option value="all">Todas</option>
+              <option value="high">Alta</option>
+              <option value="medium">Media</option>
+              <option value="low">Baja</option>
+            </select>
+          </div>
+          <button class="btn-secondary table-filters__reset" type="button" (click)="resetTaskFilters()">Limpiar</button>
+        </div>
+        <div class="table-card">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th style="width:32%">Tarea</th>
+                <th style="width:18%">Vinculada a</th>
+                <th style="width:20%">Asignado a</th>
+                <th style="width:15%">Vencimiento</th>
+                <th style="width:15%">Estado</th>
+                <th style="width:10%"></th>
+              </tr>
+            </thead>
+            <tbody *ngIf="filteredTareas.length > 0">
+              <tr *ngFor="let tarea of filteredTareas">
+                <td class="td-primary">
+                  {{ tarea.title }}
+                  <span *ngIf="tarea.priority === 'high'" class="status-badge badge-red" style="font-size: 9px; padding: 2px 4px; margin-left: 6px;">Alta</span>
+                </td>
+                <td>
+                  <span *ngIf="tarea.entity_label; else noEntity" class="status-badge badge-gray">{{ tarea.entity_label }}</span>
+                  <ng-template #noEntity>
+                    <span style="font-size: 11px; color: var(--text3);">Sin vinculo</span>
+                  </ng-template>
+                </td>
+                <td>
+                  {{ tarea.assigned?.full_name || 'Sin asignar' }}
+                  <div *ngIf="tarea.assigned?.email" style="font-size: 10px; color: var(--text3); margin-top: 2px;">{{ tarea.assigned.email }}</div>
+                </td>
+                <td class="td-mono">{{ tarea.due_at | date:'dd/MM/yyyy' }}</td>
+                <td>
+                  <span class="status-badge"
+                        [class.badge-warn]="tarea.status === 'pending'"
+                        [class.badge-blue]="tarea.status === 'in_progress'"
+                        [class.badge-green]="tarea.status === 'done'">
+                    {{ tarea.status === 'pending' ? 'Pendiente' : (tarea.status === 'in_progress' ? 'En Progreso' : 'Completada') }}
+                  </span>
+                </td>
+                <td class="td-actions">
+                  <button class="btn-ghost" style="margin-right: 6px;" (click)="openTareaModal(tarea)">Editar</button>
+                  <button class="btn-ghost" style="color: var(--danger); border-color: rgba(239, 68, 68, 0.3);" (click)="deleteTarea(tarea)">Eliminar</button>
+                </td>
+              </tr>
+            </tbody>
+            <tbody *ngIf="filteredTareas.length === 0 && !loading">
+              <tr>
+                <td colspan="6" class="td-empty">
+                  No hay tareas que coincidan con los filtros actuales.
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="table-card task-history-panel">
+          <div class="task-history-panel__header">
+            <h3 class="task-history-panel__title">Historial reciente de tareas</h3>
+          </div>
+          <div class="task-history-list">
+            <article class="task-history-item" *ngFor="let entry of taskHistory">
+              <div class="task-history-item__dot" [ngClass]="'task-history-item__dot--' + entry.action"></div>
+              <div class="task-history-item__body">
+                <strong>{{ entry.summary }}</strong>
+                <p>
+                  {{ entry.author?.full_name || 'Usuario' }}
+                  <span> {{ getTimeAgo(entry.created_at) }}</span>
+                </p>
+              </div>
+            </article>
+            <div *ngIf="taskHistory.length === 0" class="task-history-empty">
+              Aun no hay cambios registrados en tareas.
+            </div>
+          </div>
+        </div>
+      </div>
+ 
+      <!-- View: Sedes -->
+      <div *ngIf="currentView === 'sedes'" class="mt-8">
+        <div class="view-header">
+          <span class="view-title">Estado de sedes</span>
+          <button class="btn-primary" (click)="openSedeModal()">
+            <mat-icon style="font-size:14px;width:14px;height:14px;margin-right:4px">add</mat-icon>
+            Anadir sede
+          </button>
+        </div>
+        <div class="table-card">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th style="width:22%">Sede</th>
+                <th style="width:18%">Ubicacion</th>
+                <th style="width:10%">Camas</th>
+                <th style="width:22%">Disponibles</th>
+                <th style="width:14%">Estado</th>
+                <th style="width:14%"></th>
+              </tr>
+            </thead>
+            <tbody *ngIf="sedes.length > 0">
+              <tr *ngFor="let sede of sedes" [class.row-highlight]="isSelectedEntity('sede', sede.id)">
+                <td class="td-primary">{{ sede.nombre }}</td>
+                <td>{{ sede.ubicacion }}</td>
+                <td class="td-mono">{{ sede.camasTotales }}</td>
+                <td>
+                  <div class="progress-row">
+                    <span class="td-mono" style="min-width:22px">{{ sede.camasDisponibles }}</span>
+                    <div class="progress-track">
+                      <div class="progress-fill"
+                           [style.width.%]="(sede.camasDisponibles / sede.camasTotales) * 100"
+                           [class.fill-green]="sede.camasDisponibles > 10"
+                           [class.fill-warn]="sede.camasDisponibles <= 10 && sede.camasDisponibles > 3"
+                           [class.fill-red]="sede.camasDisponibles <= 3">
+                      </div>
+                    </div>
+                    <span class="pct-label">{{ ((sede.camasDisponibles / sede.camasTotales) * 100) | number:'1.0-0' }}%</span>
+                  </div>
+                </td>
+                <td>
+                  <span class="status-badge"
+                        [class.badge-green]="sede.estado === 'Normal'"
+                        [class.badge-warn]="sede.estado === 'Atencion'"
+                        [class.badge-red]="sede.estado === 'Critico'">
+                    {{ sede.estado }}
+                  </span>
+                </td>
+                <td class="td-actions">
+                  <button class="btn-ghost" style="margin-right: 6px;" (click)="openSedeModal(sede)">
+                    Editar
+                  </button>
+                  <button class="btn-ghost" style="color: var(--danger); border-color: rgba(239, 68, 68, 0.3);" (click)="deleteSede(sede)">
+                    Eliminar
+                  </button>
+                </td>
+            </tr>
+            </tbody>
+            <tbody *ngIf="sedes.length === 0">
+              <tr>
+                <td colspan="6" class="td-empty">
+                  No hay sedes registradas. Usa "Anadir sede" para comenzar.
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+ 
+      <!-- View: Camas -->
+      <div *ngIf="currentView === 'camas'" class="mt-8">
+        <div class="view-header">
+          <span class="view-title">Camas y vacantes</span>
+          <button class="btn-primary" (click)="openCamaModal()">
+            <mat-icon style="font-size:14px;width:14px;height:14px;margin-right:4px">add</mat-icon>
+            Anadir cama
+          </button>
+        </div>
+        <div class="table-card">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th style="width:16%">ID / Codigo</th>
+                <th style="width:22%">Sede</th>
+                <th style="width:16%">Tipo</th>
+                <th style="width:16%">Estado</th>
+                <th style="width:20%">Paciente</th>
+                <th style="width:10%"></th>
+              </tr>
+            </thead>
+            <tbody *ngIf="camasDetalle.length > 0">
+              <tr *ngFor="let cama of camasDetalle" [class.row-highlight]="isSelectedEntity('cama', cama.dbId)">
+                <td class="td-mono td-primary">{{ cama.id }}</td>
+                <td>{{ cama.sede }}</td>
+                <td>{{ cama.tipo }}</td>
+                <td>
+                  <span class="status-badge"
+                        [class.badge-blue]="cama.estado === 'Ocupada'"
+                        [class.badge-green]="cama.estado === 'Disponible'"
+                        [class.badge-warn]="cama.estado === 'En limpieza'"
+                        [class.badge-gray]="cama.estado === 'Mantenimiento'">
+                    {{ cama.estado }}
+                  </span>
+                </td>
+                <td>{{ cama.paciente }}</td>
+              <td class="td-actions">
+                <button class="btn-ghost" style="margin-right: 6px;" (click)="openCamaModal(cama)">
+                  Editar
+                </button>
+                <button class="btn-ghost" style="color: var(--danger); border-color: rgba(239, 68, 68, 0.3);" (click)="deleteCama(cama)">
+                  Eliminar
+                </button>
+              </td>
+            </tr>
+            </tbody>
+            <tbody *ngIf="camasDetalle.length === 0">
+              <tr>
+                <td colspan="6" class="td-empty">No hay camas registradas.</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+ 
+      <!-- View: Pacientes -->
+      <div *ngIf="currentView === 'pacientes'" class="mt-8">
+        <div class="view-header">
+          <span class="view-title">Pacientes activos</span>
+          <button class="btn-primary" (click)="openNewPacienteModal()">
+            <mat-icon style="font-size:14px;width:14px;height:14px;margin-right:4px">add</mat-icon>
+            Asignar paciente a cama
+          </button>
+        </div>
+        <div class="table-card">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th style="width:20%">Paciente</th>
+                <th style="width:25%">Tutor / Financiero</th>
+                <th style="width:20%">Contacto Emergencia</th>
+                <th style="width:15%">Cama / Sede</th>
+                <th style="width:20%"></th>
+              </tr>
+            </thead>
+            <tbody *ngIf="pacientesActivos.length > 0">
+              <tr *ngFor="let p of pacientesActivos" [class.row-highlight]="isSelectedEntity('paciente', p.id)">
+                <td class="td-primary">
+                  {{ p.nombreCompleto }}
+                  <div style="font-size: 11px; color: var(--text3); font-weight: normal; margin-top: 2px;">RUT: {{ p.documento }}</div>
+                </td>
+                <td>
+                  <div style="font-weight: 500;">{{ p.guarantor_name }}</div>
+                  <div style="font-size: 11px; color: var(--text3); margin-top: 2px;" *ngIf="p.monthly_fee > 0">Tarifa: {{ p.monthly_fee | currency:'CLP':'symbol-narrow':'1.0-0' }}</div>
+                </td>
+                <td>{{ p.contacto }}</td>
+                <td><span class="status-badge badge-gray">{{ p.camaAsignada }}</span></td>
+                <td class="td-actions">
+                  <button class="btn-ghost" (click)="openPacienteModal(p)">
+                    Editar
+                  </button>
+                  <button class="btn-ghost" style="color: var(--text2);" (click)="openInvoicesModal(p)">
+                    Historial
+                  </button>
+                  <button class="btn-ghost" style="color: var(--blue);" (click)="emitirCobro(p)">
+                    Cobro
+                  </button>
+                </td>
+              </tr>
+            </tbody>
+            <tbody *ngIf="pacientesActivos.length === 0">
+              <tr>
+                <td colspan="5" class="td-empty">No hay pacientes registrados. Asigna el nombre de un paciente a una cama para que aparezca aqui.</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- View: Facturacion -->
+      <div *ngIf="currentView === 'facturacion'" class="mt-8">
+        <div class="view-header">
+          <span class="view-title">Facturacion y Cobros globales</span>
+        </div>
+        <section *ngIf="companyConfigMode" class="table-card">
+          <ng-content select="[billing-content]"></ng-content>
+        </section>
+        <div class="table-card">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th style="width:25%">Paciente</th>
+                <th style="width:15%">Emision</th>
+                <th style="width:15%">Vencimiento</th>
+                <th style="width:15%">Monto</th>
+                <th style="width:15%">Estado</th>
+                <th style="width:15%">Acciones</th>
+              </tr>
+            </thead>
+            <tbody *ngIf="allInvoicesView.length > 0">
+              <tr *ngFor="let inv of allInvoicesView">
+                <td class="td-primary">
+                  {{ inv.patientName }}
+                  <div style="font-size: 11px; color: var(--text3); font-weight: normal; margin-top: 2px;">RUT: {{ inv.document }}</div>
+                </td>
+                <td class="td-mono">{{ inv.issue_date | date:'dd/MM/yyyy' }}</td>
+                <td class="td-mono">{{ inv.due_date | date:'dd/MM/yyyy' }}</td>
+                <td class="td-mono" style="font-weight: 500;">{{ inv.amount | currency:'CLP':'symbol-narrow':'1.0-0' }}</td>
+                <td>
+                  <span class="status-badge badge-gray" *ngIf="inv.status === 'draft'">Borrador</span>
+                  <span class="status-badge badge-blue" *ngIf="inv.status === 'sent'">Enviado</span>
+                  <span class="status-badge badge-green" *ngIf="inv.status === 'paid'">Pagado</span>
+                  <span class="status-badge badge-red" *ngIf="inv.status === 'overdue'">Vencido</span>
+                </td>
+                <td class="td-actions">
+                  <button class="btn-ghost" *ngIf="inv.status !== 'paid'" style="color: var(--accent);" (click)="updateInvoiceStatus(inv, 'paid')">Marcar Pagado</button>
+                </td>
+              </tr>
+            </tbody>
+            <tbody *ngIf="allInvoicesView.length === 0">
+              <tr>
+                <td colspan="6" class="td-empty">No hay cobros emitidos globalmente. Genera el primer cobro desde la pestana de Pacientes.</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- View: Gastos y Finanzas -->
+      <div *ngIf="currentView === 'gastos'" class="mt-8">
+        <div class="view-header">
+          <span class="view-title">Flujo de Caja y Gastos</span>
+          <div style="display: flex; gap: 0.75rem;">
+            <button class="btn-secondary" (click)="exportExpensesToCSV()">
+              <mat-icon style="font-size:14px;width:14px;height:14px;margin-right:4px">download</mat-icon>
+              Exportar CSV
+            </button>
+            <button class="btn-primary" (click)="openGastoModal()">
+              <mat-icon style="font-size:14px;width:14px;height:14px;margin-right:4px">add</mat-icon>
+              Registrar Gasto
+            </button>
+          </div>
+        </div>
+        
+        <div class="ops-overview" style="margin-bottom: 1.5rem;">
+          <section class="table-card ops-panel">
+            <div class="ops-panel__header">
+              <h3 class="ops-panel__title">Flujo de Caja Mensual</h3>
+            </div>
+            <div class="ops-summary-grid">
+              <article class="ops-summary-card ops-summary-card--blue">
+                <span class="ops-summary-card__label">Ingresos Reales (Pagados)</span>
+                <strong class="ops-summary-card__value">{{ totalIngresos | currency:'CLP':'symbol-narrow':'1.0-0' }}</strong>
+              </article>
+              <article class="ops-summary-card ops-summary-card--warn">
+                <span class="ops-summary-card__label">Total Gastos Operativos</span>
+                <strong class="ops-summary-card__value">{{ totalGastos | currency:'CLP':'symbol-narrow':'1.0-0' }}</strong>
+              </article>
+              <article class="ops-summary-card" [ngClass]="(totalIngresos - totalGastos) >= 0 ? 'ops-summary-card--green' : 'ops-summary-card--warn'">
+                <span class="ops-summary-card__label">Balance Neto</span>
+                <strong class="ops-summary-card__value">{{ (totalIngresos - totalGastos) | currency:'CLP':'symbol-narrow':'1.0-0' }}</strong>
+              </article>
+            </div>
+          </section>
+
+          <section class="table-card chart-card">
+            <div class="chart-card__header">
+              <h3 class="chart-card__title">Gastos por Categoria</h3>
+            </div>
+            <div class="chart-card__body">
+              <canvas *ngIf="totalGastos > 0"
+                baseChart
+                [labels]="expensesChartLabels"
+                [datasets]="expensesChartDatasets"
+                [options]="expensesChartOptions"
+                [legend]="true"
+                type="doughnut">
+              </canvas>
+              <div *ngIf="totalGastos === 0" style="display: flex; align-items: center; justify-content: center; width: 100%; height: 100%; padding-bottom: 1.5rem;">
+                <div style="width: 140px; height: 140px; border-radius: 50%; border: 18px solid #f1f5f9; display: flex; align-items: center; justify-content: center; color: #94a3b8; font-weight: 600; font-size: 13px;">
+                  Sin gastos
+                </div>
+              </div>
+            </div>
+          </section>
+        </div>
+
+        <div class="table-card">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th style="width:15%">Fecha</th>
+                <th style="width:20%">Categoria</th>
+                <th style="width:35%">Descripcion</th>
+                <th style="width:15%">Monto</th>
+                <th style="width:15%">Acciones</th>
+              </tr>
+            </thead>
+            <tbody *ngIf="gastos.length > 0">
+              <tr *ngFor="let g of gastos">
+                <td class="td-mono">{{ g.expense_date | date:'dd/MM/yyyy' }}</td>
+                <td><span class="status-badge badge-gray">{{ g.category }}</span></td>
+                <td>{{ g.description || 'Sin descripcion' }}</td>
+                <td class="td-mono" style="font-weight: 500; color: var(--danger);">{{ g.amount | currency:'CLP':'symbol-narrow':'1.0-0' }}</td>
+                <td class="td-actions">
+                  <button class="btn-ghost" style="margin-right: 6px;" (click)="openGastoModal(g)">Editar</button>
+                  <button class="btn-ghost" style="color: var(--danger); border-color: rgba(239, 68, 68, 0.3);" (click)="deleteGasto(g)">Eliminar</button>
+                </td>
+              </tr>
+            </tbody>
+            <tbody *ngIf="gastos.length === 0">
+              <tr>
+                <td colspan="5" class="td-empty">No hay gastos registrados en el sistema.</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- View: Admisiones (Kanban) -->
+      <div *ngIf="currentView === 'admisiones'" class="view-kanban mt-8" style="display: flex; flex-direction: column; height: 100%;">
+        <div class="view-header view-header--kanban">
+          <div class="view-header__content">
+            <span class="view-title">Pipeline de Admisiones</span>
+            <p class="view-subtitle">
+              {{ filteredTotalKanbanLeads }} casos visibles en seguimiento.
+              {{ filteredFinalKanbanLeads }} ya llegaron a una salida final.
+            </p>
+          </div>
+          <button class="btn-primary btn-primary--kanban" (click)="openLeadModal()">
+            <mat-icon style="font-size:14px;width:14px;height:14px;margin-right:4px">add</mat-icon>
+            Nueva consulta
+          </button>
+        </div>
+
+        <div class="table-filters table-filters--kanban">
+          <div class="field-group field-group--compact field-group--search">
+            <label class="field-label">Buscar</label>
+            <input class="field-input" type="search" [(ngModel)]="leadFilters.query" placeholder="Nombre, comuna o dependencia" />
+          </div>
+          <div class="field-group field-group--compact">
+            <label class="field-label">Etapa</label>
+            <select class="field-input" [(ngModel)]="leadFilters.status">
+              <option value="all">Todas</option>
+              <option value="nuevo">Nuevas</option>
+              <option value="contactado">Contactado</option>
+              <option value="evaluacion">Evaluacion</option>
+              <option value="match">Propuesta</option>
+              <option value="cerrado">Cerrado</option>
+              <option value="perdido">Perdido</option>
+            </select>
+          </div>
+          <div class="field-group field-group--compact">
+            <label class="field-label">Comuna</label>
+            <input class="field-input" type="search" [(ngModel)]="leadFilters.comuna" placeholder="Ej: Las Condes" />
+          </div>
+          <button class="btn-secondary table-filters__reset" type="button" (click)="resetLeadFilters()">Limpiar</button>
+        </div>
+        
+        <!-- Tablero Kanban dinmico -->
+        <div class="kanban-board" cdkDropListGroup>
+          <!-- Itera sobre las columnas definidas en el TS -->
+          <div class="kanban-column" [class.kanban-column--final]="isTerminalKanbanColumn(column.id)" *ngFor="let column of filteredKanbanColumns; trackBy: trackByKanbanColumn">
+            <div class="kanban-column-header">
+              <div class="kanban-column-heading">
+                <span>{{ column.label }}</span>
+                <small>{{ getKanbanColumnHint(column.id) }}</small>
+              </div>
+              <span class="kanban-counter">{{ getFilteredKanbanItems(column.id).length }}</span>
+            </div>
+            
+            <!-- Esta es la zona donde se pueden soltar tarjetas -->
+            <div 
+              class="kanban-dropzone"
+              cdkDropList
+              [id]="column.id"
+              [cdkDropListData]="kanbanData[column.id]"
+              (cdkDropListDropped)="dropKanban($event)">
+
+              <div *ngIf="!getFilteredKanbanItems(column.id).length" class="kanban-empty">
+                <mat-icon>inbox</mat-icon>
+                <strong>{{ getKanbanEmptyTitle(column.id) }}</strong>
+                <span>{{ getKanbanEmptyHint(column.id) }}</span>
+              </div>
+
+              <!-- Itera sobre los leads (tarjetas) de esta columna -->
+              <div class="kanban-card" [class.kanban-card--selected]="isSelectedEntity('lead', lead.id)" *ngFor="let lead of getFilteredKanbanItems(column.id); trackBy: trackByLead" cdkDrag [cdkDragData]="lead" cdkDragPreviewContainer="parent" role="button" tabindex="0" (click)="openLeadDetail(lead)" (keydown.enter)="openLeadDetail(lead)">
+                <ng-template cdkDragPlaceholder>
+                  <div class="kanban-card kanban-card--placeholder">
+                    <div class="kanban-card-content"></div>
+                  </div>
+                </ng-template>
+                <div class="kanban-card-content">
+                  <div class="card-title">{{ lead.nombre }}</div>
+                  <div class="card-subtitle">
+                    {{ lead.comuna || 'Sin comuna' }} 
+                    <ng-container *ngIf="lead.dependencia"> {{ lead.dependencia }}</ng-container>
+                  </div>
+                  
+                  <div class="kanban-card__meta">
+                    <span class="status-badge"
+                          [class.badge-warn]="column.id === 'nuevo'"
+                          [class.badge-blue]="column.id === 'contactado' || column.id === 'match'"
+                          [class.badge-gray]="column.id === 'evaluacion'"
+                          [class.badge-green]="column.id === 'cerrado'"
+                          [class.badge-red]="column.id === 'perdido'">
+                      {{ column.id === 'nuevo' ? 'Pendiente' : column.label }}
+                    </span>
+                    <span *ngIf="lead.presupuesto" class="kanban-card__price">
+                      {{ lead.presupuesto | currency:'CLP':'symbol-narrow':'1.0-0' }}
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Views: ng-content slots -->
+      <div [hidden]="currentView !== 'empleados'">
+        <ng-content select="[empleados-content]"></ng-content>
+      </div>
+      <div [hidden]="currentView !== 'vouchers'">
+        <ng-content select="[vouchers-content]"></ng-content>
+      </div>
+      <div *ngIf="currentView === 'config'" class="erp-config-view">
+        <div class="view-header">
+          <span class="view-title">{{ companyConfigMode ? 'Mi empresa' : 'Configuracion ERP' }}</span>
+          <button *ngIf="!companyConfigMode" class="btn-ghost" (click)="exportConfigSnapshotToCSV()">
+            <mat-icon style="font-size:14px;width:14px;height:14px;margin-right:4px">download</mat-icon>
+            Exportar CSV
+          </button>
+        </div>
+
+        <div class="erp-toolbar table-card">
+          <div>
+            <h3>{{ companyConfigMode ? 'Centro de empresa' : 'Configuracion operativa' }}</h3>
+            <p>{{ companyConfigMode ? 'Administra datos de empresa, documentos y mensajes de soporte.' : 'Ajustes que cambian el funcionamiento diario: flujos, reglas, documentos y mensajes.' }}</p>
+          </div>
+          <label class="erp-search" *ngIf="!companyConfigMode">
+            <mat-icon>search</mat-icon>
+            <input type="search" [(ngModel)]="configSearch" placeholder="Buscar categoria, estado, SLA, documento..." />
+          </label>
+        </div>
+
+        <div class="erp-summary-strip">
+          <button *ngIf="companyConfigMode" type="button" class="erp-summary-card" (click)="setConfigSection('company')">
+            <span>Mi empresa</span>
+            <strong>1</strong>
+            <small>Datos generales</small>
+          </button>
+          <button *ngIf="!companyConfigMode && !hideWorkflowConfig" type="button" class="erp-summary-card" (click)="setConfigSection('workflow')">
+            <span>Flujos</span>
+            <strong>{{ systemCategories.length + systemStatuses.length }}</strong>
+            <small>Categorias y estados</small>
+          </button>
+          <button *ngIf="!companyConfigMode" type="button" class="erp-summary-card" (click)="setConfigSection('business')">
+            <span>Reglas</span>
+            <strong>{{ businessParameters.length + planSlas.length }}</strong>
+            <small>Parametros y SLA</small>
+          </button>
+          <button type="button" class="erp-summary-card" (click)="setConfigSection('documents')">
+            <span>Documentos</span>
+            <strong>{{ companyDocuments.length }}</strong>
+            <small>Contratos y archivos</small>
+          </button>
+          <button *ngIf="companyConfigMode" type="button" class="erp-summary-card" (click)="setConfigSection('messages')">
+            <span>Soporte</span>
+            <strong>{{ entityComments.length }}</strong>
+            <small>Mensajes enviados</small>
+          </button>
+        </div>
+
+        <div class="erp-section-tabs">
+          <button *ngIf="companyConfigMode" type="button" [class.active]="configSection === 'company'" (click)="setConfigSection('company')">
+            <mat-icon>business</mat-icon>
+            Mi empresa
+          </button>
+          <button type="button" [class.active]="configSection === 'appearance'" (click)="setConfigSection('appearance')">
+            <mat-icon>palette</mat-icon>
+            Apariencia
+          </button>
+          <button *ngIf="!companyConfigMode && !hideWorkflowConfig" type="button" [class.active]="configSection === 'workflow'" (click)="setConfigSection('workflow')">
+            <mat-icon>account_tree</mat-icon>
+            Flujos
+          </button>
+          <button *ngIf="!companyConfigMode" type="button" [class.active]="configSection === 'business'" (click)="setConfigSection('business')">
+            <mat-icon>tune</mat-icon>
+            Reglas
+          </button>
+          <button type="button" [class.active]="configSection === 'documents'" (click)="setConfigSection('documents')">
+            <mat-icon>folder_open</mat-icon>
+            Documentos
+          </button>
+          <button type="button" [class.active]="configSection === 'messages'" (click)="setConfigSection('messages')">
+            <mat-icon>forum</mat-icon>
+            {{ companyConfigMode ? 'Mensajes/soporte' : 'Mensajes' }}
+          </button>
+        </div>
+
+        <div class="erp-config-grid">
+          <section class="table-card erp-panel erp-panel--wide" *ngIf="configSection === 'company' && companyConfigMode">
+            <ng-content select="[config-content]"></ng-content>
+          </section>
+
+          <section class="table-card erp-panel erp-panel--wide appearance-panel" *ngIf="configSection === 'appearance'">
+            <div class="erp-panel__header">
+              <div>
+                <h3>Apariencia del ERP</h3>
+                <p>Personaliza esta empresa sin afectar a las dems: colores, botones, bordes, densidad y logo.</p>
+              </div>
+              <span>Por empresa</span>
+            </div>
+
+            <div class="appearance-layout">
+              <div class="appearance-controls">
+                <div class="theme-preset-row">
+                  <button type="button" class="btn-secondary" (click)="applyThemePreset('care')">company pet</button>
+                  <button type="button" class="btn-secondary" (click)="applyThemePreset('clinical')">Clnico</button>
+                  <button type="button" class="btn-secondary" (click)="applyThemePreset('corporate')">Corporativo</button>
+                  <button type="button" class="btn-secondary" (click)="applyThemePreset('warm')">Clido</button>
+                </div>
+
+                <div class="theme-control-group">
+                  <h4>Colores</h4>
+                  <div class="theme-color-grid">
+                    <label class="theme-color-field">
+                      <span>Primario</span>
+                      <input type="color" [(ngModel)]="brandingDraft.erp_primary_color">
+                      <input class="field-input" [(ngModel)]="brandingDraft.erp_primary_color" placeholder="#123c4a">
+                    </label>
+                    <label class="theme-color-field">
+                      <span>Acento</span>
+                      <input type="color" [(ngModel)]="brandingDraft.erp_accent_color">
+                      <input class="field-input" [(ngModel)]="brandingDraft.erp_accent_color" placeholder="#f27a5e">
+                    </label>
+                    <label class="theme-color-field">
+                      <span>Fondo</span>
+                      <input type="color" [(ngModel)]="brandingDraft.erp_background_color">
+                      <input class="field-input" [(ngModel)]="brandingDraft.erp_background_color" placeholder="#f8fafc">
+                    </label>
+                    <label class="theme-color-field">
+                      <span>Superficie</span>
+                      <input type="color" [(ngModel)]="brandingDraft.erp_surface_color">
+                      <input class="field-input" [(ngModel)]="brandingDraft.erp_surface_color" placeholder="#ffffff">
+                    </label>
+                    <label class="theme-color-field">
+                      <span>Texto</span>
+                      <input type="color" [(ngModel)]="brandingDraft.erp_text_color">
+                      <input class="field-input" [(ngModel)]="brandingDraft.erp_text_color" placeholder="#0f172a">
+                    </label>
+                  </div>
+                </div>
+
+                <div class="theme-control-group">
+                  <h4>Estilo</h4>
+                  <div class="erp-form-grid erp-form-grid--four">
+                    <label class="theme-select-field">
+                      <span>Botones</span>
+                      <select class="field-input" [(ngModel)]="brandingDraft.erp_button_style">
+                        <option value="solid">Solidos</option>
+                        <option value="soft">Suaves</option>
+                        <option value="outline">Contorno</option>
+                      </select>
+                    </label>
+                    <label class="theme-select-field">
+                      <span>Bordes</span>
+                      <select class="field-input" [(ngModel)]="brandingDraft.erp_radius">
+                        <option value="compact">Compactos</option>
+                        <option value="rounded">Redondeados</option>
+                        <option value="pill">Pildora</option>
+                      </select>
+                    </label>
+                    <label class="theme-select-field">
+                      <span>Densidad</span>
+                      <select class="field-input" [(ngModel)]="brandingDraft.erp_density">
+                        <option value="compact">Compacta</option>
+                        <option value="comfortable">Cmoda</option>
+                        <option value="spacious">Amplia</option>
+                      </select>
+                    </label>
+                    <label class="theme-select-field">
+                      <span>Tipografia</span>
+                      <select class="field-input" [(ngModel)]="brandingDraft.erp_font_family">
+                        <option value="dm_sans">DM Sans</option>
+                        <option value="inter">Inter</option>
+                        <option value="system">Sistema</option>
+                      </select>
+                    </label>
+                  </div>
+                </div>
+
+                <label class="theme-select-field">
+                  <span>Logo URL</span>
+                  <input class="field-input" [(ngModel)]="brandingDraft.logo_url" placeholder="https://empresa.com/logo.svg">
+                </label>
+
+                <button class="btn-primary" (click)="saveBranding()">Guardar apariencia</button>
+              </div>
+
+              <div class="theme-preview">
+                <div class="theme-preview__top">
+                  <div class="theme-preview__mark">
+                    <mat-icon>healing</mat-icon>
+                  </div>
+                  <div>
+                    <strong>Vista previa ERP</strong>
+                    <span>Panel operacional</span>
+                  </div>
+                </div>
+                <div class="theme-preview__metric">
+                  <span>Casos activos</span>
+                  <strong>24</strong>
+                  <em>+8% este mes</em>
+                </div>
+                <div class="theme-preview__actions">
+                  <button type="button" class="btn-primary">Crear tarea</button>
+                  <button type="button" class="btn-secondary">Exportar</button>
+                </div>
+                <div class="theme-preview__table">
+                  <div>
+                    <strong>Activacion de empresa</strong>
+                    <span class="status-badge badge-green">Activo</span>
+                  </div>
+                  <div>
+                    <strong>SLA plan</strong>
+                    <span class="status-badge badge-blue">24h</span>
+                  </div>
+                  <div>
+                    <strong>Documento contrato</strong>
+                    <span class="status-badge badge-warn">Revision</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <section class="table-card erp-panel" *ngIf="configSection === 'business' && !companyConfigMode">
+            <div class="erp-panel__header">
+              <div>
+                <h3>Parametros de negocio</h3>
+                <p>Define valores internos que controlan reglas del ERP.</p>
+              </div>
+              <span>{{ businessParameters.length }} activos</span>
+            </div>
+            <div class="erp-form-grid erp-form-grid--four">
+              <input class="field-input" [(ngModel)]="parameterDraft.key" placeholder="clave_interna">
+              <input class="field-input" [(ngModel)]="parameterDraft.label" placeholder="Etiqueta">
+              <select class="field-input" [(ngModel)]="parameterDraft.value_type">
+                <option value="text">Texto</option>
+                <option value="number">Numero</option>
+                <option value="boolean">Booleano</option>
+                <option value="json">JSON</option>
+              </select>
+              <input class="field-input" [(ngModel)]="parameterDraft.value" placeholder="Valor">
+            </div>
+            <button class="btn-primary" (click)="addBusinessParameter()">Guardar parametro</button>
+            <div class="erp-chip-list">
+              <span class="erp-chip" *ngFor="let param of businessParameters">{{ param.label }}</span>
+            </div>
+          </section>
+
+          <section class="table-card erp-panel erp-panel--wide workflow-console" *ngIf="configSection === 'workflow' && !companyConfigMode">
+            <div class="erp-panel__header">
+              <div>
+                <h3>Flujos operativos</h3>
+                <p>Define las opciones que el equipo usa en solicitudes, tareas, documentos, proveedores y leads.</p>
+              </div>
+              <span>{{ systemCategories.length }} categorias  {{ systemStatuses.length }} estados</span>
+            </div>
+
+            <div class="workflow-layout">
+              <div class="workflow-block">
+                <div class="workflow-block__title">
+                  <strong>Categorias</strong>
+                  <span>Clasifican registros y filtros.</span>
+                </div>
+                <div class="erp-form-grid erp-form-grid--action">
+                  <label class="field-stack">
+                    <span>Mdulo</span>
+                    <select class="field-input" [(ngModel)]="categoryDraft.scope">
+                      <option value="request">Solicitud</option>
+                      <option value="task">Tarea</option>
+                      <option value="provider">Proveedor</option>
+                      <option value="document">Documento</option>
+                      <option value="lead">Lead</option>
+                    </select>
+                  </label>
+                  <label class="field-stack">
+                    <span>Nombre</span>
+                    <input class="field-input" [(ngModel)]="categoryDraft.name" placeholder="Ej: Urgente, Legal, Salud">
+                  </label>
+                  <label class="field-stack field-stack--compact">
+                    <span>Color</span>
+                    <input class="field-input" [(ngModel)]="categoryDraft.color" placeholder="#f27a5e">
+                  </label>
+                  <button class="btn-primary" (click)="addCategory()">Agregar</button>
+                </div>
+                <div class="erp-table-list" *ngIf="systemCategories.length; else emptyCategories">
+                  <div class="erp-table-list__head">
+                    <span>Modulo</span>
+                    <span>Categoria</span>
+                    <span>Color</span>
+                  </div>
+                  <div class="erp-table-list__row" *ngFor="let category of systemCategories">
+                    <span>{{ category.scope }}</span>
+                    <strong>{{ category.name }}</strong>
+                    <span class="color-pill">
+                      <i [style.background]="category.color || '#e2e8f0'"></i>
+                      {{ category.color || 'Sin color' }}
+                    </span>
+                  </div>
+                </div>
+                <ng-template #emptyCategories>
+                  <div class="erp-empty-state">No hay categorias todava. Agrega las que realmente usar el equipo.</div>
+                </ng-template>
+              </div>
+
+              <div class="workflow-block">
+                <div class="workflow-block__title">
+                  <strong>Estados</strong>
+                  <span>Controlan avance y cierres por flujo.</span>
+                </div>
+                <div class="erp-form-grid erp-form-grid--action">
+                  <label class="field-stack">
+                    <span>Flujo</span>
+                    <select class="field-input" [(ngModel)]="statusDraft.scope">
+                      <option value="request">Solicitud</option>
+                      <option value="task">Tarea</option>
+                      <option value="lead">Lead</option>
+                      <option value="document">Documento</option>
+                    </select>
+                  </label>
+                  <label class="field-stack field-stack--compact">
+                    <span>Codigo</span>
+                    <input class="field-input" [(ngModel)]="statusDraft.code" placeholder="en_revision">
+                  </label>
+                  <label class="field-stack">
+                    <span>Etiqueta</span>
+                    <input class="field-input" [(ngModel)]="statusDraft.label" placeholder="En revision">
+                  </label>
+                  <label class="erp-check erp-check--button"><input type="checkbox" [(ngModel)]="statusDraft.is_terminal"> Terminal</label>
+                  <button class="btn-primary" (click)="addStatus()">Agregar</button>
+                </div>
+                <div class="erp-table-list" *ngIf="systemStatuses.length; else emptyStatuses">
+                  <div class="erp-table-list__head">
+                    <span>Flujo</span>
+                    <span>Estado</span>
+                    <span>Cierre</span>
+                  </div>
+                  <div class="erp-table-list__row" *ngFor="let status of systemStatuses">
+                    <span>{{ status.scope }}</span>
+                    <strong>{{ status.label }}</strong>
+                    <span>{{ status.is_terminal ? 'Terminal' : 'Intermedio' }}</span>
+                  </div>
+                </div>
+                <ng-template #emptyStatuses>
+                  <div class="erp-empty-state">No hay estados configurables. Parte por los estados que cambian ms seguido.</div>
+                </ng-template>
+              </div>
+            </div>
+          </section>
+
+          <section class="table-card erp-panel erp-panel--legacy" *ngIf="false">
+            <div class="erp-panel__header">
+              <div>
+                <h3>Categorias editables</h3>
+                <p>Ordena solicitudes, tareas, documentos, proveedores y leads.</p>
+              </div>
+              <span>{{ systemCategories.length }} categorias</span>
+            </div>
+            <div class="erp-form-grid erp-form-grid--three">
+              <select class="field-input" [(ngModel)]="categoryDraft.scope">
+                <option value="request">Solicitud</option>
+                <option value="task">Tarea</option>
+                <option value="provider">Proveedor</option>
+                <option value="document">Documento</option>
+                <option value="lead">Lead</option>
+              </select>
+              <input class="field-input" [(ngModel)]="categoryDraft.name" placeholder="Nombre categoria">
+              <input class="field-input" [(ngModel)]="categoryDraft.color" placeholder="#f27a5e">
+            </div>
+            <button class="btn-primary" (click)="addCategory()">Anadir categoria</button>
+            <div class="erp-chip-list">
+              <span class="erp-chip" *ngFor="let category of systemCategories">{{ category.scope }}  {{ category.name }}</span>
+            </div>
+          </section>
+
+          <section class="table-card erp-panel erp-panel--legacy" *ngIf="false">
+            <div class="erp-panel__header">
+              <div>
+                <h3>Estados configurables</h3>
+                <p>Crea estados por flujo para evitar depender de valores fijos.</p>
+              </div>
+              <span>{{ systemStatuses.length }} estados</span>
+            </div>
+            <div class="erp-form-grid erp-form-grid--four">
+              <select class="field-input" [(ngModel)]="statusDraft.scope">
+                <option value="request">Solicitud</option>
+                <option value="task">Tarea</option>
+                <option value="lead">Lead</option>
+                <option value="document">Documento</option>
+              </select>
+              <input class="field-input" [(ngModel)]="statusDraft.code" placeholder="codigo">
+              <input class="field-input" [(ngModel)]="statusDraft.label" placeholder="Etiqueta">
+              <label class="erp-check"><input type="checkbox" [(ngModel)]="statusDraft.is_terminal"> Terminal</label>
+            </div>
+            <button class="btn-primary" (click)="addStatus()">Anadir estado</button>
+            <div class="erp-chip-list">
+              <span class="erp-chip" *ngFor="let status of systemStatuses">{{ status.scope }}  {{ status.label }}</span>
+            </div>
+          </section>
+
+          <section class="table-card erp-panel" *ngIf="configSection === 'business' && !companyConfigMode">
+            <div class="erp-panel__header">
+              <div>
+                <h3>SLA por plan</h3>
+                <p>Configura tiempos de respuesta, tareas y escalamiento.</p>
+              </div>
+              <span>{{ planSlas.length }} planes</span>
+            </div>
+            <div class="erp-form-grid erp-form-grid--four">
+              <input class="field-input" [(ngModel)]="planSlaDraft.plan_tier" placeholder="Plan">
+              <input class="field-input" type="number" [(ngModel)]="planSlaDraft.request_response_hours" placeholder="Respuesta h">
+              <input class="field-input" type="number" [(ngModel)]="planSlaDraft.task_due_hours" placeholder="Tarea h">
+              <input class="field-input" type="number" [(ngModel)]="planSlaDraft.escalation_hours" placeholder="Escala h">
+            </div>
+            <button class="btn-primary" (click)="addPlanSla()">Guardar SLA</button>
+            <div class="erp-list">
+              <div class="erp-list-row" *ngFor="let sla of planSlas">
+                <strong>{{ sla.plan_tier }}</strong>
+                <span>{{ sla.request_response_hours }}h respuesta  {{ sla.escalation_hours }}h escalamiento</span>
+              </div>
+            </div>
+          </section>
+
+          <section class="table-card erp-panel erp-panel--wide" *ngIf="configSection === 'messages' && !companyConfigMode">
+            <div class="erp-panel__header">
+              <div>
+                <h3>Plantillas de email</h3>
+                <p>Prepara comunicaciones reutilizables para invitaciones, seguimiento y cierre.</p>
+              </div>
+              <span>{{ emailTemplates.length }} plantillas</span>
+            </div>
+            <div class="erp-form-grid erp-form-grid--three">
+              <input class="field-input" [(ngModel)]="emailTemplateDraft.code" placeholder="codigo">
+              <input class="field-input" [(ngModel)]="emailTemplateDraft.name" placeholder="Nombre">
+              <input class="field-input" [(ngModel)]="emailTemplateDraft.subject" placeholder="Asunto">
+            </div>
+            <textarea class="field-input" rows="3" [(ngModel)]="emailTemplateDraft.body_html" placeholder="<p>Hola {{nombre}}, ...</p>"></textarea>
+            <button class="btn-primary" (click)="addEmailTemplate()">Crear plantilla</button>
+            <div class="erp-document-list">
+              <div class="erp-list-row" *ngFor="let template of emailTemplates">
+                <strong>{{ template.name }}</strong>
+                <span>{{ template.subject }}</span>
+              </div>
+            </div>
+          </section>
+
+          <section class="table-card erp-panel" *ngIf="configSection === 'documents'">
+            <div class="erp-panel__header">
+              <div>
+                <h3>Documentos</h3>
+                <p>Registra contratos, propuestas, certificados y archivos de caso.</p>
+              </div>
+              <span>{{ companyDocuments.length }} registros</span>
+            </div>
+            <div class="erp-form-grid erp-form-grid--two">
+              <select class="field-input" [(ngModel)]="documentDraft.document_type">
+                <option value="contract">Contrato</option>
+                <option value="company_file">Archivo empresa</option>
+                <option value="case_file">Archivo caso</option>
+                <option value="certificate">Certificado</option>
+                <option value="proposal">Propuesta</option>
+                <option value="other">Otro</option>
+              </select>
+              <input class="field-input" [(ngModel)]="documentDraft.title" placeholder="Titulo documento">
+            </div>
+            <label class="erp-upload-field">
+              <span>Archivo</span>
+              <input type="file" (change)="onDocumentFileSelected($event)">
+              <strong>{{ selectedDocumentFile?.name || 'Seleccionar archivo' }}</strong>
+              <small *ngIf="selectedDocumentFile">{{ (selectedDocumentFile.size / 1024 / 1024) | number:'1.1-1' }} MB</small>
+            </label>
+            <input *ngIf="!selectedDocumentFile && !companyConfigMode" class="field-input" [(ngModel)]="documentDraft.storage_path" placeholder="Ruta storage opcional: company-id/archivo.pdf">
+            <button class="btn-primary" (click)="addDocumentRecord()" [disabled]="uploadingDocument || (companyConfigMode && !selectedDocumentFile)">
+              {{ uploadingDocument ? 'Subiendo...' : (selectedDocumentFile ? 'Subir documento' : 'Registrar documento') }}
+            </button>
+            <div class="erp-list">
+              <div class="erp-document-row" *ngFor="let doc of companyDocuments">
+                <div class="erp-document-row__main">
+                  <strong>{{ doc.title }}</strong>
+                  <span>{{ doc.document_type }}  {{ doc.file_name || 'Sin archivo' }}</span>
+                  <small>
+                    {{ doc.created_at | date:'dd/MM/yyyy HH:mm' }}
+                    <ng-container *ngIf="doc.size_bytes">  {{ formatBytes(doc.size_bytes) }}</ng-container>
+                  </small>
+                </div>
+                <span class="status-badge"
+                  [class.badge-blue]="doc.status === 'draft'"
+                  [class.badge-warn]="doc.status === 'review'"
+                  [class.badge-green]="doc.status === 'approved'"
+                  [class.badge-gray]="doc.status === 'archived'">
+                  {{ doc.status }}
+                </span>
+                <div class="erp-document-row__actions">
+                <button
+                  type="button"
+                  class="btn-secondary erp-list-action"
+                  [disabled]="!doc.storage_path"
+                  (click)="openCompanyDocument(doc)">
+                  Ver
+                </button>
+                <button type="button" class="btn-secondary erp-list-action" *ngIf="doc.status !== 'approved'" (click)="updateCompanyDocumentStatus(doc, 'approved')">Aprobar</button>
+                <button type="button" class="btn-secondary erp-list-action" *ngIf="doc.status !== 'archived'" (click)="updateCompanyDocumentStatus(doc, 'archived')">Archivar</button>
+                <button type="button" class="btn-secondary erp-list-action erp-list-action--danger" (click)="deleteCompanyDocument(doc)">Eliminar</button>
+                </div>
+              </div>
+              <div class="erp-empty-state" *ngIf="companyDocuments.length === 0">
+                No hay documentos cargados.
+              </div>
+            </div>
+          </section>
+
+          <section class="table-card erp-panel" *ngIf="configSection === 'messages'">
+            <div class="erp-panel__header">
+              <div>
+                <h3>{{ companyConfigMode ? 'Mensajes y soporte' : 'Mensajeria interna' }}</h3>
+                <p>{{ companyConfigMode ? 'Deja mensajes para el equipo company pet.' : 'Deja notas operativas asociadas a empresa, tareas, leads o documentos.' }}</p>
+              </div>
+              <span>{{ entityComments.length }} mensajes</span>
+            </div>
+            <div class="erp-form-grid erp-form-grid--two" *ngIf="!companyConfigMode">
+              <select class="field-input" [(ngModel)]="commentDraft.entity_type">
+                <option value="company">Empresa</option>
+                <option value="task">Tarea</option>
+                <option value="lead">Lead</option>
+                <option value="document">Documento</option>
+              </select>
+              <select class="field-input" [(ngModel)]="commentDraft.visibility">
+                <option value="internal">Interno</option>
+                <option value="company">Visible empresa</option>
+              </select>
+            </div>
+            <textarea class="field-input" rows="3" [(ngModel)]="commentDraft.body" [placeholder]="companyConfigMode ? 'Escribe un mensaje para soporte company pet...' : 'Escribe un comentario o nota operacional...'"></textarea>
+            <button class="btn-primary" (click)="addComment()">Agregar comentario</button>
+            <div class="erp-list">
+              <div class="erp-list-row" *ngFor="let comment of entityComments | slice:0:5">
+                <strong>{{ comment.author?.full_name || 'Usuario' }}</strong>
+                <span>{{ comment.body }}</span>
+              </div>
+            </div>
+          </section>
+
+          <section class="table-card erp-panel erp-panel--wide" *ngIf="configSearch.trim()">
+            <div class="erp-panel__header">
+              <div>
+                <h3>Resultados bsqueda</h3>
+                <p>Vista rpida de la configuracion cargada.</p>
+              </div>
+              <span>{{ filteredConfigRows.length }} tems</span>
+            </div>
+            <div class="erp-list">
+              <div class="erp-list-row" *ngFor="let row of filteredConfigRows">
+                <strong>{{ row.type }}  {{ row.title }}</strong>
+                <span>{{ row.detail }}</span>
+              </div>
+            </div>
+          </section>
+        </div>
+      </div>
+ 
+    </div><!-- /admin-content -->
+  </div><!-- /admin-main -->
+ 
+</div><!-- /admin-shell -->
+ 
+<!-- Modal: Anadir Sede -->
+<div class="modal-backdrop" *ngIf="showSedeModal" (click)="showSedeModal = false">
+  <div class="modal-box" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <span class="modal-title">Anadir sede</span>
+      <button class="modal-close" (click)="showSedeModal = false">
+        <mat-icon style="font-size:18px;width:18px;height:18px">close</mat-icon>
+      </button>
+    </div>
+    <div class="modal-body">
+      <div class="field-group">
+        <label class="field-label">Nombre de la sede</label>
+        <input class="field-input" type="text" [(ngModel)]="sedeDraft.nombre" placeholder="Ej: Sede Central">
+      </div>
+      <div class="field-group">
+        <label class="field-label">Ubicacion / comuna</label>
+        <input class="field-input" type="text" [(ngModel)]="sedeDraft.ubicacion" placeholder="Ej: Providencia, Santiago">
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-secondary" (click)="showSedeModal = false">Cancelar</button>
+      <button class="btn-primary" (click)="saveSede()" [disabled]="savingSede">
+        {{ savingSede ? 'Guardando...' : 'Guardar sede' }}
+      </button>
+    </div>
+  </div>
+</div>
+
+<div class="toast-stack" *ngIf="toasts.length">
+  <article class="toast" *ngFor="let toast of toasts" [ngClass]="'toast--' + toast.tone">
+    <div class="toast__body">
+      <strong>{{ toast.tone === 'success' ? 'Listo' : (toast.tone === 'error' ? 'Atencion' : (toast.tone === 'warning' ? 'Revision' : 'Info')) }}</strong>
+      <p>{{ toast.message }}</p>
+    </div>
+    <button type="button" class="toast__close" (click)="dismissToast(toast.id)">
+      <mat-icon>close</mat-icon>
+    </button>
+  </article>
+</div>
+
+<div class="modal-backdrop" *ngIf="confirmState.open" (click)="resolveConfirmation(false)">
+  <div class="modal-box modal-box--confirm" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <span class="modal-title">{{ confirmState.title }}</span>
+      <button class="modal-close" (click)="resolveConfirmation(false)">
+        <mat-icon style="font-size:18px;width:18px;height:18px">close</mat-icon>
+      </button>
+    </div>
+    <div class="modal-body confirm-modal">
+      <div class="confirm-modal__icon" [ngClass]="'confirm-modal__icon--' + confirmState.tone">
+        <mat-icon>{{ confirmState.tone === 'error' ? 'warning' : (confirmState.tone === 'success' ? 'task_alt' : 'help') }}</mat-icon>
+      </div>
+      <p>{{ confirmState.message }}</p>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-secondary" (click)="resolveConfirmation(false)">{{ confirmState.cancelLabel }}</button>
+      <button class="btn-primary" (click)="resolveConfirmation(true)">{{ confirmState.confirmLabel }}</button>
+    </div>
+  </div>
+</div>
+<!-- Modal: Registrar Gasto -->
+<div class="modal-backdrop" *ngIf="showGastoModal" (click)="showGastoModal = false">
+  <div class="modal-box" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <span class="modal-title">{{ gastoDraft.id ? 'Editar Gasto' : 'Registrar Nuevo Gasto' }}</span>
+      <button class="modal-close" (click)="showGastoModal = false">
+        <mat-icon style="font-size:18px;width:18px;height:18px">close</mat-icon>
+      </button>
+    </div>
+    <div class="modal-body">
+      <div class="field-group">
+        <label class="field-label">Categoria</label>
+        <select class="field-input" [(ngModel)]="gastoDraft.category">
+          <option value="Operativos">Operativos Generales</option>
+          <option value="RRHH">Nmina / Recursos Humanos</option>
+          <option value="Insumos">Insumos y Suministros</option>
+          <option value="Infraestructura">Arriendo / Mantenimiento</option>
+          <option value="Servicios">Servicios Basicos (Luz, Agua, Internet)</option>
+          <option value="Marketing">Marketing / Publicidad</option>
+          <option value="Otros">Otros</option>
+        </select>
+      </div>
+      <div class="grid grid-cols-2" style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+        <div class="field-group">
+          <label class="field-label">Monto (CLP)</label>
+          <input class="field-input" type="number" [(ngModel)]="gastoDraft.amount" placeholder="Ej: 50000">
+        </div>
+        <div class="field-group">
+          <label class="field-label">Fecha del gasto</label>
+          <input class="field-input" type="date" [(ngModel)]="gastoDraft.expense_date">
+        </div>
+      </div>
+      <div class="field-group">
+        <label class="field-label">Descripcion</label>
+        <input class="field-input" type="text" [(ngModel)]="gastoDraft.description" placeholder="Ej: Compra de insumos de enfermera">
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-secondary" (click)="showGastoModal = false">Cancelar</button>
+      <button class="btn-primary" (click)="saveGasto()" [disabled]="savingGasto">
+        {{ savingGasto ? 'Guardando...' : 'Guardar Gasto' }}
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal: Nueva Tarea -->
+<div class="modal-backdrop" *ngIf="showTareaModal" (click)="showTareaModal = false">
+  <div class="modal-box" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <span class="modal-title">{{ tareaDraft.id ? 'Editar Tarea' : 'Nueva Tarea' }}</span>
+      <button class="modal-close" (click)="showTareaModal = false">
+        <mat-icon style="font-size:18px;width:18px;height:18px">close</mat-icon>
+      </button>
+    </div>
+    <div class="modal-body">
+      <div class="field-group">
+        <label class="field-label">Titulo de la tarea</label>
+        <textarea class="field-input" rows="3" [(ngModel)]="tareaDraft.title" placeholder="Ej: Llamar al proveedor de insumos medicos"></textarea>
+      </div>
+      <div class="field-group">
+        <label class="field-label">Asignar a</label>
+        <select class="field-input" [(ngModel)]="tareaDraft.employee_id">
+          <option [ngValue]="null" disabled>Selecciona un empleado (Obligatorio)</option>
+          <option *ngFor="let emp of empleados" [ngValue]="emp.id">
+            {{ emp.displayName }}
+          </option>
+        </select>
+      </div>
+      <div class="field-group">
+        <label class="field-label">Fecha de vencimiento</label>
+        <input class="field-input" type="date" [(ngModel)]="tareaDraft.due_at">
+      </div>
+      <div class="grid grid-cols-2" style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+        <div class="field-group">
+          <label class="field-label">Tipo de vinculo</label>
+          <select class="field-input" [(ngModel)]="tareaDraft.entity_type" (ngModelChange)="onTaskEntityTypeChange()">
+            <option [ngValue]="null">Sin vinculo</option>
+            <option value="lead">Admision</option>
+            <option value="sede">Sede</option>
+            <option value="cama">Cama</option>
+            <option value="paciente">Paciente</option>
+          </select>
+        </div>
+        <div class="field-group">
+          <label class="field-label">Entidad relacionada</label>
+          <select class="field-input" [(ngModel)]="tareaDraft.entity_id" (ngModelChange)="onTaskEntitySelectionChange()" [disabled]="!tareaDraft.entity_type">
+            <option [ngValue]="null">{{ tareaDraft.entity_type ? 'Selecciona una opcion...' : 'Primero elige un tipo' }}</option>
+            <option *ngFor="let option of getTaskEntityOptions()" [ngValue]="option.id">
+              {{ option.label }}
+            </option>
+          </select>
+        </div>
+      </div>
+      <div class="grid grid-cols-2" style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+        <div class="field-group">
+          <label class="field-label">Prioridad</label>
+          <select class="field-input" [(ngModel)]="tareaDraft.priority">
+            <option value="low">Baja</option>
+            <option value="medium">Media</option>
+            <option value="high">Alta</option>
+          </select>
+        </div>
+        <div class="field-group">
+          <label class="field-label">Estado</label>
+          <select class="field-input" [(ngModel)]="tareaDraft.status">
+            <option value="pending">Pendiente</option>
+            <option value="in_progress">En Progreso</option>
+            <option value="done">Completada</option>
+          </select>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-secondary" (click)="showTareaModal = false">Cancelar</button>
+      <button class="btn-primary" (click)="saveTarea()" [disabled]="savingTarea">
+        {{ savingTarea ? 'Guardando...' : 'Guardar Tarea' }}
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal: Detalle de Admision -->
+<div class="modal-backdrop" *ngIf="showLeadDetailModal" (click)="closeLeadDetail()">
+  <div class="modal-box modal-box--wide" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <span class="modal-title">Detalle de admision</span>
+      <button class="modal-close" (click)="closeLeadDetail()">
+        <mat-icon style="font-size:18px;width:18px;height:18px">close</mat-icon>
+      </button>
+    </div>
+
+    <div class="modal-body lead-detail" *ngIf="selectedLead">
+      <div class="lead-detail__header">
+        <div>
+          <h3>{{ selectedLead.nombre }}</h3>
+          <p>{{ selectedLead.comuna || 'Sin comuna' }}</p>
+        </div>
+        <span class="status-badge"
+              [class.badge-warn]="selectedLead.estado === 'nuevo'"
+              [class.badge-blue]="selectedLead.estado === 'contactado' || selectedLead.estado === 'match'"
+              [class.badge-gray]="selectedLead.estado === 'evaluacion'"
+              [class.badge-green]="selectedLead.estado === 'cerrado'"
+              [class.badge-red]="selectedLead.estado === 'perdido'">
+          {{ leadStatusLabel(selectedLead.estado) }}
+        </span>
+      </div>
+
+      <div class="lead-detail__grid">
+        <div class="lead-detail__item">
+          <span>Dependencia</span>
+          <strong>{{ selectedLead.dependencia || 'Sin dato' }}</strong>
+        </div>
+        <div class="lead-detail__item">
+          <span>Presupuesto</span>
+          <strong>{{ selectedLead.presupuesto ? (selectedLead.presupuesto | currency:'CLP':'symbol-narrow':'1.0-0') : 'Sin dato' }}</strong>
+        </div>
+        <div class="lead-detail__item">
+          <span>Telefono</span>
+          <strong>{{ selectedLead.telefono || 'Sin dato' }}</strong>
+        </div>
+        <div class="lead-detail__item">
+          <span>Creada</span>
+          <strong>{{ selectedLead.created_at | date:'dd/MM/yyyy HH:mm' }}</strong>
+        </div>
+      </div>
+
+      <div class="lead-detail__loading" *ngIf="loadingLeadDetail">
+        Cargando ficha...
+      </div>
+
+      <ng-container *ngIf="selectedLeadIntake?.payload as intake">
+        <div class="lead-detail__section">
+          <h4>Ficha de cuidado</h4>
+          <div class="lead-detail__grid">
+            <div class="lead-detail__item">
+              <span>Tipo de apoyo</span>
+              <strong>{{ careTypeLabel(intake.care_type) }}</strong>
+            </div>
+            <div class="lead-detail__item">
+              <span>Edad persona cuidada</span>
+              <strong>{{ intake.care_receiver?.age || 'Sin dato' }}</strong>
+            </div>
+            <div class="lead-detail__item">
+              <span>Condicion principal</span>
+              <strong>{{ intake.care_receiver?.primary_condition || 'Sin dato' }}</strong>
+            </div>
+            <div class="lead-detail__item">
+              <span>Nivel dependencia</span>
+              <strong>{{ dependencyLevelLabel(intake.care_receiver?.dependency_level) }}</strong>
+            </div>
+            <div class="lead-detail__item">
+              <span>Ciudad o comuna</span>
+              <strong>{{ intake.location?.city || 'Sin dato' }}</strong>
+            </div>
+            <div class="lead-detail__item">
+              <span>Codigo postal</span>
+              <strong>{{ intake.location?.postal_code || 'Sin dato' }}</strong>
+            </div>
+            <div class="lead-detail__item">
+              <span>Red de apoyo</span>
+              <strong>{{ intake.family_context?.support_network || 'Sin dato' }}</strong>
+            </div>
+            <div class="lead-detail__item">
+              <span>Financiamiento</span>
+              <strong>{{ fundingLabel(intake.budget?.funding) }}</strong>
+            </div>
+            <div class="lead-detail__item">
+              <span>Contacto preferido</span>
+              <strong>{{ preferredContactLabel(intake.preferences?.preferred_contact) }}</strong>
+            </div>
+            <div class="lead-detail__item">
+              <span>Urgencia</span>
+              <strong>{{ urgencyLabel(intake.urgency) }}</strong>
+            </div>
+            <div class="lead-detail__item">
+              <span>Cuidador</span>
+              <strong>{{ intake.caregiver?.name || 'Sin dato' }}</strong>
+            </div>
+            <div class="lead-detail__item">
+              <span>Relacion</span>
+              <strong>{{ intake.caregiver?.relation || 'Sin dato' }}</strong>
+            </div>
+          </div>
+        </div>
+
+        <div class="lead-detail__notes" *ngIf="intake.notes">
+          <span>Notas relevantes</span>
+          <p>{{ intake.notes }}</p>
+        </div>
+      </ng-container>
+
+      <div class="lead-detail__empty" *ngIf="!loadingLeadDetail && selectedLead.employee_id && !selectedLeadIntake">
+        No se encontro ficha asociada a esta admision.
+      </div>
+
+      <div class="lead-detail__empty" *ngIf="!selectedLead.employee_id">
+        Esta admision fue creada manualmente y no tiene ficha de empleado asociada.
+      </div>
+    </div>
+
+    <div class="modal-footer">
+      <button class="btn-secondary" (click)="closeLeadDetail()">Cerrar</button>
+      <button class="btn-primary" (click)="showLeadDetailModal = false; openLeadModal(selectedLead)">Editar admision</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal: Nueva Consulta (Lead) -->
+<div class="modal-backdrop" *ngIf="showLeadModal" (click)="showLeadModal = false">
+  <div class="modal-box" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <span class="modal-title">{{ leadDraft.id ? 'Editar admision' : 'Nueva consulta / Lead' }}</span>
+      <button class="modal-close" (click)="showLeadModal = false">
+        <mat-icon style="font-size:18px;width:18px;height:18px">close</mat-icon>
+      </button>
+    </div>
+    <div class="modal-body">
+      <div class="field-group">
+        <label class="field-label">Nombre del prospecto</label>
+        <input class="field-input" type="text" [(ngModel)]="leadDraft.nombre" placeholder="Ej: Familia Perez Soto">
+      </div>
+      <div class="field-group">
+        <label class="field-label">Comuna de hotel para mascotas</label>
+        <input class="field-input" type="text" [(ngModel)]="leadDraft.comuna" placeholder="Ej: Las Condes">
+      </div>
+      <div class="field-group">
+        <label class="field-label">Nivel de dependencia</label>
+        <input class="field-input" type="text" [(ngModel)]="leadDraft.dependencia" placeholder="Ej: Autovalente con apoyo">
+      </div>
+      <div class="field-group">
+        <label class="field-label">Presupuesto mensual (CLP)</label>
+        <input class="field-input" type="number" [(ngModel)]="leadDraft.presupuesto" placeholder="Ej: 1500000">
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-secondary" (click)="showLeadModal = false">Cancelar</button>
+      <button class="btn-primary" (click)="saveLead()" [disabled]="savingLead">
+        {{ savingLead ? 'Guardando...' : (leadDraft.id ? 'Guardar cambios' : 'Crear consulta') }}
+      </button>
+    </div>
+  </div>
+</div>
+ 
+<!-- Modal: Historial de Cobros / Boletas -->
+<div class="modal-backdrop" *ngIf="showInvoicesModal" (click)="showInvoicesModal = false">
+  <div class="modal-box" (click)="$event.stopPropagation()" style="max-width: 650px;">
+    <div class="modal-header">
+      <span class="modal-title">Historial de Cobros - {{ selectedPatientForInvoices?.nombreCompleto }}</span>
+      <button class="modal-close" (click)="showInvoicesModal = false">
+        <mat-icon style="font-size:18px;width:18px;height:18px">close</mat-icon>
+      </button>
+    </div>
+    <div class="modal-body" style="padding: 0;">
+      <table class="data-table" style="border: none;">
+        <thead>
+          <tr>
+            <th style="width: 25%;">Emision</th>
+            <th style="width: 25%;">Vencimiento</th>
+            <th style="width: 25%;">Monto</th>
+            <th style="width: 25%;">Estado</th>
+          </tr>
+        </thead>
+        <tbody *ngIf="selectedPatientInvoices.length > 0">
+          <tr *ngFor="let inv of selectedPatientInvoices">
+            <td class="td-mono">{{ inv.issue_date | date:'dd/MM/yyyy' }}</td>
+            <td class="td-mono">{{ inv.due_date | date:'dd/MM/yyyy' }}</td>
+            <td class="td-mono" style="font-weight: 500;">{{ inv.amount | currency:'CLP':'symbol-narrow':'1.0-0' }}</td>
+            <td>
+              <span class="status-badge badge-gray" *ngIf="inv.status === 'draft'">Borrador / Pendiente</span>
+              <span class="status-badge badge-blue" *ngIf="inv.status === 'sent'">Enviado</span>
+              <span class="status-badge badge-green" *ngIf="inv.status === 'paid'">Pagado</span>
+              <span class="status-badge badge-red" *ngIf="inv.status === 'overdue'">Vencido</span>
+            </td>
+          </tr>
+        </tbody>
+        <tbody *ngIf="selectedPatientInvoices.length === 0">
+          <tr>
+            <td colspan="4" class="td-empty" style="padding: 2rem;">No se han emitido cobros para este paciente an.</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-secondary" (click)="showInvoicesModal = false">Cerrar historial</button>
+    </div>
+  </div>
+</div>
+<!-- Modal: Editar Paciente -->
+<div class="modal-backdrop" *ngIf="showPacienteModal" (click)="showPacienteModal = false">
+  <div class="modal-box" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <span class="modal-title">{{ pacienteDraft.cama_id ? 'Detalles del paciente' : 'Asignar nuevo paciente' }}</span>
+      <button class="modal-close" (click)="showPacienteModal = false">
+        <mat-icon style="font-size:18px;width:18px;height:18px">close</mat-icon>
+      </button>
+    </div>
+    <div class="modal-body">
+      <div class="grid grid-cols-2" style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+        <div class="field-group">
+          <label class="field-label">Nombre</label>
+          <input class="field-input" type="text" [(ngModel)]="pacienteDraft.first_name" placeholder="Ej: Juan">
+        </div>
+        <div class="field-group">
+          <label class="field-label">Apellidos</label>
+          <input class="field-input" type="text" [(ngModel)]="pacienteDraft.last_name" placeholder="Ej: Perez">
+        </div>
+      </div>
+      
+      <div class="field-group">
+        <label class="field-label">RUT / Documento</label>
+        <input class="field-input" type="text" [(ngModel)]="pacienteDraft.document_id" placeholder="Ej: 12.345.678-9">
+      </div>
+
+      <div class="field-group">
+        <label class="field-label">Asignar a cama (Opcional)</label>
+        <select class="field-input" [(ngModel)]="pacienteDraft.resource_id" [disabled]="camasAsignables.length === 0">
+          <option [ngValue]="null">Sin asignar / Retirar de la cama</option>
+          <option *ngFor="let cama of camasAsignables" [ngValue]="cama.dbId">{{ cama.sede }} - {{ cama.id }} ({{ cama.tipo }})</option>
+        </select>
+      </div>
+      
+      <div class="grid grid-cols-2" style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+        <div class="field-group">
+          <label class="field-label">Contacto Emergencia</label>
+          <input class="field-input" type="text" [(ngModel)]="pacienteDraft.emergency_contact_name" placeholder="Nombre completo">
+        </div>
+        <div class="field-group">
+          <label class="field-label">Telefono Emergencia</label>
+          <input class="field-input" type="text" [(ngModel)]="pacienteDraft.emergency_contact_phone" placeholder="+56 9...">
+        </div>
+      </div>
+
+      <div style="margin-top: 1.5rem; padding-top: 1.5rem; border-top: 1px solid var(--border);">
+        <h4 style="margin: 0 0 1rem 0; font-size: 14px; font-weight: 600; color: var(--text);">Tutor Legal y Facturacion</h4>
+        <div class="grid grid-cols-2" style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+          <div class="field-group">
+            <label class="field-label">Nombre del Tutor Legal</label>
+            <input class="field-input" type="text" [(ngModel)]="pacienteDraft.guarantor_name" placeholder="Ej: Maria Perez">
+          </div>
+          <div class="field-group">
+            <label class="field-label">RUT del Tutor</label>
+            <input class="field-input" type="text" [(ngModel)]="pacienteDraft.guarantor_document_id" placeholder="Ej: 15.678.901-2">
+          </div>
+        </div>
+        <div class="grid grid-cols-2" style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+          <div class="field-group">
+            <label class="field-label">Email de Facturacion</label>
+            <input class="field-input" type="email" [(ngModel)]="pacienteDraft.guarantor_email" placeholder="maria@ejemplo.com">
+          </div>
+          <div class="field-group">
+            <label class="field-label">Tarifa Mensual (CLP)</label>
+            <input class="field-input" type="number" [(ngModel)]="pacienteDraft.monthly_fee" placeholder="Ej: 1500000">
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-secondary" (click)="showPacienteModal = false">Cancelar</button>
+      <button class="btn-primary" (click)="savePaciente()" [disabled]="savingPaciente">
+        {{ savingPaciente ? 'Guardando...' : 'Guardar paciente' }}
+      </button>
+    </div>
+  </div>
+</div>
+<!-- Modal: Anadir Cama -->
+<div class="modal-backdrop" *ngIf="showCamaModal" (click)="showCamaModal = false">
+  <div class="modal-box" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <span class="modal-title">Anadir cama / vacante</span>
+      <button class="modal-close" (click)="showCamaModal = false">
+        <mat-icon style="font-size:18px;width:18px;height:18px">close</mat-icon>
+      </button>
+    </div>
+    <div class="modal-body">
+      <div class="field-group">
+        <label class="field-label">ID / Codigo de la cama</label>
+        <input class="field-input" type="text" [(ngModel)]="camaDraft.resource_code" placeholder="Ej: CAMA-101">
+      </div>
+      <div class="field-group">
+        <label class="field-label">Sede</label>
+        <select class="field-input" [(ngModel)]="camaDraft.provider_id">
+          <option value="">Selecciona una sede...</option>
+          <option *ngFor="let s of sedes" [value]="s.id">{{ s.nombre }}</option>
+        </select>
+      </div>
+      <div class="field-group">
+        <label class="field-label">Tipo de cuidado</label>
+        <select class="field-input" [(ngModel)]="camaDraft.care_type">
+          <option value="Basico">Basico</option>
+          <option value="Intermedio">Intermedio</option>
+          <option value="Intensivo">Intensivo</option>
+        </select>
+      </div>
+      <div class="field-group">
+        <label class="field-label">Estado</label>
+        <select class="field-input" [(ngModel)]="camaDraft.status">
+          <option value="Disponible">Disponible</option>
+          <option value="Ocupada">Ocupada</option>
+          <option value="En limpieza">En limpieza</option>
+          <option value="Mantenimiento">Mantenimiento</option>
+        </select>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-secondary" (click)="showCamaModal = false">Cancelar</button>
+      <button class="btn-primary" (click)="saveCama()" [disabled]="savingCama">
+        {{ savingCama ? 'Guardando...' : 'Guardar cama' }}
+      </button>
+    </div>
+  </div>
+</div>
+ 

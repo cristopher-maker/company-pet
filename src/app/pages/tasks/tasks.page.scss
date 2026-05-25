@@ -1,0 +1,396 @@
+// ── tokens locales ──────────────────────────────
+:host {
+  --tk-accent:       #6366f1;
+  --tk-accent-bg:    #eef2ff;
+  --tk-accent-text:  #3730a3;
+  --tk-green:        #16a34a;
+  --tk-green-bg:     #dcfce7;
+  --tk-green-text:   #14532d;
+  --tk-amber:        #d97706;
+  --tk-amber-bg:     #fef3c7;
+  --tk-amber-text:   #92400e;
+  --tk-purple:       #9333ea;
+  --tk-purple-bg:    #fdf4ff;
+  --tk-purple-text:  #6b21a8;
+  --tk-danger:       #dc2626;
+  --tk-danger-bg:    #fef2f2;
+  --tk-danger-text:  #991b1b;
+  --tk-surface:      #ffffff;
+  --tk-bg:           #f4f7fb;
+  --tk-border:       #e4e9f2;
+  --tk-text:         #0f172a;
+  --tk-muted:        #64748b;
+  --tk-light:        #94a3b8;
+  --tk-radius:       16px;
+  --tk-radius-sm:    10px;
+  --tk-transition:   border-color .15s ease, box-shadow .15s ease, background .15s ease;
+}
+ 
+ion-content.tasks-page {
+  --background: var(--tk-bg);
+}
+ 
+// ── layout ──────────────────────────────────────
+.tk-shell {
+  max-width: 860px;
+  margin: 0 auto;
+  padding: 24px 16px 40px;
+}
+ 
+// ── error ───────────────────────────────────────
+.tk-error {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 16px;
+  padding: 14px 16px;
+  border: 1px solid var(--tk-danger-bg);
+  border-radius: var(--tk-radius-sm);
+  background: var(--tk-danger-bg);
+  color: var(--tk-danger);
+  font-size: 14px;
+ 
+  ion-icon { font-size: 18px; flex-shrink: 0; }
+}
+ 
+// ── skeleton ─────────────────────────────────────
+.tk-skeleton-card { margin-bottom: 10px; }
+ 
+// ── métricas ─────────────────────────────────────
+.tk-metrics {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+  margin-bottom: 20px;
+}
+ 
+.tk-metric {
+  background: var(--tk-surface);
+  border: 1px solid var(--tk-border);
+  border-radius: var(--tk-radius);
+  padding: 18px 20px;
+ 
+  &__value {
+    font-size: 32px;
+    font-weight: 800;
+    line-height: 1;
+    color: var(--tk-text);
+  }
+ 
+  &__label {
+    margin-top: 6px;
+    font-size: 12px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: .05em;
+    color: var(--tk-muted);
+  }
+ 
+  &--accent &__value { color: var(--tk-accent); }
+  &--green  &__value { color: var(--tk-green);  }
+}
+ 
+// ── crear tarea ──────────────────────────────────
+.tk-create {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 168px auto;
+  gap: 10px;
+  align-items: center;
+  margin-bottom: 20px;
+ 
+  &__item {
+    --background:     var(--tk-surface);
+    --border-radius:  var(--tk-radius-sm);
+    --min-height:     50px;
+    --padding-start:  14px;
+    border: 1px solid var(--tk-border);
+    border-radius: var(--tk-radius-sm);
+    transition: var(--tk-transition);
+ 
+    &.item-has-focus {
+      border-color: var(--tk-accent);
+      box-shadow: 0 0 0 3px rgba(99, 102, 241, .1);
+    }
+  }
+ 
+  &__btn {
+    margin: 0;
+    height: 50px;
+    --border-radius: var(--tk-radius-sm);
+    --background: var(--tk-accent);
+    --background-activated: #4f46e5;
+    --background-hover: #4f46e5;
+    --color: #fff;
+    font-weight: 700;
+  }
+}
+ 
+// ── filtros ──────────────────────────────────────
+.tk-filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 18px;
+}
+ 
+.tk-filter-chip {
+  appearance: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  border: 1px solid var(--tk-border);
+  background: var(--tk-surface);
+  border-radius: 999px;
+  padding: 7px 14px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--tk-muted);
+  cursor: pointer;
+  transition: var(--tk-transition);
+ 
+  &__count {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 20px;
+    height: 20px;
+    border-radius: 999px;
+    background: var(--tk-bg);
+    color: var(--tk-muted);
+    font-size: 11px;
+    font-weight: 700;
+    padding: 0 5px;
+    transition: var(--tk-transition);
+  }
+ 
+  &.is-active {
+    background: var(--tk-accent-bg);
+    border-color: #a5b4fc;
+    color: var(--tk-accent-text);
+ 
+    .tk-filter-chip__count {
+      background: var(--tk-accent);
+      color: #fff;
+    }
+  }
+}
+ 
+// ── lista ────────────────────────────────────────
+.tk-list {
+  display: grid;
+  gap: 10px;
+}
+ 
+// ── tarjeta de tarea ─────────────────────────────
+.tk-card {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 16px 18px 16px 22px;  // espacio izquierdo para la barra
+  background: var(--tk-surface);
+  border: 1px solid var(--tk-border);
+  border-radius: var(--tk-radius);
+  transition: var(--tk-transition);
+  overflow: hidden;
+ 
+  &:hover { border-color: #c7d2e8; }
+ 
+  &.is-done {
+    background: #fafbff;
+ 
+    .tk-card__title {
+      text-decoration: line-through;
+      color: var(--tk-light);
+    }
+  }
+ 
+  // Barra de prioridad izquierda
+  &__priority-bar {
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 4px;
+    border-radius: 4px 0 0 4px;
+ 
+    &.is-high   { background: #ef4444; }
+    &.is-medium { background: #f59e0b; }
+    &.is-low    { background: #22c55e; }
+  }
+ 
+  &__body { flex: 1; min-width: 0; }
+ 
+  &__title {
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--tk-text);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+ 
+  &__meta {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 6px;
+    margin-top: 6px;
+  }
+ 
+  &__actions {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex-shrink: 0;
+  }
+}
+ 
+// ── checkbox visual ──────────────────────────────
+.tk-check {
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  border: 1.5px solid var(--tk-border);
+  background: transparent;
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: var(--tk-transition);
+ 
+  ion-icon { font-size: 14px; color: transparent; }
+ 
+  &:hover { border-color: var(--tk-accent); }
+ 
+  &.is-progress {
+    background: var(--tk-accent-bg);
+    border-color: var(--tk-accent);
+ 
+    ion-icon { color: var(--tk-accent); }
+  }
+ 
+  &.is-done {
+    background: var(--tk-green);
+    border-color: var(--tk-green);
+ 
+    ion-icon { color: #fff; }
+  }
+}
+ 
+// ── badges ───────────────────────────────────────
+.tk-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 9px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: capitalize;
+ 
+  ion-icon { font-size: 11px; }
+ 
+  &--pending     { background: var(--tk-amber-bg);  color: var(--tk-amber-text); }
+  &--in_progress { background: var(--tk-accent-bg); color: var(--tk-accent-text); }
+  &--done        { background: var(--tk-green-bg);  color: var(--tk-green-text); }
+  &--date        { background: #f1f5f9; color: var(--tk-muted); }
+  &--case        { background: var(--tk-purple-bg); color: var(--tk-purple-text); }
+  &--personal    { background: #f1f5f9; color: var(--tk-light); }
+}
+ 
+// ── botones de acción ────────────────────────────
+.tk-action-btn {
+  appearance: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  border: 1px solid var(--tk-border);
+  background: #f8fafc;
+  border-radius: var(--tk-radius-sm);
+  padding: 6px 12px;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--tk-muted);
+  cursor: pointer;
+  transition: var(--tk-transition);
+ 
+  ion-icon { font-size: 13px; }
+ 
+  &:hover {
+    background: var(--tk-surface);
+    border-color: #c7d2e8;
+    color: var(--tk-text);
+  }
+ 
+  &--case {
+    color: var(--tk-accent);
+    border-color: #a5b4fc;
+    background: var(--tk-accent-bg);
+ 
+    &:hover { background: #e0e7ff; }
+  }
+ 
+  &--danger {
+    &:hover {
+      background: var(--tk-danger-bg);
+      border-color: #fca5a5;
+      color: var(--tk-danger);
+    }
+  }
+}
+ 
+// ── empty state ──────────────────────────────────
+.tk-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 56px 24px;
+  text-align: center;
+  color: var(--tk-light);
+ 
+  ion-icon {
+    font-size: 52px;
+    margin-bottom: 14px;
+    opacity: .5;
+  }
+ 
+  p {
+    font-size: 14px;
+    max-width: 280px;
+    line-height: 1.6;
+  }
+}
+ 
+// ── responsive ───────────────────────────────────
+@media (max-width: 767px) {
+  .tk-metrics {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 8px;
+  }
+ 
+  .tk-metric {
+    padding: 14px;
+ 
+    &__value { font-size: 26px; }
+    &__label { font-size: 11px; }
+  }
+ 
+  .tk-create {
+    grid-template-columns: 1fr;
+ 
+    &__btn { width: 100%; }
+  }
+ 
+  .tk-card {
+    flex-wrap: wrap;
+ 
+    &__actions {
+      width: 100%;
+      padding-top: 10px;
+      border-top: 1px solid var(--tk-border);
+      margin-top: 4px;
+    }
+  }
+}

@@ -1,0 +1,101 @@
+<div class="app-root">
+  <div
+    *ngIf="isMenuOpen && auth.user"
+    (click)="closeMenu()"
+    class="app-backdrop"
+    aria-hidden="true"
+  ></div>
+
+  <aside
+    *ngIf="auth.user"
+    class="app-menu"
+    [class.app-menu--open]="isMenuOpen"
+    role="dialog"
+    aria-modal="true"
+    aria-labelledby="menu-title"
+  >
+    <div class="menu-content">
+      <div class="menu-glow menu-glow--top" aria-hidden="true"></div>
+      <div class="menu-glow menu-glow--bottom" aria-hidden="true"></div>
+
+      <div class="menu-top">
+        <div class="menu-brand">
+          <div class="brand-meta">
+            <div id="menu-title" class="brand-name">company pet</div>
+            <div class="brand-sub">{{ auth.user?.email ?? 'Portal de beneficios' }}</div>
+          </div>
+        </div>
+
+        <button
+          type="button"
+          class="collapse-btn"
+          aria-label="Cerrar menu"
+          (click)="closeMenu()"
+        >
+          <mat-icon class="icon" aria-hidden="true">arrow_back</mat-icon>
+        </button>
+      </div>
+
+      <div class="menu-search">
+        <label class="sr-only" for="menu-search">Buscar</label>
+        <span class="menu-search__icon" aria-hidden="true">
+          <mat-icon class="icon" aria-hidden="true">search</mat-icon>
+        </span>
+        <input
+          id="menu-search"
+          type="search"
+          placeholder="Buscar..."
+          class="menu-search__input"
+        />
+      </div>
+
+      <nav class="menu-nav">
+        <div class="menu-section">
+          <div class="menu-section__label">Navegacion</div>
+          <ul class="menu-list">
+            <li *ngFor="let p of primaryPages">
+              <a
+                [routerLink]="p.url"
+                [queryParams]="p.queryParams || null"
+                routerLinkActive="is-active"
+                [routerLinkActiveOptions]="{ exact: p.url === '/home' || p.url === '/dashboard' }"
+                class="menu-link"
+              >
+                <mat-icon class="icon menu-link__icon" aria-hidden="true">{{ p.icon }}</mat-icon>
+                <span class="item-label">{{ p.title }}</span>
+              </a>
+            </li>
+          </ul>
+        </div>
+
+        <div class="menu-section" *ngIf="secondaryPages.length">
+          <div class="menu-section__label">Informacion</div>
+          <ul class="menu-list menu-list--secondary">
+            <li *ngFor="let p of secondaryPages">
+              <a
+                [routerLink]="p.url"
+                [queryParams]="p.queryParams || null"
+                routerLinkActive="is-active"
+                class="menu-link"
+              >
+                <mat-icon class="icon menu-link__icon" aria-hidden="true">{{ p.icon }}</mat-icon>
+                <span class="item-label">{{ p.title }}</span>
+              </a>
+            </li>
+          </ul>
+        </div>
+      </nav>
+
+      <div class="menu-bottom">
+        <button type="button" (click)="authAction()" class="menu-link menu-link--button">
+          <mat-icon class="icon menu-link__icon" aria-hidden="true">{{ auth.user ? 'logout' : 'login' }}</mat-icon>
+          <span class="item-label">{{ auth.user ? 'Cerrar sesion' : 'Ingresar' }}</span>
+        </button>
+      </div>
+    </div>
+  </aside>
+
+  <div class="app-shell" id="main-content">
+    <router-outlet></router-outlet>
+  </div>
+</div>

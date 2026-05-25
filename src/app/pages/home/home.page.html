@@ -1,0 +1,243 @@
+<main class="pet-page">
+  <nav class="pet-nav" [class.pet-nav--scrolled]="isNavScrolled" aria-label="Principal">
+    <a class="nav-logo" href="" (click)="scrollTo('home', $event)">
+      <span class="brand-text">company pet</span>
+    </a>
+    <div class="nav-links">
+      <a href="" (click)="scrollTo('home', $event)">Inicio</a>
+      <a href="" (click)="scrollTo('benefits', $event)">Beneficios</a>
+      <a href="" (click)="scrollTo('how', $event)">Como funciona</a>
+      <a href="" (click)="scrollTo('hr', $event)">RRHH</a>
+      <a class="nav-cta" href="" (click)="scrollTo('contact', $event)">Hablemos </a>
+    </div>
+  </nav>
+
+  <section id="home" class="hero">
+    <div class="hero-copy">
+      <h1>El beneficio corporativo para colaboradores con mascotas</h1>
+      <p class="hero-lede">Ayudamos a tus colaboradores a cuidar mejor a sus mascotas con orientacion experta, descuentos, servicios verificados y soporte cuando mas lo necesitan.</p>
+      <div class="hero-actions">
+        <a class="btn-primary" href="" (click)="scrollTo('contact', $event)">Solicitar demo</a>
+        <a class="btn-outline" href="" (click)="scrollTo('benefits', $event)">Ver beneficios</a>
+      </div>
+      <div class="help-panel" aria-label="Opciones de ayuda">
+        <button type="button" (click)="scrollTo('benefits')">
+          <span>Como podemos ayudar?</span>
+          <strong>Beneficios para empresas</strong>
+        </button>
+      </div>
+    </div>
+  </section>
+
+  <section class="trust-section" aria-label="Beneficios pet-friendly disponibles">
+    <p>Beneficios pet-friendly que puedes activar</p>
+    <div class="logo-row benefit-pill-row">
+      <span>Veterinaria</span>
+      <span>Paseos</span>
+      <span>Guarderia</span>
+      <span>Grooming</span>
+      <span>Vouchers</span>
+    </div>
+  </section>
+
+  <section id="problem" class="problem-section">
+    <div class="problem-inner">
+      <div class="problem-copy">
+        <span class="section-tag">Problema</span>
+        <h2>Tener una mascota tambien impacta la vida laboral</h2>
+        <p>Cuando una mascota se enferma, necesita paseo, hotel, veterinario o atencion urgente, el colaborador pierde tiempo buscando opciones confiables.</p>
+        <div class="problem-actions">
+          <a class="problem-primary" href="" (click)="scrollTo('contact', $event)">Ver servicios</a>
+          <a class="problem-secondary" href="" (click)="scrollTo('benefits', $event)">Agendar llamada</a>
+        </div>
+      </div>
+
+      <div class="problem-visual" aria-hidden="true">
+        <div class="problem-window">
+          <div class="problem-window-photo"></div>
+          <div class="problem-stat">
+            <strong>+80%</strong>
+            <span>colaboradores con mascotas en Chile</span>
+          </div>
+          <div class="problem-pet problem-pet--cat"></div>
+        </div>
+      </div>
+
+      <div class="problem-note">
+        <span>Como podemos ayudar</span>
+        <strong>La vida con mascotas puede ser mas simple con apoyo confiable.</strong>
+      </div>
+    </div>
+  </section>
+
+  <section id="benefits" class="section benefits-section">
+    <header class="section-header">
+      <span class="section-tag">Beneficios principales</span>
+      <h2>Todo el cuidado pet en un solo lugar</h2>
+      <p>Una red de apoyo para que tus colaboradores resuelvan necesidades frecuentes de sus mascotas sin partir desde cero.</p>
+    </header>
+
+    <div class="benefits-grid">
+      <article class="benefit-card">
+        <div class="benefit-icon">+</div>
+        <h3>Veterinaria y teleorientacion</h3>
+        <p>Acceso a orientacion inicial y derivacion a clinicas o profesionales.</p>
+      </article>
+      <article class="benefit-card">
+        <div class="benefit-icon">P</div>
+        <h3>Paseadores y pet sitters</h3>
+        <p>Red de servicios para apoyar el dia a dia de los colaboradores.</p>
+      </article>
+      <article class="benefit-card">
+        <div class="benefit-icon">H</div>
+        <h3>Hoteles y guarderias</h3>
+        <p>Opciones verificadas para vacaciones, viajes o emergencias.</p>
+      </article>
+      <article class="benefit-card">
+        <div class="benefit-icon">G</div>
+        <h3>Grooming y bienestar</h3>
+        <p>Peluqueria, bano, higiene y servicios complementarios.</p>
+      </article>
+      <article class="benefit-card">
+        <div class="benefit-icon">C</div>
+        <h3>Conducta y entrenamiento</h3>
+        <p>Apoyo para ansiedad, adaptacion, obediencia o problemas conductuales.</p>
+      </article>
+      <article class="benefit-card">
+        <div class="benefit-icon">V</div>
+        <h3>Descuentos y vouchers</h3>
+        <p>Beneficios exclusivos entregados por la empresa.</p>
+      </article>
+    </div>
+  </section>
+
+  <section id="how" class="difference-section">
+    <div class="difference-bg" aria-hidden="true"></div>
+    <div class="difference-content">
+      <span class="section-tag">Nuestra base</span>
+      <h2>La diferencia company pet</h2>
+      <div class="steps-grid">
+        <article class="step-card">
+          <span>01</span>
+          <h3>La empresa activa el beneficio</h3>
+          <p>Configura su portal, branding y beneficios disponibles.</p>
+        </article>
+        <article class="step-card">
+          <span>02</span>
+          <h3>El colaborador registra a su mascota</h3>
+          <p>Agrega datos basicos, necesidades y ubicacion.</p>
+        </article>
+        <article class="step-card">
+          <span>03</span>
+          <h3>Recibe apoyo y opciones verificadas</h3>
+          <p>Puede solicitar ayuda, usar vouchers o contactar proveedores.</p>
+        </article>
+        <article class="step-card">
+          <span>04</span>
+          <h3>RRHH mide impacto y uso</h3>
+          <p>Revisa metricas, vouchers y adopcion del beneficio.</p>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <section id="hr" class="section hr-section">
+    <div class="hr-copy">
+      <span class="section-tag">Para RRHH</span>
+      <h2>Un beneficio simple de administrar</h2>
+      <p>Desde un panel para RRHH puedes activar, controlar y medir el beneficio sin sumar carga operativa al equipo.</p>
+    </div>
+    <div class="hr-panel">
+      <ul>
+        <li>Invitar colaboradores</li>
+        <li>Ver uso del beneficio</li>
+        <li>Gestionar vouchers</li>
+        <li>Activar descuentos</li>
+        <li>Revisar metricas</li>
+        <li>Personalizar el portal con tu marca</li>
+      </ul>
+    </div>
+  </section>
+
+  <section class="emotional-section">
+    <div>
+      <span class="section-tag">Cultura pet-friendly</span>
+      <h2>Las mascotas tambien son familia</h2>
+      <p>Un beneficio pet-friendly mejora la experiencia laboral, fortalece la cultura interna y demuestra preocupacion real por la vida de tus colaboradores fuera del trabajo.</p>
+    </div>
+  </section>
+
+  <section id="plans" class="section plans-section">
+    <header class="section-header">
+      <span class="section-tag">Planes</span>
+      <h2>Planes para cada empresa</h2>
+      <p>Elige el nivel de cobertura segun el tamano, cultura y madurez de beneficios de tu organizacion.</p>
+    </header>
+
+    <div class="plans-grid">
+      <article class="plan-card">
+        <h3>Lite</h3>
+        <p>Directorio pet + recursos + descuentos.</p>
+        <a href="" (click)="scrollTo('contact', $event)">Solicitar demo</a>
+      </article>
+      <article class="plan-card featured">
+        <div class="popular">Recomendado</div>
+        <h3>Empresa</h3>
+        <p>Portal corporativo + vouchers + solicitudes de ayuda.</p>
+        <a href="" (click)="scrollTo('contact', $event)">Solicitar demo</a>
+      </article>
+    </div>
+  </section>
+
+  <section class="proof-section">
+    <header class="section-header">
+      <span class="section-tag">Impacto</span>
+      <h2>Un beneficio que tambien paga en cultura</h2>
+      <p>Menos tiempo perdido buscando ayuda, mejor experiencia laboral y una senal concreta de preocupacion por la vida real de tus equipos.</p>
+      <a class="proof-cta" href="" (click)="scrollTo('contact', $event)">Ver como funciona</a>
+    </header>
+    <div class="proof-grid">
+      <article>
+        <strong>1</strong>
+        <span>Portal corporativo</span>
+        <p>Centraliza solicitudes, beneficios y seguimiento para RRHH.</p>
+      </article>
+      <article>
+        <strong>6</strong>
+        <span>Familias de servicios pet</span>
+        <p>Cubre salud, bienestar, grooming, educacion y apoyo diario.</p>
+      </article>
+      <article>
+        <strong>100%</strong>
+        <span>Administrable por RRHH</span>
+        <p>Control simple de colaboradores, vouchers y solicitudes activas.</p>
+      </article>
+    </div>
+  </section>
+
+  <section id="contact" class="section contact-section">
+    <div class="contact-copy">
+      <span class="section-tag">Solicitar demo</span>
+      <h2>Lleva company pet a tu empresa</h2>
+      <p>Completa tus datos y coordinamos una demo para revisar beneficios, portal, vouchers y opciones de implementacion.</p>
+    </div>
+
+    <form class="contact-form">
+      <div class="form-row">
+        <label>Nombre<input type="text" placeholder="Nombre y apellido" /></label>
+        <label>Empresa<input type="text" placeholder="Nombre de la empresa" /></label>
+      </div>
+      <div class="form-row">
+        <label>Email corporativo<input type="email" placeholder="nombre@empresa.com" /></label>
+        <label>Telefono<input type="tel" placeholder="+56 9 ..." /></label>
+      </div>
+      <label>Mensaje<textarea placeholder="Cuentanos cuantos colaboradores tienen y que beneficio pet quieren activar"></textarea></label>
+      <button type="button">Solicitar demo</button>
+    </form>
+  </section>
+
+  <footer class="pet-footer">
+    <a class="nav-logo" href="" (click)="scrollTo('home', $event)">company pet</a>
+    <p>2026 company pet. Beneficios corporativos para colaboradores con mascotas.</p>
+  </footer>
+</main>

@@ -1,0 +1,60 @@
+
+[1mInitial chunk files[22m                                                                                    [2m | [22m[1mNames[22m                                          [2m | [22m [1mRaw size[22m
+[32mvendor.js[39m                                                                                              [2m | [22m[2mvendor[22m                                         [2m | [22m  [36m3.89 MB[39m[2m | [22m
+[32mstyles.css, styles.js[39m                                                                                  [2m | [22m[2mstyles[22m                                         [2m | [22m[36m245.82 kB[39m[2m | [22m
+[32mpolyfills.js[39m                                                                                           [2m | [22m[2mpolyfills[22m                                      [2m | [22m[36m239.70 kB[39m[2m | [22m
+[32mmain.js[39m                                                                                                [2m | [22m[2mmain[22m                                           [2m | [22m [36m89.82 kB[39m[2m | [22m
+[32mruntime.js[39m                                                                                             [2m | [22m[2mruntime[22m                                        [2m | [22m [36m12.89 kB[39m[2m | [22m
+
+[1m [22m                                                                                                      [2m | [22m[1mInitial total[22m                                  [2m | [22m  [1m4.48 MB[22m
+
+[1mLazy chunk files[22m                                                                                       [2m | [22m[1mNames[22m                                          [2m | [22m [1mRaw size[22m
+[32mdefault-src_app_pages_admin-dashboard_admin-dashboard_module_ts.js[39m                                     [2m | [22m[2mpages-company-company-module[22m                   [2m | [22m  [36m2.45 MB[39m[2m | [22m
+[32msrc_app_pages_care-experts_care-experts_module_ts.js[39m                                                   [2m | [22m[2mpages-care-experts-care-experts-module[22m         [2m | [22m[36m496.77 kB[39m[2m | [22m
+[32mdefault-node_modules_angular_forms_fesm2022_forms_mjs.js[39m                                               [2m | [22m[2mpages-home-home-module[22m                         [2m | [22m[36m303.66 kB[39m[2m | [22m
+[32mnode_modules_angular_animations_fesm2022_browser_mjs.js[39m                                                [2m | [22m[2mangular-animations-browser[22m                     [2m | [22m[36m229.92 kB[39m[2m | [22m
+[32msrc_app_pages_company_company_module_ts.js[39m                                                             [2m | [22m[2mpages-company-company-module[22m                   [2m | [22m[36m225.26 kB[39m[2m | [22m
+[32msrc_app_pages_dashboard_dashboard_module_ts.js[39m                                                         [2m | [22m[2mpages-dashboard-dashboard-module[22m               [2m | [22m[36m213.00 kB[39m[2m | [22m
+[32msrc_app_pages_providers_providers_module_ts.js[39m                                                         [2m | [22m[2mpages-providers-providers-module[22m               [2m | [22m[36m188.87 kB[39m[2m | [22m
+[32msrc_app_pages_services_services_module_ts.js[39m                                                           [2m | [22m[2mpages-services-services-module[22m                 [2m | [22m[36m164.65 kB[39m[2m | [22m
+[32msrc_app_pages_home_home_module_ts.js[39m                                                                   [2m | [22m[2mpages-home-home-module[22m                         [2m | [22m[36m154.83 kB[39m[2m | [22m
+[32msrc_app_pages_packages_packages_module_ts.js[39m                                                           [2m | [22m[2mpages-packages-packages-module[22m                 [2m | [22m[36m136.49 kB[39m[2m | [22m
+[32msrc_app_pages_about_about_module_ts.js[39m                                                                 [2m | [22m[2mpages-about-about-module[22m                       [2m | [22m[36m119.70 kB[39m[2m | [22m
+[32msrc_app_pages_tasks_tasks_module_ts.js[39m                                                                 [2m | [22m[2mpages-tasks-tasks-module[22m                       [2m | [22m [36m95.19 kB[39m[2m | [22m
+[32msrc_app_pages_training_training_module_ts.js[39m                                                           [2m | [22m[2mpages-training-training-module[22m                 [2m | [22m [36m89.33 kB[39m[2m | [22m
+[32msrc_app_pages_contact_contact_module_ts.js[39m                                                             [2m | [22m[2mpages-contact-contact-module[22m                   [2m | [22m [36m74.97 kB[39m[2m | [22m
+[32msrc_app_pages_company-requests_company-requests_module_ts.js[39m                                           [2m | [22m[2mpages-company-requests-company-requests-module[22m [2m | [22m [36m70.72 kB[39m[2m | [22m
+[32msrc_app_pages_requests_requests_module_ts.js[39m                                                           [2m | [22m[2mpages-requests-requests-module[22m                 [2m | [22m [36m65.89 kB[39m[2m | [22m
+[32msrc_app_pages_auth_register_register_module_ts.js[39m                                                      [2m | [22m[2mpages-auth-register-register-module[22m            [2m | [22m [36m61.62 kB[39m[2m | [22m
+[32msrc_app_pages_profile_profile_module_ts.js[39m                                                             [2m | [22m[2mpages-profile-profile-module[22m                   [2m | [22m [36m58.34 kB[39m[2m | [22m
+[32msrc_app_pages_vouchers_vouchers_module_ts.js[39m                                                           [2m | [22m[2mpages-vouchers-vouchers-module[22m                 [2m | [22m [36m56.76 kB[39m[2m | [22m
+[32msrc_app_pages_auth_login_login_module_ts.js[39m                                                            [2m | [22m[2mpages-auth-login-login-module[22m                  [2m | [22m [36m54.00 kB[39m[2m | [22m
+[32mdefault-src_app_shared_components_site-footer_site-footer_component_ts-src_app_shared_compone-9a8f7f.js[39m[2m | [22m[2mpages-home-home-module[22m                         [2m | [22m [36m51.20 kB[39m[2m | [22m
+[32msrc_app_pages_training_admin_training-admin_module_ts.js[39m                                               [2m | [22m[2madmin-training-admin-module[22m                    [2m | [22m [36m50.35 kB[39m[2m | [22m
+[32msrc_app_pages_resources_resources_module_ts.js[39m                                                         [2m | [22m[2mpages-resources-resources-module[22m               [2m | [22m [36m49.97 kB[39m[2m | [22m
+[32msrc_app_pages_auth_reset-password_reset-password_module_ts.js[39m                                          [2m | [22m[2mpages-auth-reset-password-reset-password-module[22m[2m | [22m [36m33.73 kB[39m[2m | [22m
+[32msrc_app_pages_not-found_not-found_module_ts.js[39m                                                         [2m | [22m[2mpages-not-found-not-found-module[22m               [2m | [22m  [36m9.32 kB[39m[2m | [22m
+
+Build at: 2026-05-19T20:47:57.123Z - Hash: 2cd3e6692ac08614 - Time: 10434ms
+
+** Angular Live Development Server is listening on 127.0.0.1:4200, open your browser on http://127.0.0.1:4200/ **
+
+
+√ Compiled successfully.
+
+[1mInitial chunk files[22m[2m | [22m[1mNames[22m  [2m | [22m[1mRaw size[22m
+[32mruntime.js[39m         [2m | [22m[2mruntime[22m[2m | [22m[36m12.89 kB[39m[2m | [22m
+
+29 unchanged chunks
+
+Build at: 2026-05-19T20:48:00.703Z - Hash: 3da31cca6cfadc93 - Time: 3273ms
+
+√ Compiled successfully.
+
+
+
+30 unchanged chunks
+
+Build at: 2026-05-19T20:48:01.068Z - Hash: 3da31cca6cfadc93 - Time: 307ms
+
+√ Compiled successfully.

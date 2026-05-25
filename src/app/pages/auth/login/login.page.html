@@ -1,0 +1,75 @@
+<!--
+  NOTA DE MIGRACIÓN:
+  - <ion-content> se reemplaza por <main>.
+  - Los inputs y botones de Ionic se reemplaza por elementos HTML estándar con clases de Tailwind.
+  - <ion-icon> y <img src="svg/..."> se reemplazan por <mat-icon>.
+  - <ion-spinner> se reemplaza por un SVG de spinner.
+-->
+<main class="login relative w-full h-screen flex items-center justify-center p-4">
+  <div class="topbar absolute top-4 left-4">
+    <a routerLink="/home" aria-label="Volver al inicio" class="back inline-flex items-center justify-center w-10 h-10 rounded-full text-white hover:bg-white/10 transition-colors">
+      <mat-icon>arrow_back</mat-icon>
+    </a>
+  </div>
+  <div class="shell w-full max-w-md">
+    <div class="auth-stage" aria-hidden="true">
+      <div class="auth-shape auth-shape--blue"></div>
+      <div class="auth-shape auth-shape--orange"></div>
+    </div>
+    <div class="card" role="region" aria-label="Acceso">
+      <h1 class="title">{{ mode === 'Ingresar' ? 'Ingresar' : 'Link mágico' }}</h1>
+
+      <form class="form" (ngSubmit)="submit()">
+        <label class="pill" aria-label="Email">
+          <input [(ngModel)]="email" name="email" type="email" autocomplete="email" placeholder="Email" required />
+          <mat-icon>person_outline</mat-icon>
+        </label>
+
+        <label class="pill" *ngIf="mode !== 'Magic link'" aria-label="Contraseña">
+          <input
+            [(ngModel)]="password"
+            name="password"
+            [type]="showPassword ? 'text' : 'password'"
+            autocomplete="current-password"
+            placeholder="Contraseña"
+            required
+          />
+          <button class="pill__icon-button" type="button" [attr.aria-label]="showPassword ? 'Ocultar contraseña' : 'Mostrar contraseña'" (click)="togglePasswordVisibility()">
+            <mat-icon>{{ showPassword ? 'visibility_off' : 'visibility' }}</mat-icon>
+          </button>
+        </label>
+
+        <div class="row" *ngIf="mode !== 'Magic link'">
+          <label class="remember">
+            <input [(ngModel)]="rememberMe" name="rememberMe" type="checkbox" />
+            <span>Recordarme</span>
+          </label>
+          <button class="link" type="button" (click)="forgotPassword()">
+            Olvidé mi contraseña
+          </button>
+        </div>
+
+        <div class="msg error" *ngIf="error">{{ error }}</div>
+        <div class="msg success" *ngIf="success">{{ success }}</div>
+
+        <button class="primary" type="submit" [disabled]="loading">
+          <svg *ngIf="loading" class="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+          </svg>
+          <span *ngIf="!loading">{{ mode === 'Ingresar' ? 'Ingresar' : 'Enviar link' }}</span>
+        </button>
+
+
+        <button class="link" type="button" *ngIf="mode === 'Magic link'" (click)="mode = 'Ingresar'">
+          Volver a contraseña
+        </button>
+
+        <div class="register-line">
+          <span>¿No tienes cuenta?</span>
+          <button class="link" type="button" (click)="goRegister()">Regístrate</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</main>

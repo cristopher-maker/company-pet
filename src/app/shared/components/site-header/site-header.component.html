@@ -1,0 +1,28 @@
+<header class="cc-nav" [class.cc-nav--scrolled]="isScrolled || (!isTransparentPage && !isLightPage)" [class.cc-nav--light]="isLightPage">
+  <div class="cc-nav-left">
+    <button *ngIf="auth.user" (click)="ui.toggleMenu()" class="cc-menu-btn" aria-label="Abrir menu">
+      <mat-icon>menu</mat-icon>
+    </button>
+
+    <div class="cc-brand" [routerLink]="auth.user ? '/dashboard' : '/home'">
+      <div class="cc-brand-text">
+        <div class="name">company pet</div>
+        <div class="sub">para mascotas</div>
+      </div>
+    </div>
+  </div>
+
+  <ul class="cc-nav-links">
+    <li><a href="" (click)="scrollTo('benefits', $event)">Beneficios</a></li>
+    <li><a href="" (click)="scrollTo('how', $event)">Como funciona</a></li>
+    <li><a href="" (click)="scrollTo('hr', $event)">RRHH</a></li>
+    <li><a href="" (click)="scrollTo('plans', $event)">Planes</a></li>
+    <li><a href="" (click)="scrollTo('contact', $event)">Demo</a></li>
+  </ul>
+
+  <div class="cc-nav-actions">
+    <button *ngIf="!auth.user" class="btn-ghost" routerLink="/login">Ingresar</button>
+    <button *ngIf="!auth.user" class="btn-glow" routerLink="/register">Solicitar demo</button>
+    <button *ngIf="auth.user" class="btn-ghost" (click)="auth.signOut()">Cerrar sesion</button>
+  </div>
+</header>

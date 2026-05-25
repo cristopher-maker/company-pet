@@ -1,0 +1,128 @@
+<!--
+  NOTA DE MIGRACIÓN:
+  - Se reemplaza el header de Ionic por un header estándar con Tailwind.
+  - El botón de menú ahora usa el UiService. Debes inyectar `public ui: UiService` en `profile.page.ts`.
+-->
+<header class="bg-slate-50 border-b border-slate-200 sticky top-0 z-20">
+  <div class="px-4 sm:px-6 lg:px-8">
+    <div class="flex items-center justify-between h-16 -mb-px">
+      <div class="flex items-center">
+        <button (click)="ui.toggleMenu()" class="p-2 rounded-md text-gray-500 hover:text-gray-700 hover:bg-gray-100 flex items-center justify-center">
+          <mat-icon>menu</mat-icon>
+        </button>
+        <a routerLink="/home" class="p-2 rounded-md text-gray-500 hover:text-gray-700 hover:bg-gray-100 ml-1 flex items-center justify-center" title="Ir al Inicio">
+          <mat-icon>home</mat-icon>
+        </a>
+        <h1 class="text-2xl md:text-3xl text-slate-800 font-bold ml-2 md:ml-0">Mi Perfil</h1>
+      </div>
+    </div>
+  </div>
+</header>
+
+<main class="profile-page bg-slate-50">
+  <div class="profile-shell" *ngIf="!loading">
+    <section class="profile-hero">
+      <div class="profile-hero__bg"></div>
+      <div class="profile-avatar">{{ (fullName || email || 'U').slice(0,1).toUpperCase() }}</div>
+      <div class="profile-hero__body">
+        <div class="profile-hero__info">
+          <h1>{{ fullName || 'Usuario' }}</h1>
+          <p>{{ email }}</p>
+          <div class="profile-hero__meta">
+            <span class="profile-role">{{ roleLabel(role) }}</span>
+            <span class="profile-taxid" *ngIf="companyTaxId">
+              <mat-icon>business</mat-icon>
+              RUT {{ companyTaxId }}
+            </span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- GRID de secciones -->
+    <div class="profile-grid">
+      <!-- Datos personales -->
+      <section class="profile-section">
+        <div class="profile-section__head">
+          <div class="profile-section__icon">
+            <mat-icon>person</mat-icon>
+          </div>
+          <div>
+            <h2>Datos personales</h2>
+            <p>Actualiza tu información visible en el portal.</p>
+          </div>
+        </div>
+
+        <form class="profile-form" (ngSubmit)="save()">
+          <div class="profile-field">
+            <label>Nombre completo</label>
+            <div class="profile-item">
+              <input [(ngModel)]="fullName" name="fullName" placeholder="Ej.: Ana Pérez" />
+            </div>
+          </div>
+
+          <div class="profile-field">
+            <label>Correo electrónico</label>
+            <div class="profile-item profile-item--readonly">
+              <mat-icon class="field-icon">mail</mat-icon>
+              <input [value]="email" readonly="true" />
+            </div>
+          </div>
+
+          <div class="profile-field">
+            <label>Empresa <span class="optional">opcional</span></label>
+            <div class="profile-item">
+              <mat-icon class="field-icon">work</mat-icon>
+              <input [(ngModel)]="company" name="company" placeholder="Ej.: Advisor" />
+            </div>
+          </div>
+
+          <div class="profile-field">
+            <label>RUT empresa</label>
+            <div class="profile-item profile-item--readonly">
+              <mat-icon class="field-icon">description</mat-icon>
+              <input [value]="companyTaxId || 'No disponible'" readonly="true" />
+            </div>
+          </div>
+
+          <button type="submit" class="profile-save btn-primary w-full" [disabled]="saving">
+            <mat-icon>check</mat-icon>
+            {{ saving ? 'Guardando...' : 'Guardar cambios' }}
+          </button>
+        </form>
+      </section>
+
+      <!-- Seguridad -->
+      <section class="profile-section profile-section--security">
+        <div class="profile-section__head">
+          <div class="profile-section__icon profile-section__icon--red">
+            <mat-icon>shield</mat-icon>
+          </div>
+          <div>
+            <h2>Seguridad</h2>
+            <p>Gestiona el acceso y tu contraseña.</p>
+          </div>
+        </div>
+
+        <div class="security-info">
+          <mat-icon>lock</mat-icon>
+          <p>Te enviaremos un correo con un enlace para restablecer tu contraseña de forma segura.</p>
+        </div>
+
+        <button type="button" class="security-btn btn-secondary w-full" (click)="sendResetPassword()">
+          <mat-icon>mail</mat-icon>
+          Enviar correo para cambiar contraseña
+        </button>
+      </section>
+    </div>
+  </div>
+
+  <!-- Loading -->
+  <div class="profile-loading" *ngIf="loading">
+    <svg class="animate-spin h-8 w-8 text-indigo-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+      <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+      <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+    </svg>
+    <span>Cargando perfil...</span>
+  </div>
+</main>

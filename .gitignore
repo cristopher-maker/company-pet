@@ -1,0 +1,22 @@
+# Node / Angular / Ionic
+node_modules/
+dist/
+www/
+.angular/
+.cache/
+
+# Logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# OS / Editor
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+
+# Env
+.env
+

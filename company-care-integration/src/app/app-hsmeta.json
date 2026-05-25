@@ -1,0 +1,33 @@
+{
+  "uid": "company_pet_integration_app",
+  "type": "app",
+  "config": {
+    "name": "Company Pet Integration",
+    "description": "Integración profesional para la gestión de beneficios corporativos de Company Pet y Comercial Ovni.",
+    "distribution": "private",
+    "auth": {
+      "type": "static",
+      "requiredScopes": [
+        "crm.objects.contacts.read",
+        "crm.objects.contacts.write",
+        "crm.objects.deals.read",
+        "crm.objects.deals.write"
+      ],
+      "optionalScopes": [],
+      "conditionallyRequiredScopes": []
+    },
+    "permittedUrls": {
+      "fetch": [
+        "https://api.hubapi.com"
+      ],
+      "iframe": [],
+      "img": []
+    },
+    "support": {
+      "supportEmail": "contacto@companypet.cl",
+      "documentationUrl": "https://companypet.cl",
+      "supportUrl": "https://companypet.cl",
+      "supportPhone": "+56912345678"
+    }
+  }
+}

@@ -1,0 +1,8 @@
+{
+  "name": "Company Pet",
+  "type": "angular",
+  "integrations": {
+    "capacitor": {}
+  }
+}
+

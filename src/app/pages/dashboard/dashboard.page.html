@@ -1,0 +1,314 @@
+<app-site-header></app-site-header>
+
+<div class="dash-layout">
+  <main class="dash-page">
+    <div class="dash-page__container">
+      <section class="dash-hero">
+        <div class="dash-hero__left">
+          <p class="dash-hero__mode-label" *ngIf="mode === 'employee'">Portal de beneficios</p>
+          <p class="dash-hero__mode-label" *ngIf="mode === 'company'">Panel empresa<span *ngIf="companyName"> · {{ companyName }}</span></p>
+          <p class="dash-hero__mode-label" *ngIf="mode === 'public'">Acceso</p>
+          <h1 class="dash-hero__title">Hola, <em>{{ displayName }}</em></h1>
+          <p class="dash-hero__subtitle" *ngIf="mode === 'employee'">Tu portal de beneficios: apoyo experto, proveedores, recursos y formación.</p>
+          <p class="dash-hero__subtitle" *ngIf="mode === 'company'">Métricas, co-branding y herramientas de RR.HH.</p>
+          <p class="dash-hero__subtitle" *ngIf="mode === 'public'">Inicia sesión para ver tu portal y seguimiento.</p>
+        </div>
+
+        <div class="dash-hero__actions" *ngIf="mode !== 'public'">
+          <ng-container *ngIf="mode === 'employee'">
+            <a class="btn-primary" routerLink="/care-experts">Solicitar asesoría</a>
+            <a class="btn-ghost" routerLink="/requests">Ver solicitudes</a>
+          </ng-container>
+          <ng-container *ngIf="mode === 'company'">
+            <a class="btn-primary" routerLink="/company">Administrar empresa</a>
+            <a class="btn-ghost" routerLink="/company">Vouchers</a>
+          </ng-container>
+          <button
+            type="button"
+            class="dash-refresh-btn"
+            (click)="refresh()"
+            [disabled]="loading"
+            aria-label="Actualizar"
+          >
+            <mat-icon [class.spin]="loading">refresh</mat-icon>
+          </button>
+        </div>
+
+        <div class="dash-hero__actions" *ngIf="mode === 'public' && !loading">
+          <a class="btn-primary" routerLink="/login">Ingresar</a>
+          <a class="btn-ghost" routerLink="/home">Volver al inicio</a>
+        </div>
+      </section>
+
+      <div class="dash-stats" *ngIf="stats.length">
+        <div class="dash-stat" *ngFor="let s of stats">
+          <div class="dash-stat__icon">
+            <mat-icon>{{ s.icon }}</mat-icon>
+          </div>
+          <div class="dash-stat__value">{{ s.value }}</div>
+          <div class="dash-stat__label">{{ s.label }}</div>
+        </div>
+      </div>
+
+      <div class="dash-grid" *ngIf="mode !== 'public'">
+        <section class="dash-card dash-card--wide" *ngIf="mode === 'employee'">
+          <div class="dash-card__head">
+            <h2 class="dash-card__title">Mi ficha de mascota</h2>
+            <button type="button" class="dash-card__action" (click)="openEmployeeCareIntake()">
+              {{ employeeCareIntakeId ? 'Editar ficha' : 'Completar ficha' }}
+            </button>
+          </div>
+
+          <div class="intake-summary" *ngIf="employeeCareIntakeId; else noIntake">
+            <div class="intake-summary__grid">
+              <div class="intake-summary__item">
+                <span class="intake-summary__key">Tipo de apoyo</span>
+                <span class="intake-summary__val">{{ careTypeLabel(employeeCareIntakeDraft.careType) }}</span>
+              </div>
+              <div class="intake-summary__item">
+                <span class="intake-summary__key">Relación</span>
+                <span class="intake-summary__val">{{ employeeCareIntakeDraft.caregiverRelation || 'Sin dato' }}</span>
+              </div>
+              <div class="intake-summary__item">
+                <span class="intake-summary__key">Nivel de apoyo requerido</span>
+                <span class="intake-summary__val">{{ dependencyLevelLabel(employeeCareIntakeDraft.dependencyLevel) }}</span>
+              </div>
+              <div class="intake-summary__item">
+                <span class="intake-summary__key">Contacto preferido</span>
+                <span class="intake-summary__val">{{ preferredContactLabel(employeeCareIntakeDraft.preferredContact) }}</span>
+              </div>
+            </div>
+            <p class="intake-summary__date" *ngIf="employeeCareIntakeUpdatedAt">
+              Actualizado el {{ employeeCareIntakeUpdatedAt | date:'dd/MM/yyyy HH:mm' }}
+            </p>
+          </div>
+
+          <ng-template #noIntake>
+            <div class="dash-card__empty">
+              <mat-icon>note_add</mat-icon>
+              <p>Completa tu ficha para que el experto vea tu contexto desde el primer contacto.</p>
+              <button type="button" class="btn-primary btn--sm" (click)="openEmployeeCareIntake()">Completar ahora</button>
+            </div>
+          </ng-template>
+        </section>
+
+        <section class="dash-card">
+          <div class="dash-card__head">
+            <h2 class="dash-card__title">Solicitudes recientes</h2>
+            <a class="dash-card__action" routerLink="/requests">Ver todo</a>
+          </div>
+
+          <div class="dash-card__empty" *ngIf="!recentRequests.length && !loading">
+            <mat-icon>forum</mat-icon>
+            <p>Aún no hay solicitudes.</p>
+          </div>
+
+          <ul class="request-list" *ngIf="recentRequests.length">
+            <li class="request-list__item" *ngFor="let r of recentRequests">
+              <a routerLink="/requests">
+                <div class="request-list__main">
+                  <span class="request-list__topic">{{ r.topic }}</span>
+                  <span class="request-list__meta">{{ r.channel }} · {{ r.status }}</span>
+                </div>
+                <span class="request-list__date">{{ r.created_at | date:'dd/MM' }}</span>
+              </a>
+            </li>
+          </ul>
+        </section>
+
+        <section class="dash-card">
+          <div class="dash-card__head">
+            <h2 class="dash-card__title">Recursos destacados</h2>
+            <a class="dash-card__action" routerLink="/resources">Biblioteca</a>
+          </div>
+
+          <div class="dash-card__empty" *ngIf="!featuredResources.length && !loading">
+            <mat-icon>library_books</mat-icon>
+            <p>No hay recursos para mostrar.</p>
+          </div>
+
+          <div class="resource-list" *ngIf="featuredResources.length">
+            <a class="resource-list__item" routerLink="/resources" *ngFor="let r of featuredResources">
+              <span class="resource-list__cat">{{ r.category }}</span>
+              <h3 class="resource-list__title">{{ r.title }}</h3>
+              <p class="resource-list__summary">{{ r.summary || 'Ver detalles en la biblioteca.' }}</p>
+            </a>
+          </div>
+        </section>
+
+        <section class="dash-card dash-card--wide">
+          <div class="dash-card__head">
+            <h2 class="dash-card__title">Próximos eventos</h2>
+            <a class="dash-card__action" routerLink="/training">Formación</a>
+          </div>
+
+          <div class="dash-card__empty" *ngIf="!upcomingEvents.length && !loading">
+            <mat-icon>event</mat-icon>
+            <p>No hay eventos próximos.</p>
+          </div>
+
+          <div class="event-list" *ngIf="upcomingEvents.length">
+            <div class="event-list__item" *ngFor="let e of upcomingEvents">
+              <div class="event-list__date">
+                <span class="event-list__day">{{ e.starts_at ? (e.starts_at | date:'dd') : '--' }}</span>
+                <span class="event-list__month">{{ e.starts_at ? (e.starts_at | date:'MMM') : '' }}</span>
+              </div>
+              <div class="event-list__info">
+                <h3 class="event-list__title">{{ e.title }}</h3>
+                <p class="event-list__meta">{{ e.format }}<span *ngIf="e.location"> · {{ e.location }}</span></p>
+              </div>
+            </div>
+          </div>
+        </section>
+      </div>
+
+      <div class="dash-public" *ngIf="mode === 'public' && !loading">
+        <h2>Acceso al portal</h2>
+        <p>Inicia sesión con tu cuenta para ver tu dashboard como empleado o empresa.</p>
+        <a class="btn-primary" routerLink="/login">Ingresar</a>
+      </div>
+    </div>
+  </main>
+
+  <app-site-footer></app-site-footer>
+</div>
+
+<div
+  class="care-intake-backdrop"
+  *ngIf="employeeCareIntakeOpen"
+  (click)="closeEmployeeCareIntake()"
+>
+  <div class="care-intake-modal" (click)="$event.stopPropagation()">
+    <header class="care-intake-modal__head">
+      <h2 class="care-intake-modal__title">Mi ficha de mascota</h2>
+      <button class="care-intake-modal__close" (click)="closeEmployeeCareIntake()" aria-label="Cerrar">
+        <mat-icon>close</mat-icon>
+      </button>
+    </header>
+
+    <div class="care-intake-modal__body">
+      <div class="care-intake-modal__intro">
+        <h3>Completa tu contexto una sola vez</h3>
+        <p>Esto ayuda a que la asesoría, el chat y las citas partan con información útil sobre tu situación.</p>
+      </div>
+
+      <form class="intake-form" (ngSubmit)="saveEmployeeCareIntake()">
+        <div class="intake-form__section">
+          <span class="intake-form__section-label">Sobre la mascota</span>
+          <div class="intake-form__row">
+            <div class="form-field">
+              <label for="careType">Tipo de apoyo</label>
+              <select id="careType" [(ngModel)]="employeeCareIntakeDraft.careType" name="careType">
+                <option value="guidance">Orientación general</option>
+                <option value="home_care">Pet sitting a domicilio</option>
+                <option value="residential">Hotel para mascotas</option>
+                <option value="nursing">Enfermería</option>
+                <option value="dementia">Conducta / ansiedad</option>
+                <option value="respite">Guarder?a temporal</option>
+              </select>
+            </div>
+            <div class="form-field">
+              <label for="careReceiverAge">Edad de la mascota</label>
+              <input id="careReceiverAge" type="number" [(ngModel)]="employeeCareIntakeDraft.careReceiverAge" name="careReceiverAge" placeholder="Ej. 4" />
+            </div>
+          </div>
+          <div class="intake-form__row">
+            <div class="form-field">
+              <label for="primaryCondition">Condición principal</label>
+              <input id="primaryCondition" type="text" [(ngModel)]="employeeCareIntakeDraft.primaryCondition" name="primaryCondition" placeholder="Ej. alergias, ansiedad, tratamiento..." />
+            </div>
+            <div class="form-field">
+              <label for="dependencyLevel">Nivel de apoyo requerido</label>
+              <select id="dependencyLevel" [(ngModel)]="employeeCareIntakeDraft.dependencyLevel" name="dependencyLevel">
+                <option value="low">Baja</option>
+                <option value="medium">Media</option>
+                <option value="high">Alta</option>
+                <option value="full">Apoyo permanente</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <div class="intake-form__section">
+          <span class="intake-form__section-label">Ubicación y contexto</span>
+          <div class="intake-form__row">
+            <div class="form-field">
+              <label for="city">Ciudad o comuna</label>
+              <input id="city" type="text" [(ngModel)]="employeeCareIntakeDraft.city" name="city" placeholder="Ej. Santiago, Providencia..." />
+            </div>
+            <div class="form-field">
+              <label for="postalCode">Código postal</label>
+              <input id="postalCode" type="text" [(ngModel)]="employeeCareIntakeDraft.postalCode" name="postalCode" />
+            </div>
+          </div>
+          <div class="form-field">
+            <label for="supportNetwork">Red de apoyo actual</label>
+            <input id="supportNetwork" type="text" [(ngModel)]="employeeCareIntakeDraft.supportNetwork" name="supportNetwork" placeholder="Ej. familia, vecino, pet sitter contratado..." />
+          </div>
+        </div>
+
+        <div class="intake-form__section">
+          <span class="intake-form__section-label">Presupuesto y financiamiento</span>
+          <div class="intake-form__row">
+            <div class="form-field">
+              <label for="budgetMonthlyMax">Presupuesto mensual máximo</label>
+              <input id="budgetMonthlyMax" type="number" [(ngModel)]="employeeCareIntakeDraft.budgetMonthlyMax" name="budgetMonthlyMax" placeholder="CLP" />
+            </div>
+            <div class="form-field">
+              <label for="funding">Financiamiento</label>
+              <select id="funding" [(ngModel)]="employeeCareIntakeDraft.funding" name="funding">
+                <option value="self_funder">Pago privado</option>
+                <option value="local_authority">Ayuda pública</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <div class="intake-form__section">
+          <span class="intake-form__section-label">Preferencias y urgencia</span>
+          <div class="intake-form__row">
+            <div class="form-field">
+              <label for="preferredContact">Contacto preferido</label>
+              <select id="preferredContact" [(ngModel)]="employeeCareIntakeDraft.preferredContact" name="preferredContact">
+                <option value="chat">Chat</option>
+                <option value="phone">Llamada</option>
+                <option value="video">Videollamada</option>
+              </select>
+            </div>
+            <div class="form-field">
+              <label for="urgency">Urgencia</label>
+              <select id="urgency" [(ngModel)]="employeeCareIntakeDraft.urgency" name="urgency">
+                <option value="immediate">Inmediata</option>
+                <option value="3m">En 3 meses</option>
+                <option value="6m">En 6 meses</option>
+                <option value="exploring">Explorando opciones</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <div class="intake-form__section">
+          <span class="intake-form__section-label">Tus datos</span>
+          <div class="intake-form__row">
+            <div class="form-field">
+              <label for="caregiverName">Tu nombre</label>
+              <input id="caregiverName" type="text" [(ngModel)]="employeeCareIntakeDraft.caregiverName" name="caregiverName" />
+            </div>
+            <div class="form-field">
+              <label for="caregiverRelation">Relación con la persona cuidada</label>
+              <input id="caregiverRelation" type="text" [(ngModel)]="employeeCareIntakeDraft.caregiverRelation" name="caregiverRelation" placeholder="Ej. Hijo/a, cónyuge..." />
+            </div>
+          </div>
+          <div class="form-field">
+            <label for="notes">Notas relevantes</label>
+            <textarea id="notes" rows="3" [(ngModel)]="employeeCareIntakeDraft.notes" name="notes" placeholder="Cualquier detalle que ayude al experto..."></textarea>
+          </div>
+        </div>
+
+        <button type="button" class="btn-primary btn--full" (click)="saveEmployeeCareIntake()" [disabled]="loading">
+          {{ loading ? 'Guardando...' : 'Guardar mi ficha' }}
+        </button>
+      </form>
+    </div>
+  </div>
+</div>

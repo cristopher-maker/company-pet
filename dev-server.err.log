@@ -1,0 +1,9 @@
+- Generating browser application bundles (phase: setup)...
+√ Browser application bundle generation complete.
+[1m[33m
+Warning: C:/Users/crist/OneDrive/Documentos/company-pet/src/environments/environment.prod.ts is part of the TypeScript compilation but it's unused.
+Add only entry points to the 'files' or 'include' properties in your tsconfig.
+
+[39m[22m
+√ Browser application bundle generation complete.
+√ Browser application bundle generation complete.

@@ -1,0 +1,111 @@
+<app-site-header></app-site-header>
+
+<main class="requests-page">
+  <div class="requests-page__inner">
+    <section class="requests-hero">
+      <div class="requests-hero__mark" aria-hidden="true">
+        <mat-icon>content_paste</mat-icon>
+      </div>
+      <div class="requests-hero__copy">
+        <div class="requests-hero__eyebrow">Pet Experts</div>
+        <h2>Seguimiento de tus solicitudes</h2>
+        <p>Revisa el estado de cada caso y retoma la conversacion cuando lo necesites.</p>
+      </div>
+      <button type="button" class="requests-hero__refresh" (click)="refresh()" [disabled]="loading" aria-label="Actualizar solicitudes">
+        <mat-icon
+          class="requests-hero__refresh-icon"
+          [class.requests-hero__refresh-icon--spinning]="loading"
+          aria-hidden="true"
+          >refresh</mat-icon
+        >
+        <span>Actualizar</span>
+      </button>
+    </section>
+
+    <section class="requests-overview" *ngIf="!loading && items.length" aria-label="Resumen de solicitudes">
+      <article class="requests-overview__card">
+        <span>Total</span>
+        <strong>{{ items.length }}</strong>
+      </article>
+      <article class="requests-overview__card">
+        <span>Activas</span>
+        <strong>{{ openRequestsCount }}</strong>
+      </article>
+      <article class="requests-overview__card">
+        <span>Cerradas</span>
+        <strong>{{ closedRequestsCount }}</strong>
+      </article>
+    </section>
+
+    <div *ngIf="loading" class="requests-state requests-state--loading">
+      <div class="requests-spinner" aria-hidden="true"></div>
+      <p>Cargando solicitudes...</p>
+    </div>
+
+    <div *ngIf="error" class="requests-state requests-state--error" role="alert">
+      <strong>Error:</strong>
+      <span>{{ error }}</span>
+    </div>
+
+    <div *ngIf="!loading && !error && !items.length" class="requests-state">
+      <mat-icon class="requests-state__icon" aria-hidden="true">forum</mat-icon>
+      <h3>No tienes solicitudes</h3>
+      <p>Puedes iniciar una nueva asesoria desde el dashboard o con un Pet Expert.</p>
+      <a routerLink="/care-experts" class="requests-state__action">Iniciar asesoria</a>
+    </div>
+
+    <section *ngIf="!loading && items.length" class="requests-list" aria-label="Listado de solicitudes">
+      <a
+        *ngFor="let item of visibleItems"
+        [routerLink]="['/care-experts']"
+        [queryParams]="{ request: item.id }"
+        class="request-card"
+      >
+        <div class="request-card__main">
+          <div class="request-card__topic">{{ item.topic }}</div>
+          <div class="request-card__meta">
+            <span>{{ item.channel }}</span>
+            <span class="request-card__dot" aria-hidden="true"></span>
+            <span>{{ item.created_at | date: 'dd/MM/yyyy' }}</span>
+          </div>
+        </div>
+
+        <span class="request-card__status" [ngClass]="statusClass(item.status)">
+          {{ statusLabel(item.status) }}
+        </span>
+      </a>
+    </section>
+
+    <div *ngIf="!loading && totalPages > 1" class="requests-pagination">
+      <button
+        type="button"
+        class="requests-pagination__nav"
+        (click)="prevPage()"
+        [disabled]="currentPage === 1"
+      >
+        Anterior
+      </button>
+
+      <button
+        *ngFor="let page of pages"
+        type="button"
+        class="requests-pagination__page"
+        [class.is-active]="currentPage === page"
+        (click)="goToPage(page)"
+      >
+        {{ page }}
+      </button>
+
+      <button
+        type="button"
+        class="requests-pagination__nav"
+        (click)="nextPage()"
+        [disabled]="currentPage === totalPages"
+      >
+        Siguiente
+      </button>
+    </div>
+  </div>
+</main>
+
+<app-site-footer></app-site-footer>

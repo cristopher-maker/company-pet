@@ -1,0 +1,51 @@
+{
+  "name": "company-pet",
+  "version": "0.0.0",
+  "private": true,
+  "scripts": {
+    "start": "npm run tw:build && ng serve",
+    "tw:build": "tailwindcss -i src/tailwind.css -o src/tailwind-out.css",
+    "tw:watch": "tailwindcss -i src/tailwind.css -o src/tailwind-out.css --watch",
+    "build": "npm run tw:build && ng build",
+    "build:gh": "npm run tw:build && ng build --configuration production --base-href /companypet/ --deploy-url /companypet/",
+    "deploy": "npm run build:gh && gh-pages -d dist/app --no-history",
+    "test": "ng test",
+    "lint": "ng lint"
+  },
+  "dependencies": {
+    "@angular/animations": "^18.2.0",
+    "@angular/cdk": "^18.2.14",
+    "@angular/common": "^18.2.0",
+    "@angular/compiler": "^18.2.0",
+    "@angular/core": "^18.2.0",
+    "@angular/forms": "^18.2.0",
+    "@angular/material": "^18.2.14",
+    "@angular/platform-browser": "^18.2.0",
+    "@angular/platform-browser-dynamic": "^18.2.0",
+    "@angular/router": "^18.2.0",
+    "@supabase/supabase-js": "^2.0.0",
+    "chart.js": "^4.4.9",
+    "ng2-charts": "^5.0.4",
+    "rxjs": "^7.8.0",
+    "tslib": "^2.6.0",
+    "zone.js": "^0.14.0"
+  },
+  "devDependencies": {
+    "@angular-devkit/build-angular": "^18.2.0",
+    "@angular/cli": "^18.2.0",
+    "@angular/compiler-cli": "^18.2.0",
+    "@types/jasmine": "^5.1.0",
+    "@types/node": "^20.10.0",
+    "autoprefixer": "^10.4.27",
+    "gh-pages": "^6.3.0",
+    "jasmine-core": "^5.1.0",
+    "karma": "^6.4.0",
+    "karma-chrome-launcher": "^3.2.0",
+    "karma-coverage": "^2.2.0",
+    "karma-jasmine": "^5.1.0",
+    "karma-jasmine-html-reporter": "^2.1.0",
+    "postcss": "^8.5.8",
+    "tailwindcss": "^3.4.19",
+    "typescript": "^5.4.0"
+  }
+}

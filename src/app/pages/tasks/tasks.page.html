@@ -1,0 +1,92 @@
+<app-site-header></app-site-header>
+
+<main class="bg-slate-50 min-h-screen pt-20 pb-12">
+  <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <div class="mb-8">
+      <h1 class="text-3xl font-bold text-slate-800">Tareas Asignadas</h1>
+      <p class="mt-1 text-lg text-slate-600">Gestiona las tareas operativas asignadas a ti.</p>
+    </div>
+
+    <div *ngIf="loading" class="text-center py-16">
+      <mat-icon class="animate-spin text-indigo-600 mx-auto" style="font-size: 32px; width: 32px; height: 32px;">refresh</mat-icon>
+      <p class="mt-4 text-slate-500 font-medium">Cargando tus tareas...</p>
+    </div>
+
+    <div *ngIf="!loading && tasks.length === 0" class="text-center py-16 bg-white border border-slate-200 rounded-xl shadow-sm">
+      <div class="bg-green-100 text-green-600 p-4 rounded-full inline-flex items-center justify-center mb-4">
+        <mat-icon style="font-size: 40px; width: 40px; height: 40px;">task_alt</mat-icon>
+      </div>
+      <h3 class="text-xl font-bold text-slate-900">¡Todo al día!</h3>
+      <p class="mt-2 text-slate-500 max-w-sm mx-auto">No tienes tareas pendientes en este momento.</p>
+    </div>
+
+    <div *ngIf="!loading && tasks.length > 0" class="mb-5 grid grid-cols-1 sm:grid-cols-2 gap-3">
+      <label class="block">
+        <span class="block text-xs font-semibold uppercase tracking-wide text-slate-500 mb-2">Estado</span>
+        <select [(ngModel)]="filters.status" class="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-700">
+          <option value="all">Todos</option>
+          <option value="pending">Pendientes</option>
+          <option value="in_progress">En progreso</option>
+          <option value="done">Completadas</option>
+        </select>
+      </label>
+      <label class="block">
+        <span class="block text-xs font-semibold uppercase tracking-wide text-slate-500 mb-2">Vinculo</span>
+        <select [(ngModel)]="filters.entity" class="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-700">
+          <option value="all">Todos</option>
+          <option value="lead">Admision</option>
+          <option value="sede">Sede</option>
+          <option value="cama">Cama</option>
+          <option value="paciente">Paciente</option>
+          <option value="none">Sin vinculo</option>
+        </select>
+      </label>
+    </div>
+
+    <div class="space-y-4" *ngIf="!loading && tasks.length > 0">
+      <article *ngFor="let task of filteredTasks" class="bg-white p-5 rounded-xl shadow-sm border flex flex-col sm:flex-row sm:items-center gap-4 justify-between transition-all" [ngClass]="{
+        'border-slate-200 opacity-60 bg-slate-50': task.status === 'done',
+        'border-indigo-100 hover:shadow-md hover:-translate-y-0.5': task.status !== 'done' && task.priority !== 'high',
+        'border-red-400 hover:shadow-md hover:-translate-y-0.5': task.status !== 'done' && task.priority === 'high'
+      }">
+        <div class="flex-1">
+          <div class="flex items-center gap-3 mb-2">
+            <span class="px-2.5 py-0.5 rounded-full text-xs font-bold" [ngClass]="{'bg-amber-100 text-amber-800': task.status === 'pending', 'bg-blue-100 text-blue-800': task.status === 'in_progress', 'bg-green-100 text-green-800': task.status === 'done'}">
+              {{ task.status === 'pending' ? 'Pendiente' : (task.status === 'in_progress' ? 'En Progreso' : 'Completada') }}
+            </span>
+            <span *ngIf="task.priority === 'high'" class="px-2 py-0.5 rounded-full text-xs font-bold bg-red-100 text-red-800 flex items-center gap-1">
+              <mat-icon style="font-size: 12px; width: 12px; height: 12px;">priority_high</mat-icon> Alta prioridad
+            </span>
+            <span *ngIf="task.due_at" class="text-xs font-medium flex items-center gap-1" [ngClass]="isOverdue(task.due_at) && task.status !== 'done' ? 'text-red-600' : 'text-slate-500'">
+              <mat-icon style="font-size: 14px; width: 14px; height: 14px;">calendar_today</mat-icon>
+              Vence: {{ task.due_at | date:'dd/MM/yyyy' }}
+            </span>
+          </div>
+          <p class="text-slate-800 font-medium text-lg leading-snug">{{ task.title }}</p>
+          <button *ngIf="task.entity_label" type="button" (click)="openLinkedEntity(task)" class="mt-2 inline-flex items-center gap-2 px-3 py-1 rounded-full bg-slate-100 text-slate-600 text-xs font-semibold hover:bg-slate-200 transition-colors">
+            <mat-icon style="font-size: 14px; width: 14px; height: 14px;">link</mat-icon>
+            {{ task.entity_label }}
+          </button>
+        </div>
+        
+        <div class="flex items-center gap-2 mt-2 sm:mt-0 border-t sm:border-t-0 pt-4 sm:pt-0 border-slate-100" *ngIf="task.status !== 'done'">
+          <button (click)="updateStatus(task, 'in_progress')" *ngIf="task.status === 'pending'" class="px-4 py-2 text-sm font-bold text-blue-700 bg-blue-50 border border-blue-200 rounded-lg hover:bg-blue-100 transition-colors w-full sm:w-auto text-center">
+            Iniciar
+          </button>
+          <button (click)="updateStatus(task, 'done')" class="px-4 py-2 text-sm font-bold text-white bg-green-600 border border-transparent rounded-lg hover:bg-green-700 shadow-sm transition-colors flex items-center justify-center gap-2 w-full sm:w-auto">
+            <mat-icon style="font-size: 18px; width: 18px; height: 18px;">check</mat-icon> Completar
+          </button>
+        </div>
+        <div *ngIf="task.status === 'done'" class="text-green-600 flex items-center gap-1 font-bold text-sm px-4">
+          <mat-icon style="font-size: 20px; width: 20px; height: 20px;">done_all</mat-icon> Hecha
+        </div>
+      </article>
+
+      <div *ngIf="filteredTasks.length === 0" class="text-center py-12 bg-white border border-slate-200 rounded-xl shadow-sm">
+        <p class="text-slate-500 font-medium">No hay tareas que coincidan con los filtros actuales.</p>
+      </div>
+    </div>
+  </div>
+</main>
+
+<app-site-footer></app-site-footer>

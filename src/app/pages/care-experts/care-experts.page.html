@@ -1,0 +1,694 @@
+<app-site-header></app-site-header>
+
+<main class="care-experts-page" *ngIf="!expertMode">
+  <div *ngIf="loading" class="ce-feedback ce-feedback--loading">
+    <svg class="ce-spinner" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+      <circle class="ce-spinner__track" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+      <path class="ce-spinner__head" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
+    </svg>
+    <p>Cargando...</p>
+  </div>
+
+  <div *ngIf="!loading && error" class="ce-feedback ce-feedback--error" role="alert">
+    <strong>Error:</strong>
+    <span>{{ error }}</span>
+  </div>
+
+  <div *ngIf="!loading && !error">
+    <div *ngIf="!expertMode" class="ce-page">
+      <section class="ce-advisor-shell">
+        <article class="ce-panel ce-advisor-panel">
+          <div class="ce-advisor-panel__progress">
+            <div>
+              <div class="ce-advisor-panel__eyebrow">{{ advisorCurrentStepLabel }}</div>
+              <div class="ce-advisor-panel__kicker">Asesoria personalizada</div>
+            </div>
+            <div class="ce-advisor-panel__meter">
+              <span [style.width.%]="advisorProgressPercent"></span>
+            </div>
+          </div>
+
+          <div class="ce-hero ce-hero--advisor">
+            <div class="ce-hero__icon">
+              <mat-icon>support_agent</mat-icon>
+            </div>
+            <div>
+              <h2 class="ce-hero__title">Pet Experts</h2>
+              <p class="ce-hero__subtitle">
+                Un flujo guiado para pedir apoyo, resolver dudas o reservar una sesion.
+              </p>
+            </div>
+          </div>
+
+          <ng-container [ngSwitch]="advisorStep">
+            <div *ngSwitchCase="1">
+              <h3 class="ce-advisor-step__title">Como te gustaria que te contactemos?</h3>
+              <p class="ce-advisor-step__lead">
+                Elige el canal y el tema principal. Despues te mostraremos el siguiente paso
+                segun tu eleccion.
+              </p>
+
+              <section class="ce-section">
+                <div class="ce-label">Canal de atencion</div>
+                <div class="ce-channels">
+                  <button
+                    type="button"
+                    class="ce-channel"
+                    [class.is-active]="channel === 'Chat'"
+                    (click)="selectChannel('Chat')"
+                  >
+                    <div class="ce-channel__icon-wrapper">
+                      <mat-icon>chat_bubble</mat-icon>
+                    </div>
+                    <div>
+                      <div class="ce-channel__title">Chat</div>
+                      <div class="ce-channel__sub">Respuesta escrita</div>
+                    </div>
+                  </button>
+
+                  <button
+                    type="button"
+                    class="ce-channel"
+                    [class.is-active]="channel === 'Videollamada'"
+                    (click)="selectChannel('Videollamada')"
+                  >
+                    <div class="ce-channel__icon-wrapper">
+                      <mat-icon>videocam</mat-icon>
+                    </div>
+                    <div>
+                      <div class="ce-channel__title">Videollamada</div>
+                      <div class="ce-channel__sub">Cara a cara</div>
+                    </div>
+                  </button>
+
+                  <button
+                    type="button"
+                    class="ce-channel"
+                    [class.is-active]="channel === 'Llamada'"
+                    (click)="selectChannel('Llamada')"
+                  >
+                    <div class="ce-channel__icon-wrapper">
+                      <mat-icon>call</mat-icon>
+                    </div>
+                    <div>
+                      <div class="ce-channel__title">Llamada</div>
+                      <div class="ce-channel__sub">Voz directa</div>
+                    </div>
+                  </button>
+                </div>
+              </section>
+
+              <section class="ce-section">
+                <div class="ce-label">Tema</div>
+                <div class="ce-topic-grid">
+                  <button
+                    *ngFor="let item of topics"
+                    type="button"
+                    class="ce-topic-pill"
+                    [class.is-active]="topic === item"
+                    (click)="selectTopic(item)"
+                  >
+                    {{ item }}
+                  </button>
+                </div>
+              </section>
+            </div>
+
+            <div *ngSwitchCase="2">
+              <h3 class="ce-advisor-step__title">
+                {{ channel === 'Chat' ? 'Danos algo de contexto' : 'Elige fecha y hora' }}
+              </h3>
+              <p class="ce-advisor-step__lead" *ngIf="channel === 'Chat'">
+                Cuanto mejor entendamos tu situacion, mas util sera la primera respuesta.
+              </p>
+              <p class="ce-advisor-step__lead" *ngIf="channel !== 'Chat'">
+                Reserva un espacio para revisar tu caso con un Pet Expert y llegar con el
+                contexto ya preparado.
+              </p>
+
+              <section class="ce-section" *ngIf="channel === 'Chat'">
+                <div class="ce-label">Describe brevemente tu situacion</div>
+                <textarea
+                  [(ngModel)]="details"
+                  class="ce-textarea"
+                  rows="6"
+                  placeholder="Ej.: Necesito orientacion para mi mascota, revisar opciones de cuidado y entender proximos pasos."
+                ></textarea>
+              </section>
+
+              <ng-container *ngIf="channel !== 'Chat'">
+                <section class="ce-section ce-appointment-form">
+                  <div>
+                    <div class="ce-label">Canal</div>
+                    <div class="ce-channels ce-channels--compact">
+                      <button
+                        type="button"
+                        class="ce-channel"
+                        [class.is-active]="appointmentKind === 'Videollamada'"
+                        (click)="onAppointmentKindChange('Videollamada')"
+                      >
+                        <div class="ce-channel__icon-wrapper">
+                          <mat-icon>videocam</mat-icon>
+                        </div>
+                        <div>
+                          <div class="ce-channel__title">Videollamada</div>
+                          <div class="ce-channel__sub">Con enlace de acceso</div>
+                        </div>
+                      </button>
+
+                      <button
+                        type="button"
+                        class="ce-channel"
+                        [class.is-active]="appointmentKind === 'Llamada'"
+                        (click)="onAppointmentKindChange('Llamada')"
+                      >
+                        <div class="ce-channel__icon-wrapper">
+                          <mat-icon>call</mat-icon>
+                        </div>
+                        <div>
+                          <div class="ce-channel__title">Llamada</div>
+                          <div class="ce-channel__sub">Coordinacion por voz</div>
+                        </div>
+                      </button>
+                    </div>
+                  </div>
+
+                  <div>
+                    <div class="ce-label">Dia</div>
+                    <input
+                      type="date"
+                      class="ce-input"
+                      [min]="minAppointmentDate"
+                      [max]="maxAppointmentDate"
+                      [ngModel]="appointmentDate"
+                      (ngModelChange)="onAppointmentDateChange($event)"
+                    />
+                  </div>
+                </section>
+
+                <section class="ce-section">
+                  <div class="ce-label">Horario disponible</div>
+                  <div class="ce-appointment-time">
+                    <div class="ce-appointment-time__grid">
+                      <button
+                        *ngFor="let slot of appointmentTimeSlots"
+                        type="button"
+                        class="ce-time-slot"
+                        [class.is-active]="appointmentTime === slot"
+                        (click)="selectAppointmentTime(slot)"
+                      >
+                        {{ slot }}
+                      </button>
+                    </div>
+                  </div>
+                </section>
+
+                <section class="ce-section">
+                  <div class="ce-label">Notas para la cita</div>
+                  <textarea
+                    [(ngModel)]="appointmentNotes"
+                    class="ce-textarea"
+                    rows="4"
+                    placeholder="Resume lo importante para que el experto llegue preparado."
+                  ></textarea>
+                </section>
+              </ng-container>
+            </div>
+
+            <div *ngSwitchDefault>
+              <h3 class="ce-advisor-step__title">Revisa antes de continuar</h3>
+              <p class="ce-advisor-step__lead">
+                Confirma el canal, el tema y el contexto compartido. Si algo no cuadra,
+                vuelve al paso anterior y ajustalo.
+              </p>
+
+              <div class="ce-summary">
+                <div class="ce-summary__row">
+                  <span>Canal</span>
+                  <strong>{{ advisorSummaryValue('channel') }}</strong>
+                </div>
+                <div class="ce-summary__row">
+                  <span>Tema</span>
+                  <strong>{{ advisorSummaryValue('topic') }}</strong>
+                </div>
+                <div class="ce-summary__row">
+                  <span>Contexto</span>
+                  <strong>{{ advisorSummaryValue('details') }}</strong>
+                </div>
+                <div class="ce-summary__row" *ngIf="channel !== 'Chat'">
+                  <span>Dia</span>
+                  <strong>{{ advisorSummaryValue('date') }}</strong>
+                </div>
+                <div class="ce-summary__row" *ngIf="channel !== 'Chat'">
+                  <span>Hora</span>
+                  <strong>{{ advisorSummaryValue('time') }}</strong>
+                </div>
+              </div>
+            </div>
+          </ng-container>
+
+          <div class="ce-advisor-actions">
+            <button
+              type="button"
+              class="ce-advisor-actions__secondary"
+              [disabled]="advisorStep === 1 || loading || saving"
+              (click)="previousAdvisorStep()"
+            >
+              Atras
+            </button>
+            <button
+              type="button"
+              class="ce-advisor-actions__primary"
+              [disabled]="loading || saving"
+              (click)="advanceAdvisorStep()"
+            >
+              <span>{{ advisorPrimaryButtonLabel }}</span>
+              <span aria-hidden="true">→</span>
+            </button>
+          </div>
+
+          <div class="ce-footnote">
+            <mat-icon>shield</mat-icon>
+            <span>
+              Tus datos estan protegidos y el flujo solo comparte la informacion necesaria
+              para preparar la orientacion.
+            </span>
+          </div>
+        </article>
+
+        <aside class="ce-panel ce-advisor-visual">
+          <div class="ce-advisor-visual__badge">{{ advisorCurrentStepLabel }}</div>
+          <h3 class="ce-advisor-visual__title">{{ advisorVisualTitle }}</h3>
+          <p class="ce-advisor-visual__body">{{ advisorVisualBody }}</p>
+
+          <div class="ce-advisor-visual__stage">
+            <div class="ce-visual-chat" *ngIf="advisorVisualAccent === 'chat'">
+              <div class="ce-visual-step">
+                <mat-icon>looks_one</mat-icon>
+                <div>
+                  <strong>Canal</strong>
+                  <span>{{ channel }}</span>
+                </div>
+              </div>
+              <div class="ce-visual-step">
+                <mat-icon>looks_two</mat-icon>
+                <div>
+                  <strong>Tema</strong>
+                  <span>{{ topic }}</span>
+                </div>
+              </div>
+              <div class="ce-visual-step">
+                <mat-icon>looks_3</mat-icon>
+                <div>
+                  <strong>Siguiente paso</strong>
+                  <span>{{ advisorStep === 1 ? 'Agrega contexto o agenda' : 'Confirma y envia' }}</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="ce-visual-device" *ngIf="advisorVisualAccent !== 'chat'">
+              <div class="ce-visual-device__screen">
+                <div class="ce-visual-device__avatar"></div>
+                <div class="ce-visual-device__line is-strong"></div>
+                <div class="ce-visual-device__line"></div>
+                <div class="ce-visual-device__line"></div>
+                <div class="ce-visual-device__actions">
+                  <span *ngIf="advisorVisualAccent === 'video'">
+                    <mat-icon>videocam</mat-icon>
+                  </span>
+                  <span *ngIf="advisorVisualAccent === 'call'">
+                    <mat-icon>call</mat-icon>
+                  </span>
+                  <span>
+                    <mat-icon>chat</mat-icon>
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            <div class="ce-visual-card">
+              <mat-icon>assignment</mat-icon>
+              <div>
+                <strong>{{ channel }}</strong>
+                <p>{{ topic }}</p>
+              </div>
+            </div>
+          </div>
+
+          <div class="ce-advisor-visual__note">
+            <mat-icon>lock</mat-icon>
+            <span>{{ advisorVisualNote }}</span>
+          </div>
+        </aside>
+      </section>
+
+      <section class="ce-panel ce-followup-panel" *ngIf="nextAppointment || visibleEmployeeTasks.length || hasActiveChatRequest">
+        <div class="ce-followup-panel__head">
+          <h3>Proximo seguimiento</h3>
+          <p>Tu espacio para retomar citas, conversaciones y tareas relacionadas.</p>
+        </div>
+
+        <div class="ce-followup-grid">
+          <article class="ce-followup-card" *ngIf="nextAppointment">
+            <div class="ce-followup-card__eyebrow">Proxima cita</div>
+            <h4>{{ nextAppointment.kind }}</h4>
+            <p>
+              {{ nextAppointment.scheduled_for | date:'EEEE d MMM, HH:mm' }}
+            </p>
+            <button
+              *ngIf="hasMeetingLink(nextAppointment)"
+              type="button"
+              class="ce-followup-card__action"
+              (click)="openMeeting(nextAppointment)"
+            >
+              Abrir acceso
+            </button>
+          </article>
+
+          <article class="ce-followup-card" *ngIf="hasActiveChatRequest">
+            <div class="ce-followup-card__eyebrow">Chat activo</div>
+            <h4>Continua la conversacion</h4>
+            <p>Tu solicitud ya esta abierta y el historial queda disponible en esta pagina.</p>
+          </article>
+
+          <article class="ce-followup-card" *ngIf="visibleEmployeeTasks.length">
+            <div class="ce-followup-card__eyebrow">Tareas</div>
+            <h4>{{ visibleEmployeeTasks.length }} pendientes o en seguimiento</h4>
+            <p>
+              {{
+                visibleEmployeeTasks[0].title
+              }}
+            </p>
+          </article>
+        </div>
+      </section>
+
+      <section class="ce-panel ce-chat-panel" *ngIf="hasActiveChatRequest">
+        <div class="ce-chat__head">
+          <div>
+            <div class="ce-chat__title">Chat con Pet Expert</div>
+            <div class="ce-chat__hint">{{ topic }}</div>
+          </div>
+          <div class="ce-chat__status-indicator" aria-hidden="true"></div>
+        </div>
+
+        <div class="ce-chat__messages">
+          <div
+            *ngFor="let message of messages"
+            class="ce-msg"
+            [class.is-own]="isOwnMessage(message.sender_id)"
+          >
+            <div class="ce-msg__bubble">{{ message.body }}</div>
+            <div class="ce-msg__meta">
+              {{ messageAuthorLabel(message) }} · {{ message.created_at | date:'HH:mm' }}
+            </div>
+          </div>
+        </div>
+
+        <div class="ce-chat__input-area">
+          <input
+            [(ngModel)]="messageDraft"
+            type="text"
+            class="ce-chat__input"
+            placeholder="Escribe tu mensaje..."
+            (keyup.enter)="sendMessage()"
+          />
+          <button type="button" class="ce-btn-send-text" (click)="sendMessage()">Enviar</button>
+        </div>
+      </section>
+    </div>
+  </div>
+</main>
+
+<section *ngIf="expertMode" class="ce-expert-app">
+  <aside class="ce-expert-app__list" [class.is-hidden-mobile]="selectedRequest">
+    <div class="ce-expert-app__list-head">
+      <div class="ce-expert-app__list-copy">
+        <p class="ce-expert-app__eyebrow">Panel experto</p>
+        <h2 class="ce-expert-app__list-title">Casos activos</h2>
+        <p class="ce-expert-app__list-subtitle">Gestiona conversaciones, citas y contexto en un mismo espacio.</p>
+      </div>
+
+      <label class="ce-expert-app__search">
+        <mat-icon>search</mat-icon>
+        <input
+          [(ngModel)]="searchTerm"
+          type="text"
+          placeholder="Buscar por tema o colaborador"
+        />
+      </label>
+    </div>
+
+    <div class="ce-expert-app__filters">
+      <button
+        *ngFor="let filter of expertFilterOptions"
+        type="button"
+        class="ce-expert-app__filter"
+        [class.is-active]="expertActiveFilter === filter.value"
+        (click)="setExpertFilter(filter.value)"
+      >
+        {{ filter.label }}
+      </button>
+    </div>
+
+    <div class="ce-expert-app__list-body">
+      <div *ngIf="!expertFilteredItems.length" class="ce-expert-app__empty">
+        <mat-icon>inbox</mat-icon>
+        <p>No hay casos en esta vista.</p>
+      </div>
+
+      <ul *ngIf="expertFilteredItems.length" class="ce-expert-app__cases">
+        <li
+          *ngFor="let item of expertFilteredItems"
+          class="ce-expert-app__case"
+          [class.is-selected]="selectedRequest?.id === item.id"
+          [class.is-attention]="requestNeedsAttention(item)"
+          (click)="selectRequest(item)"
+        >
+          <div class="ce-expert-app__case-main">
+            <h3 class="ce-expert-app__case-title">{{ item.topic }}</h3>
+            <p class="ce-expert-app__case-user">
+              <mat-icon>person</mat-icon>
+              {{ item.employee_name || 'Anónimo' }}
+            </p>
+            <p class="ce-expert-app__case-date">{{ item.created_at | date:'dd/MM/yyyy HH:mm' }}</p>
+            <p *ngIf="requestNeedsAttention(item)" class="ce-expert-app__case-alert">
+              {{ requestAttentionLabel(item) }}
+            </p>
+          </div>
+
+          <div class="ce-expert-app__case-side">
+            <span
+              class="ce-expert-app__badge"
+              [class.is-open]="item.status === 'open'"
+              [class.is-assigned]="item.status === 'assigned'"
+            >
+              {{ statusLabel(item.status) }}
+            </span>
+            <span *ngIf="requestNeedsAttention(item)" class="ce-expert-app__badge ce-expert-app__badge--attention">
+              Atrasado
+            </span>
+            <mat-icon class="ce-expert-app__channel-icon">
+              {{ item.channel === 'Videollamada' ? 'videocam' : item.channel === 'Llamada' ? 'call' : 'chat' }}
+            </mat-icon>
+          </div>
+        </li>
+      </ul>
+    </div>
+  </aside>
+
+  <section class="ce-expert-app__detail">
+    <div *ngIf="!selectedRequest" class="ce-expert-app__empty ce-expert-app__empty--detail">
+      <mat-icon>forum</mat-icon>
+      <p>Selecciona un caso para revisar mensajes, estado y contexto del colaborador.</p>
+    </div>
+
+    <div *ngIf="selectedRequest" class="ce-expert-app__workspace">
+      <div class="ce-expert-app__conversation">
+        <header class="ce-expert-app__header">
+          <button type="button" class="ce-expert-app__back" (click)="selectedRequest = null">
+            <mat-icon>arrow_back</mat-icon>
+          </button>
+
+          <div class="ce-expert-app__header-copy">
+            <h2 class="ce-expert-app__header-title">{{ selectedRequest.topic }}</h2>
+            <p class="ce-expert-app__header-subtitle">
+              {{ selectedRequest.employee_name || 'Anónimo' }} · {{ selectedRequest.channel }}
+            </p>
+          </div>
+
+          <span
+            class="ce-expert-app__header-badge ce-expert-app__badge"
+            [class.is-open]="selectedRequest.status === 'open'"
+            [class.is-assigned]="selectedRequest.status === 'assigned'"
+          >
+            {{ statusLabel(selectedRequest.status) }}
+          </span>
+          <span
+            *ngIf="requestNeedsAttention(selectedRequest)"
+            class="ce-expert-app__header-badge ce-expert-app__badge ce-expert-app__badge--attention"
+          >
+            {{ requestAttentionLabel(selectedRequest) }}
+          </span>
+        </header>
+
+        <div class="ce-expert-app__messages">
+          <div
+            *ngFor="let msg of messages"
+            class="ce-expert-app__message"
+            [class.is-own]="isOwnMessage(msg.sender_id)"
+            [class.is-internal]="isInternalMessage(msg)"
+          >
+            <div class="ce-expert-app__message-bubble">
+              <p>{{ msg.body }}</p>
+            </div>
+            <span class="ce-expert-app__message-meta">
+              {{ messageAuthorLabel(msg) }} · {{ msg.created_at | date:'HH:mm' }}
+            </span>
+          </div>
+
+          <p *ngIf="messages.length === 0" class="ce-expert-app__messages-empty">
+            No hay mensajes todavía. Escribe para iniciar la conversación.
+          </p>
+        </div>
+
+        <div class="ce-expert-app__composer">
+          <div *ngIf="selectedRequest.assigned_expert_id !== auth.user?.id" class="ce-expert-app__claim">
+            <p>Debes asignarte este caso para poder responder.</p>
+            <button type="button" class="ce-expert-app__claim-btn" [disabled]="loading" (click)="claimSelectedRequest()">
+              <mat-icon>back_hand</mat-icon>
+              Tomar caso
+            </button>
+          </div>
+
+          <div *ngIf="selectedRequest.assigned_expert_id === auth.user?.id" class="ce-expert-app__write">
+            <div class="ce-expert-app__tabs">
+              <button
+                type="button"
+                class="ce-expert-app__tab"
+                [class.is-active]="composerMode === 'client'"
+                (click)="composerMode = 'client'"
+              >
+                Cliente
+              </button>
+              <button
+                type="button"
+                class="ce-expert-app__tab"
+                [class.is-active]="composerMode === 'internal'"
+                (click)="composerMode = 'internal'"
+              >
+                Nota interna
+              </button>
+            </div>
+
+            <div class="ce-expert-app__write-row">
+              <textarea
+                [(ngModel)]="messageDraft"
+                (keyup.enter)="sendMessage()"
+                rows="3"
+                class="ce-expert-app__textarea"
+                [class.is-internal]="composerMode === 'internal'"
+                [placeholder]="composerMode === 'client' ? 'Escribe al cliente...' : 'Escribe una nota privada para el equipo...'"
+              ></textarea>
+
+              <button
+                type="button"
+                class="ce-expert-app__send"
+                [disabled]="!messageDraft.trim()"
+                (click)="sendMessage()"
+              >
+                <mat-icon>send</mat-icon>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <aside class="ce-expert-app__sidebar">
+        <section class="ce-expert-app__card">
+          <div class="ce-expert-app__card-head">
+            <h3 class="ce-expert-app__card-title">Estado del caso</h3>
+          </div>
+
+          <select
+            [(ngModel)]="statusDraft"
+            (change)="saveSelectedStatus()"
+            class="ce-expert-app__select"
+          >
+            <option *ngFor="let s of expertStatuses" [value]="s">{{ statusLabel(s) }}</option>
+          </select>
+        </section>
+
+        <section *ngIf="selectedAppointments.length > 0" class="ce-expert-app__card">
+          <div class="ce-expert-app__card-head">
+            <h3 class="ce-expert-app__card-title">Citas agendadas</h3>
+            <mat-icon>event</mat-icon>
+          </div>
+
+          <div class="ce-expert-app__appointments">
+            <article
+              *ngFor="let app of selectedAppointments"
+              class="ce-expert-app__appointment"
+              [class.is-overdue]="isAppointmentOverdue(app)"
+            >
+              <div class="ce-expert-app__appointment-head">
+                <p class="ce-expert-app__appointment-kind">{{ app.kind }}</p>
+                <span *ngIf="isAppointmentOverdue(app)" class="ce-expert-app__badge ce-expert-app__badge--attention">
+                  Vencida
+                </span>
+              </div>
+              <p class="ce-expert-app__appointment-date">{{ app.scheduled_for | date:'EEEE d MMM, HH:mm' }}</p>
+
+              <select
+                [ngModel]="app.status"
+                (ngModelChange)="updateAppointmentStatus(app, $event)"
+                class="ce-expert-app__select ce-expert-app__select--compact"
+              >
+                <option value="scheduled">Agendada</option>
+                <option value="confirmed">Confirmada</option>
+                <option value="completed">Completada</option>
+                <option value="cancelled">Cancelada</option>
+              </select>
+
+              <button
+                *ngIf="hasMeetingLink(app)"
+                type="button"
+                class="ce-expert-app__appointment-link"
+                (click)="openMeeting(app)"
+              >
+                <mat-icon>videocam</mat-icon>
+                Unirse a la reunión
+              </button>
+            </article>
+          </div>
+        </section>
+
+        <section *ngIf="selectedCollaborator" class="ce-expert-app__card">
+          <div class="ce-expert-app__card-head">
+            <h3 class="ce-expert-app__card-title">Ficha de contexto</h3>
+            <mat-icon>assignment</mat-icon>
+          </div>
+
+          <div class="ce-expert-app__context">
+            <div class="ce-expert-app__context-item">
+              <span>Ubicación</span>
+              <strong>{{ selectedCollaborator.location || 'No informada' }}</strong>
+            </div>
+            <div class="ce-expert-app__context-item">
+              <span>Condición principal</span>
+              <strong>{{ selectedCollaborator.condition || 'No informada' }}</strong>
+            </div>
+            <div class="ce-expert-app__context-item">
+              <span>Nivel dependencia</span>
+              <strong>{{ selectedCollaborator.dependencyLevel || 'No informado' }}</strong>
+            </div>
+            <div class="ce-expert-app__context-item">
+              <span>Presupuesto / financiamiento</span>
+              <strong>{{ selectedCollaborator.supportNetwork || 'No informado' }}</strong>
+            </div>
+          </div>
+        </section>
+      </aside>
+    </div>
+  </section>
+</section>

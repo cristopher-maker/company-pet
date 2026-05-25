@@ -1,0 +1,100 @@
+<header class="bg-white shadow-sm sticky top-0 z-30">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div class="flex justify-between items-center h-16">
+      <div class="flex items-center">
+        <a routerLink="/training" class="p-2 rounded-md text-gray-500 hover:text-gray-700 hover:bg-gray-100">
+          <img src="svg/arrow-back-outline.svg" class="h-6 w-6" alt="Volver" />
+        </a>
+        <h1 class="text-xl font-bold text-slate-800 ml-2">Administrar Cursos</h1>
+      </div>
+    </div>
+  </div>
+</header>
+
+<main class="p-4 sm:p-6 lg:p-8">
+  <div *ngIf="loading" class="text-center py-12">
+    <svg class="animate-spin h-8 w-8 text-indigo-600 mx-auto" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+      <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+      <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+    </svg>
+    <p class="mt-4 text-slate-500">Cargando...</p>
+  </div>
+
+  <div *ngIf="!loading && isStaff" class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+    <!-- Columna de formulario -->
+    <div class="lg:col-span-1">
+      <form (ngSubmit)="save()" class="bg-white p-6 rounded-lg shadow-sm border border-slate-200 sticky top-24">
+        <h2 class="text-lg font-semibold text-slate-800 mb-4">{{ draft.id ? 'Editar Curso' : 'Nuevo Curso' }}</h2>
+        <div class="space-y-4">
+          <div class="form-field">
+            <label for="title">Título</label>
+            <input id="title" type="text" [(ngModel)]="draft.title" name="title" required class="form-input" />
+          </div>
+          <div class="form-field">
+            <label for="description">Descripción</label>
+            <textarea id="description" rows="3" [(ngModel)]="draft.description" name="description" class="form-textarea"></textarea>
+          </div>
+          <div class="grid grid-cols-2 gap-4">
+            <div class="form-field">
+              <label for="duration">Duración (min)</label>
+              <input id="duration" type="number" [(ngModel)]="draft.durationMinutes" name="durationMinutes" required class="form-input" />
+            </div>
+            <div class="form-field">
+              <label for="level">Nivel</label>
+              <select id="level" [(ngModel)]="draft.level" name="level" class="form-select">
+                <option value="Básico">Básico</option>
+                <option value="Intermedio">Intermedio</option>
+              </select>
+            </div>
+          </div>
+          <div class="flex items-center justify-between">
+            <label for="active" class="flex items-center gap-2 text-sm text-slate-700 cursor-pointer">
+              <input type="checkbox" id="active" [(ngModel)]="draft.active" name="active" class="form-checkbox" />
+              Activo
+            </label>
+          </div>
+        </div>
+        <div class="mt-6 flex gap-3">
+          <button type="submit" class="btn-primary flex-grow" [disabled]="saving">
+            {{ saving ? 'Guardando...' : (draft.id ? 'Guardar Cambios' : 'Crear Curso') }}
+          </button>
+          <button type="button" class="btn-secondary" (click)="resetDraft()" *ngIf="draft.id">
+            Nuevo
+          </button>
+        </div>
+      </form>
+    </div>
+
+    <!-- Columna de lista de cursos -->
+    <div class="lg:col-span-2">
+      <h2 class="text-lg font-semibold text-slate-800 mb-4">Cursos Existentes ({{ courses.length }})</h2>
+      <div class="bg-white rounded-lg shadow-sm border border-slate-200 overflow-hidden">
+        <ul class="divide-y divide-slate-200">
+          <li *ngFor="let course of courses; trackBy: trackById" class="p-4 flex justify-between items-center hover:bg-slate-50 cursor-pointer" (click)="selectCourse(course)">
+            <div>
+              <p class="font-semibold text-slate-800">{{ course.title }}</p>
+              <div class="text-sm text-slate-500 flex items-center gap-3 mt-1">
+                <span>{{ course.level }}</span>
+                <span>•</span>
+                <span>{{ course.duration_minutes }} min</span>
+              </div>
+            </div>
+            <div class="flex items-center gap-4">
+              <span [ngClass]="course.active ? 'bg-green-100 text-green-800' : 'bg-slate-100 text-slate-800'" class="text-xs font-medium px-2.5 py-0.5 rounded-full">
+                {{ course.active ? 'Activo' : 'Inactivo' }}
+              </span>
+              <button (click)="toggleActive(course); $event.stopPropagation()" class="p-1 text-slate-400 hover:text-slate-600">
+                <img [src]="course.active ? 'svg/eye-off-outline.svg' : 'svg/eye-outline.svg'" class="w-5 h-5" [alt]="course.active ? 'Desactivar' : 'Activar'" />
+              </button>
+            </div>
+          </li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <div *ngIf="!loading && !isStaff" class="text-center py-12">
+    <h3 class="text-lg font-medium text-slate-900">Acceso denegado</h3>
+    <p class="mt-1 text-sm text-slate-500">No tienes permisos para administrar cursos.</p>
+  </div>
+</main>

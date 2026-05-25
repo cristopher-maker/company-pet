@@ -1,0 +1,787 @@
+.company-erp-host {
+  min-height: 100vh;
+  background: #f6f8fb;
+}
+
+.company-panel {
+  display: block;
+  padding: 20px;
+  border: 1px solid #d8e4e8;
+  border-radius: 8px;
+  background: #ffffff;
+  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.05);
+}
+
+.company-panel--embedded {
+  padding: 0;
+  border: 0;
+  box-shadow: none;
+}
+
+.company-panel__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 16px;
+}
+
+.company-panel h2 {
+  margin: 0;
+  color: #0f172a;
+  font-size: 16px;
+}
+
+.company-panel p {
+  margin: 4px 0 0;
+  color: #64748b;
+  font-size: 13px;
+}
+
+.company-primary,
+.company-table__actions button {
+  min-height: 34px;
+  padding: 0 12px;
+  border-radius: 6px;
+  font: inherit;
+  font-size: 12px;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.company-primary {
+  border: 0;
+  background: #123c4a;
+  color: #ffffff;
+}
+
+.company-table-wrap {
+  overflow-x: auto;
+}
+
+.company-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.company-table th {
+  padding: 12px;
+  border-bottom: 1px solid #e2e8f0;
+  background: #f8fafc;
+  color: #64748b;
+  font-size: 11px;
+  font-weight: 800;
+  text-align: left;
+  text-transform: uppercase;
+}
+
+.company-table td {
+  padding: 14px 12px;
+  border-bottom: 1px solid #eef2f7;
+  color: #334155;
+  font-size: 13px;
+  vertical-align: middle;
+}
+
+.company-table strong {
+  display: block;
+  color: #0f172a;
+  font-size: 13px;
+}
+
+.company-table small {
+  display: block;
+  margin-top: 3px;
+  color: #64748b;
+  font-size: 12px;
+}
+
+.company-person {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.company-avatar {
+  width: 36px;
+  height: 36px;
+  display: inline-grid;
+  place-items: center;
+  border-radius: 999px;
+  background: #e0f2f1;
+  color: #0f766e;
+  font-size: 13px;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.company-table__actions {
+  white-space: nowrap;
+}
+
+.company-table__actions button {
+  margin-right: 8px;
+  border: 1px solid #cbd5e1;
+  background: #ffffff;
+  color: #334155;
+}
+
+.company-status {
+  display: inline-flex;
+  min-height: 24px;
+  align-items: center;
+  padding: 0 9px;
+  border-radius: 999px;
+  background: #f1f5f9;
+  color: #64748b;
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.company-status.is-active {
+  background: #dcfce7;
+  color: #047857;
+}
+
+.company-form {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.company-form__wide,
+.company-form__footer {
+  grid-column: 1 / -1;
+}
+
+.company-form--compact {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.company-form small {
+  color: #64748b;
+  font-size: 12px;
+  font-weight: 400;
+}
+
+.company-form__footer {
+  display: flex;
+  justify-content: flex-end;
+  padding-top: 8px;
+  border-top: 1px solid #eef2f7;
+}
+
+.company-profile-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 12px;
+  margin-bottom: 18px;
+}
+
+.company-plan-summary {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 16px;
+  align-items: start;
+  margin-bottom: 18px;
+  padding: 16px 18px;
+  border: 1px solid #dbe7eb;
+  border-radius: 8px;
+  background: #f8fafc;
+}
+
+.company-plan-summary strong {
+  display: block;
+  margin-top: 4px;
+  color: #123c4a;
+  font-size: 18px;
+}
+
+.company-plan-summary small {
+  display: block;
+  margin-top: 4px;
+  color: #64748b;
+  font-size: 12px;
+}
+
+.company-profile-card,
+.company-subpanel,
+.company-contract-card,
+.company-billing-card {
+  border: 1px solid #dbe7eb;
+  border-radius: 8px;
+  background: #ffffff;
+}
+
+.company-profile-card {
+  display: grid;
+  gap: 6px;
+  min-height: 96px;
+  padding: 16px;
+}
+
+.company-profile-card span,
+.company-kicker {
+  color: #64748b;
+  font-size: 11px;
+  font-weight: 900;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.company-profile-card strong {
+  color: #123c4a;
+  font-size: 24px;
+  line-height: 1;
+}
+
+.company-profile-card small {
+  color: #64748b;
+}
+
+.company-operational-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.2fr) minmax(320px, 0.8fr);
+  gap: 16px;
+  margin-top: 18px;
+}
+
+.company-subpanel {
+  padding: 18px;
+}
+
+.company-list {
+  display: grid;
+  gap: 10px;
+}
+
+.company-list-item {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto auto;
+  align-items: center;
+  gap: 12px;
+  padding: 12px;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  background: #f8fafc;
+}
+
+.company-list-item strong,
+.company-contract-card h3 {
+  margin: 0;
+  color: #0f172a;
+}
+
+.company-list-item small,
+.company-contract-card small {
+  display: block;
+  margin-top: 4px;
+  color: #64748b;
+  font-size: 12px;
+}
+
+.company-billing-surface {
+  display: grid;
+  gap: 14px;
+  margin-bottom: 14px;
+  padding: 18px;
+  border: 1px solid #dbe7eb;
+  border-radius: 8px;
+  background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);
+}
+
+.company-billing-hero {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 14px;
+  align-items: start;
+}
+
+.company-billing-hero__status strong {
+  display: block;
+  margin-top: 4px;
+  color: #0f172a;
+  font-size: 24px;
+  line-height: 1;
+}
+
+.company-billing-hero__status p {
+  margin: 6px 0 0;
+}
+
+.company-billing-hero__meta {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(110px, auto));
+  gap: 10px;
+}
+
+.company-billing-hero__meta > div,
+.company-contract-card__meta > div {
+  display: grid;
+  gap: 4px;
+  min-width: 0;
+  padding: 10px 12px;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  background: #ffffff;
+}
+
+.company-billing-hero__meta span,
+.company-contract-card__meta span {
+  color: #64748b;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.company-billing-hero__meta strong,
+.company-contract-card__meta strong {
+  color: #123c4a;
+  font-size: 15px;
+  text-align: left;
+}
+
+.company-billing-surface .company-plan-picker {
+  grid-column: auto;
+}
+
+.company-contract-card,
+.company-plan-picker {
+  display: grid;
+  gap: 12px;
+}
+
+.company-contract-card .company-table__actions {
+  grid-column: 1 / -1;
+}
+
+.company-contract-card p {
+  margin: 6px 0 0;
+}
+
+.company-contract-card strong {
+  display: block;
+  color: #123c4a;
+  font-size: 20px;
+  text-align: left;
+}
+
+.company-contract-card,
+.company-plan-option {
+  border: 1px solid #dbe7eb;
+  border-radius: 8px;
+  background: #ffffff;
+}
+
+.company-contract-card {
+  grid-template-columns: minmax(0, 0.95fr) minmax(0, 1.05fr);
+  padding: 16px;
+}
+
+.company-contract-card h3 {
+  margin: 0;
+  color: #0f172a;
+}
+
+.company-plan-picker {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.company-plan-option {
+  min-height: 140px;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: start;
+  gap: 14px;
+  padding: 16px;
+  color: #0f172a;
+  text-align: left;
+  cursor: pointer;
+  transition: border-color 0.12s ease, box-shadow 0.12s ease, transform 0.12s ease;
+}
+
+.company-plan-option.is-selected {
+  border-color: #123c4a;
+  box-shadow: 0 0 0 1px #123c4a inset, 0 8px 24px rgba(18, 60, 74, 0.08);
+  transform: translateY(-1px);
+}
+
+.company-plan-option__copy {
+  display: grid;
+  gap: 6px;
+}
+
+.company-plan-option__badge {
+  display: inline-flex;
+  width: fit-content;
+  min-height: 22px;
+  align-items: center;
+  padding: 0 8px;
+  border-radius: 999px;
+  background: rgba(18, 60, 74, 0.1);
+  color: #123c4a;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.company-plan-option strong,
+.company-plan-option small {
+  display: block;
+}
+
+.company-plan-option strong {
+  margin: 0;
+  font-size: 16px;
+}
+
+.company-plan-option small {
+  color: #64748b;
+  font-size: 12px;
+  line-height: 1.35;
+}
+
+.company-plan-option b {
+  flex: 0 0 auto;
+  color: #123c4a;
+  font-size: 13px;
+}
+
+.company-plan-option:disabled {
+  cursor: not-allowed;
+  opacity: 0.7;
+}
+
+.company-payment-link {
+  width: fit-content;
+  min-height: 34px;
+  display: inline-flex;
+  align-items: center;
+  padding: 0 12px;
+  border-radius: 6px;
+  background: #123c4a;
+  color: #ffffff;
+  font-size: 12px;
+  font-weight: 800;
+  text-decoration: none;
+}
+
+.company-billing-cta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  padding-top: 4px;
+  border-top: 1px solid #e2e8f0;
+}
+
+.company-billing-cta__copy strong {
+  display: block;
+  color: #0f172a;
+  font-size: 14px;
+}
+
+.company-billing-cta__copy small {
+  display: block;
+  margin-top: 4px;
+  color: #64748b;
+  font-size: 12px;
+}
+
+.company-billing-cta__helper {
+  max-width: 52ch;
+}
+
+.company-billing-cta__actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 10px;
+}
+
+.company-payment-link--button {
+  border: 0;
+  cursor: pointer;
+}
+
+.company-payment-link--secondary {
+  background: #e8eff2;
+  color: #123c4a;
+}
+
+.company-payment-link--button:disabled {
+  opacity: 0.65;
+  cursor: wait;
+}
+
+.company-check {
+  display: flex !important;
+  grid-template-columns: none !important;
+  align-items: center;
+  gap: 9px !important;
+}
+
+.company-check input {
+  width: 16px !important;
+  min-height: 16px !important;
+}
+
+.company-form label,
+.company-modal label {
+  display: grid;
+  gap: 7px;
+  color: #334155;
+  font-size: 13px;
+  font-weight: 800;
+}
+
+.company-form input,
+.company-form select,
+.company-form textarea,
+.company-modal input,
+.company-modal select,
+.company-modal textarea {
+  width: 100%;
+  min-height: 40px;
+  padding: 8px 10px;
+  border: 1px solid #cbd5e1;
+  border-radius: 6px;
+  background: #ffffff;
+  color: #0f172a;
+  font: inherit;
+  font-size: 13px;
+  outline: 0;
+}
+
+.company-form textarea,
+.company-modal textarea {
+  resize: vertical;
+}
+
+.company-empty {
+  padding: 18px;
+  color: #64748b;
+  font-size: 13px;
+  text-align: center;
+}
+
+.company-state {
+  min-height: 360px;
+  display: grid;
+  place-items: center;
+  align-content: center;
+  gap: 10px;
+  color: #64748b;
+  text-align: center;
+}
+
+.company-state mat-icon {
+  width: 48px;
+  height: 48px;
+  color: #94a3b8;
+  font-size: 48px;
+}
+
+.company-spinner {
+  width: 34px;
+  height: 34px;
+  color: #123c4a;
+  animation: company-spin 0.8s linear infinite;
+}
+
+@keyframes company-spin {
+  to { transform: rotate(360deg); }
+}
+
+.company-alert {
+  max-width: 960px;
+  margin: 24px auto;
+  padding: 14px 16px;
+  border: 1px solid #fecaca;
+  border-radius: 8px;
+  background: #fef2f2;
+  color: #991b1b;
+}
+
+.company-payment-return {
+  max-width: 1180px;
+  margin: 0 auto 16px;
+  padding: 14px 16px;
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  gap: 12px;
+  align-items: center;
+  border: 1px solid #bfdbfe;
+  border-radius: 8px;
+  background: #eff6ff;
+  color: #1e3a8a;
+}
+
+.company-payment-return mat-icon {
+  color: #2563eb;
+}
+
+.company-payment-return strong,
+.company-payment-return span {
+  display: block;
+}
+
+.company-payment-return strong {
+  font-size: 14px;
+  color: #0f172a;
+}
+
+.company-payment-return span {
+  margin-top: 2px;
+  font-size: 13px;
+  color: #475569;
+}
+
+.company-payment-return button {
+  width: 34px;
+  height: 34px;
+  display: inline-grid;
+  place-items: center;
+  border: 1px solid transparent;
+  border-radius: 8px;
+  background: transparent;
+  color: #475569;
+  cursor: pointer;
+}
+
+.company-payment-return button:hover {
+  border-color: #cbd5e1;
+  background: #ffffff;
+}
+
+.company-payment-return.is-success {
+  border-color: #bbf7d0;
+  background: #f0fdf4;
+}
+
+.company-payment-return.is-success mat-icon {
+  color: #16a34a;
+}
+
+.company-payment-return.is-pending {
+  border-color: #fde68a;
+  background: #fffbeb;
+}
+
+.company-payment-return.is-pending mat-icon {
+  color: #d97706;
+}
+
+.company-payment-return.is-failure {
+  border-color: #fecaca;
+  background: #fef2f2;
+}
+
+.company-payment-return.is-failure mat-icon {
+  color: #dc2626;
+}
+
+.company-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  display: grid;
+  place-items: center;
+  padding: 20px;
+  background: rgba(15, 23, 42, 0.55);
+}
+
+.company-modal {
+  width: min(460px, 100%);
+  overflow: hidden;
+  border-radius: 8px;
+  background: #ffffff;
+  box-shadow: 0 22px 60px rgba(15, 23, 42, 0.24);
+}
+
+.company-modal--wide {
+  width: min(620px, 100%);
+}
+
+.company-modal header,
+.company-modal footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 16px;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.company-modal footer {
+  justify-content: flex-end;
+  border-top: 1px solid #e2e8f0;
+  border-bottom: 0;
+  background: #f8fafc;
+}
+
+.company-modal h2 {
+  margin: 0;
+  font-size: 16px;
+}
+
+.company-modal header button {
+  width: 34px;
+  height: 34px;
+  display: grid;
+  place-items: center;
+  border: 0;
+  border-radius: 999px;
+  background: #f1f5f9;
+  color: #334155;
+  cursor: pointer;
+}
+
+.company-modal__body {
+  display: grid;
+  gap: 16px;
+  padding: 18px;
+}
+
+@media (max-width: 960px) {
+  .company-panel__header {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .company-form,
+  .company-form--compact,
+  .company-profile-grid,
+  .company-plan-summary,
+  .company-operational-grid,
+  .company-billing-hero,
+  .company-billing-hero__meta,
+  .company-contract-card,
+  .company-billing-card,
+  .company-plan-picker {
+    grid-template-columns: 1fr;
+  }
+
+  .company-billing-cta {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .company-billing-cta__actions {
+    justify-content: stretch;
+  }
+
+  .company-payment-link {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .company-list-item {
+    grid-template-columns: 1fr;
+    align-items: stretch;
+  }
+}
