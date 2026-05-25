@@ -7,7 +7,7 @@
     "tw:build": "tailwindcss -i src/tailwind.css -o src/tailwind-out.css",
     "tw:watch": "tailwindcss -i src/tailwind.css -o src/tailwind-out.css --watch",
     "build": "npm run tw:build && ng build",
-    "build:gh": "npm run tw:build && ng build --configuration production --base-href /companypet/ --deploy-url /companypet/",
+    "build:gh": "npm run tw:build && ng build --configuration production --base-href /company-pet/ --deploy-url /company-pet/",
     "deploy": "npm run build:gh && gh-pages -d dist/app --no-history",
     "test": "ng test",
     "lint": "ng lint"
