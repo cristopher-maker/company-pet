@@ -5,6 +5,16 @@ import { AuthService, ProfileRole } from '../../core/services/auth.service';
 import { UiService } from '../../core/services/ui.service';
 import { SupabaseService } from '../../core/services/supabase.service';
 
+type ProfilePost = {
+  id: string;
+  title: string;
+  body: string;
+  image_url: string | null;
+  category: string;
+  is_anonymous: boolean;
+  created_at: string;
+};
+
 @Component({
   selector: 'app-profile',
   templateUrl: './profile.page.html',
@@ -18,6 +28,9 @@ export class ProfilePage implements OnInit {
   public companyTaxId = '';
   public email = '';
   public role: ProfileRole | null = null;
+  public posts: ProfilePost[] = [];
+  public postsLoading = true;
+  public deletingPostId: string | null = null;
 
   constructor(
     public readonly auth: AuthService,
@@ -42,6 +55,8 @@ export class ProfilePage implements OnInit {
         return 'Pet Expert';
       case 'employee':
         return 'Empleado';
+      case 'cuidador':
+        return 'Cuidador';
       default:
         return 'Sin rol';
     }
@@ -83,6 +98,64 @@ export class ProfilePage implements OnInit {
     } catch (err: any) {
       alert(err?.message ?? 'No se pudo enviar el correo de recuperación.');
     }
+  }
+
+  public categoryLabel(category: string): string {
+    const labels: Record<string, string> = {
+      stories: 'Historias',
+      questions: 'Preguntas',
+      health: 'Salud',
+      care: 'Cuidados',
+      adoption: 'Adopcion',
+      events: 'Eventos',
+    };
+    return labels[category] ?? 'Comunidad';
+  }
+
+  public formatDate(iso: string): string {
+    return new Date(iso).toLocaleDateString('es-CL', { day: 'numeric', month: 'short', year: 'numeric' });
+  }
+
+  public async deletePost(post: ProfilePost): Promise<void> {
+    if (!confirm(`¿Eliminar la publicacion "${post.title}"? Esta accion no se puede deshacer.`)) return;
+
+    this.deletingPostId = post.id;
+    try {
+      const { error } = await this.supabase.client.from('community_posts').delete().eq('id', post.id);
+      if (error) throw error;
+
+      const imagePath = this.communityImagePath(post.image_url);
+      if (imagePath) {
+        const { error: storageError } = await this.supabase.client.storage.from('community-post-images').remove([imagePath]);
+        if (storageError) console.warn('No se pudo eliminar la imagen de la publicacion:', storageError);
+      }
+
+      this.posts = this.posts.filter((item) => item.id !== post.id);
+    } catch (err: any) {
+      alert(err?.message ?? 'No se pudo eliminar la publicacion.');
+    } finally {
+      this.deletingPostId = null;
+    }
+  }
+
+  private async loadPosts(userId: string): Promise<void> {
+    this.postsLoading = true;
+    const { data, error } = await this.supabase.client
+      .from('community_posts')
+      .select('id,title,body,image_url,category,is_anonymous,created_at')
+      .eq('author_id', userId)
+      .order('created_at', { ascending: false });
+
+    this.posts = error ? [] : (data ?? []) as ProfilePost[];
+    this.postsLoading = false;
+  }
+
+  private communityImagePath(imageUrl: string | null): string | null {
+    if (!imageUrl) return null;
+    const marker = '/community-post-images/';
+    const markerIndex = imageUrl.indexOf(marker);
+    if (markerIndex < 0) return null;
+    return decodeURIComponent(imageUrl.slice(markerIndex + marker.length).split('?')[0]);
   }
 
   private async loadProfile(): Promise<void> {
@@ -128,6 +201,7 @@ export class ProfilePage implements OnInit {
       } else {
         this.companyTaxId = '';
       }
+      await this.loadPosts(userId);
     } finally {
       this.loading = false;
     }

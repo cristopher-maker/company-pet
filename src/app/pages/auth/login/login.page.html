@@ -5,18 +5,30 @@
   - <ion-icon> y <img src="svg/..."> se reemplazan por <mat-icon>.
   - <ion-spinner> se reemplaza por un SVG de spinner.
 -->
-<main class="login relative w-full h-screen flex items-center justify-center p-4">
+<main class="login w-full h-screen">
   <div class="topbar absolute top-4 left-4">
     <a routerLink="/home" aria-label="Volver al inicio" class="back inline-flex items-center justify-center w-10 h-10 rounded-full text-white hover:bg-white/10 transition-colors">
       <mat-icon>arrow_back</mat-icon>
     </a>
   </div>
-  <div class="shell w-full max-w-md">
+  <div class="shell">
     <div class="auth-stage" aria-hidden="true">
       <div class="auth-shape auth-shape--blue"></div>
       <div class="auth-shape auth-shape--orange"></div>
+      <div class="auth-floating auth-floating--paw1"><mat-icon>pets</mat-icon></div>
+      <div class="auth-floating auth-floating--paw2"><mat-icon>pets</mat-icon></div>
+      <div class="auth-floating auth-floating--bone1">🦴</div>
+      <div class="auth-floating auth-floating--bone2">🦴</div>
+      <div class="auth-floating auth-floating--paw3"><mat-icon>pets</mat-icon></div>
     </div>
     <div class="card" role="region" aria-label="Acceso">
+      <div class="brand">
+        <div class="mark">🐾</div>
+        <div class="brand-text">
+          <div class="name">Company Pet</div>
+          <div class="sub">para mascotas</div>
+        </div>
+      </div>
       <h1 class="title">{{ mode === 'Ingresar' ? 'Ingresar' : 'Link mágico' }}</h1>
 
       <form class="form" (ngSubmit)="submit()">

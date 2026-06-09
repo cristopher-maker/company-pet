@@ -1,0 +1,1000 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PetCare ERP</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.11.0/dist/tabler-icons.min.css">
+<style>
+  *{box-sizing:border-box;margin:0;padding:0}
+  :root{
+    --green:#1D9E75;--green-light:#E1F5EE;--green-dark:#0F6E56;
+    --purple:#534AB7;--purple-light:#EEEDFE;
+    --blue:#185FA5;--blue-light:#E6F1FB;
+    --amber:#BA7517;--amber-light:#FAEEDA;
+    --pink:#993556;--pink-light:#FBEAF0;
+    --coral:#993C1D;--coral-light:#FAECE7;
+    --red:#E24B4A;--red-light:#FCEBEB;
+    --warning:#EF9F27;--warning-light:#FAEEDA;
+    --bg:#F4F3EF;--bg2:#fff;--bg3:#F8F7F4;
+    --border:#E5E4DF;--border2:#D3D1C7;
+    --text1:#1a1a18;--text2:#6B6A65;--text3:#9B9A96;
+    --radius:8px;--radius-lg:12px;
+    --shadow:0 1px 3px rgba(0,0,0,.07),0 1px 2px rgba(0,0,0,.05);
+  }
+  body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:var(--bg);color:var(--text1);font-size:14px;line-height:1.5}
+  .erp{display:flex;height:100vh;overflow:hidden}
+
+  /* SIDEBAR */
+  .sidebar{width:232px;background:var(--bg2);border-right:1px solid var(--border);display:flex;flex-direction:column;flex-shrink:0;overflow-y:auto}
+  .logo{padding:18px 16px 14px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px}
+  .logo-icon{width:34px;height:34px;border-radius:9px;background:var(--green);display:flex;align-items:center;justify-content:center;color:#fff;font-size:17px;flex-shrink:0}
+  .logo-text{font-size:15px;font-weight:600;color:var(--text1)}
+  .logo-sub{font-size:11px;color:var(--text3);margin-top:1px}
+  .nav{padding:10px 8px;flex:1}
+  .nav-sec{font-size:10px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.09em;padding:10px 8px 4px}
+  .nav-item{display:flex;align-items:center;gap:9px;padding:7px 9px;border-radius:7px;cursor:pointer;font-size:13px;color:var(--text2);margin-bottom:1px;transition:all .12s;user-select:none}
+  .nav-item:hover{background:var(--bg3);color:var(--text1)}
+  .nav-item.active{background:var(--green-light);color:var(--green-dark);font-weight:500}
+  .nav-item .ti{font-size:16px;width:18px;text-align:center;flex-shrink:0}
+  .nav-badge{margin-left:auto;font-size:10px;padding:1px 6px;border-radius:10px;font-weight:600}
+  .nb-green{background:var(--green-light);color:var(--green-dark)}
+  .nb-red{background:var(--red-light);color:var(--red)}
+  .user-bar{padding:12px;border-top:1px solid var(--border);display:flex;align-items:center;gap:9px;cursor:pointer}
+  .user-bar:hover{background:var(--bg3)}
+  .uavatar{width:32px;height:32px;border-radius:50%;background:var(--green);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:600;color:#fff;flex-shrink:0}
+  .uname{font-size:13px;font-weight:500;color:var(--text1)}
+  .urole{font-size:11px;color:var(--text3)}
+
+  /* MAIN */
+  .main{flex:1;display:flex;flex-direction:column;overflow:hidden}
+  .topbar{padding:0 20px;height:54px;background:var(--bg2);border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px;flex-shrink:0}
+  .tb-title{font-size:16px;font-weight:600;color:var(--text1)}
+  .tb-subtitle{font-size:12px;color:var(--text3);margin-left:4px}
+  .tb-spacer{flex:1}
+  .search-box{display:flex;align-items:center;gap:6px;background:var(--bg3);border:1px solid var(--border);border-radius:7px;padding:5px 10px}
+  .search-box input{border:none;background:transparent;font-size:13px;color:var(--text1);outline:none;width:170px}
+  .search-box input::placeholder{color:var(--text3)}
+  .search-box .ti{font-size:14px;color:var(--text3)}
+  .icon-btn{width:34px;height:34px;border:1px solid var(--border);border-radius:7px;display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--text2);background:transparent;position:relative;transition:background .1s}
+  .icon-btn:hover{background:var(--bg3)}
+  .notif-dot{width:7px;height:7px;background:var(--red);border:2px solid var(--bg2);border-radius:50%;position:absolute;top:4px;right:4px}
+  .btn-primary{display:flex;align-items:center;gap:6px;font-size:13px;padding:7px 13px;background:var(--green);color:#fff;border:none;border-radius:7px;cursor:pointer;font-weight:500;white-space:nowrap;transition:background .1s}
+  .btn-primary:hover{background:var(--green-dark)}
+  .btn-secondary{display:flex;align-items:center;gap:5px;font-size:13px;padding:6px 12px;background:transparent;color:var(--text2);border:1px solid var(--border);border-radius:7px;cursor:pointer;transition:all .1s;white-space:nowrap}
+  .btn-secondary:hover{background:var(--bg3);border-color:var(--border2)}
+  .content{flex:1;overflow-y:auto;padding:20px}
+
+  /* PAGES - hidden by default */
+  .page{display:none}
+  .page.active{display:block}
+
+  /* GRID HELPERS */
+  .grid-4{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:18px}
+  .grid-3{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:18px}
+  .grid-2{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px}
+  .grid-2r{display:grid;grid-template-columns:1fr 340px;gap:16px;margin-bottom:16px}
+
+  /* CARDS */
+  .card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius-lg);padding:16px}
+  .card-sm{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius-lg);padding:14px}
+  .card-hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}
+  .card-title{font-size:14px;font-weight:600;color:var(--text1)}
+  .card-subtitle{font-size:12px;color:var(--text3);margin-top:1px}
+  .card-action{font-size:12px;color:var(--green-dark);cursor:pointer;border:1px solid #9FE1CB;background:transparent;padding:4px 9px;border-radius:6px;font-weight:500}
+  .card-action:hover{background:var(--green-light)}
+
+  /* METRIC CARDS */
+  .metric{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius-lg);padding:14px 16px}
+  .metric-label{font-size:11px;color:var(--text3);font-weight:500;margin-bottom:7px;display:flex;align-items:center;gap:5px;text-transform:uppercase;letter-spacing:.04em}
+  .metric-value{font-size:26px;font-weight:700;color:var(--text1);line-height:1}
+  .metric-delta{font-size:12px;margin-top:6px;display:flex;align-items:center;gap:3px}
+  .delta-up{color:var(--green-dark)}
+  .delta-dn{color:var(--coral)}
+  .delta-neutral{color:var(--text3)}
+
+  /* BADGES */
+  .badge{font-size:10px;padding:2px 8px;border-radius:10px;font-weight:600;white-space:nowrap;display:inline-block}
+  .b-paseo{background:var(--green-light);color:var(--green-dark)}
+  .b-pension{background:var(--purple-light);color:var(--purple)}
+  .b-bano{background:var(--blue-light);color:var(--blue)}
+  .b-consulta{background:var(--amber-light);color:var(--amber)}
+  .b-adiestramiento{background:var(--pink-light);color:var(--pink)}
+  .b-activo{background:var(--green-light);color:var(--green-dark)}
+  .b-pendiente{background:var(--warning-light);color:var(--amber)}
+  .b-inactivo{background:#F1EFE8;color:var(--text3)}
+  .b-alerta{background:var(--red-light);color:var(--red)}
+  .b-pagado{background:var(--green-light);color:var(--green-dark)}
+  .b-vencido{background:var(--red-light);color:var(--red)}
+  .b-borrador{background:#F1EFE8;color:var(--text2)}
+  .b-perro{background:#E6F1FB;color:#185FA5}
+  .b-gato{background:#FBEAF0;color:#993556}
+  .b-ave{background:#EEEDFE;color:#534AB7}
+  .b-roedor{background:#FAEEDA;color:#BA7517}
+  .b-reptil{background:#EAF3DE;color:#3B6D11}
+  .b-otro{background:#F1EFE8;color:var(--text2)}
+
+  /* STATUS DOTS */
+  .dot{width:7px;height:7px;border-radius:50%;flex-shrink:0;display:inline-block}
+  .dot-ok{background:var(--green)}
+  .dot-warn{background:var(--warning)}
+  .dot-bad{background:var(--red)}
+
+  /* TABLE */
+  table{width:100%;border-collapse:collapse;font-size:13px}
+  th{font-size:11px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.04em;padding:8px 12px;text-align:left;border-bottom:1px solid var(--border);white-space:nowrap}
+  td{padding:10px 12px;border-bottom:1px solid var(--border);color:var(--text1);vertical-align:middle}
+  tr:last-child td{border-bottom:none}
+  tr:hover td{background:var(--bg3)}
+  .td-muted{color:var(--text2)}
+  .td-small{font-size:11px;color:var(--text3)}
+
+  /* LIST ROWS */
+  .list-row{display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid var(--border)}
+  .list-row:last-child{border-bottom:none}
+
+  /* AVATAR */
+  .av{width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:600;color:#fff;flex-shrink:0}
+  .av-lg{width:40px;height:40px;font-size:13px}
+  .av-sm{width:26px;height:26px;font-size:9px}
+  .av-green{background:var(--green)}
+  .av-purple{background:var(--purple)}
+  .av-blue{background:var(--blue)}
+  .av-amber{background:var(--amber)}
+  .av-pink{background:var(--pink)}
+  .av-coral{background:var(--coral)}
+
+  /* PET ICON */
+  .pet-ic{width:32px;height:32px;border-radius:8px;background:var(--bg3);display:flex;align-items:center;justify-content:center;font-size:17px;flex-shrink:0;border:1px solid var(--border)}
+
+  /* PROGRESS BAR */
+  .prog-bg{height:4px;background:var(--bg3);border-radius:2px;overflow:hidden;margin-top:4px}
+  .prog-fill{height:4px;border-radius:2px}
+
+  /* FORM */
+  .form-row{margin-bottom:14px}
+  .form-label{font-size:12px;font-weight:500;color:var(--text2);margin-bottom:5px;display:block}
+  .form-input,.form-select,.form-textarea{width:100%;border:1px solid var(--border);border-radius:7px;padding:8px 11px;font-size:13px;color:var(--text1);background:var(--bg2);outline:none;transition:border-color .15s;font-family:inherit}
+  .form-input:focus,.form-select:focus,.form-textarea:focus{border-color:var(--green)}
+  .form-textarea{resize:vertical;min-height:80px}
+  .form-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+  .form-grid-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px}
+
+  /* TABS */
+  .tabs{display:flex;gap:2px;border-bottom:1px solid var(--border);margin-bottom:16px}
+  .tab-btn{font-size:13px;padding:8px 14px;border:none;background:transparent;cursor:pointer;color:var(--text2);border-bottom:2px solid transparent;margin-bottom:-1px;transition:all .1s;white-space:nowrap}
+  .tab-btn:hover{color:var(--text1)}
+  .tab-btn.on{color:var(--green-dark);border-bottom-color:var(--green);font-weight:500}
+
+  /* SECTION HEADER */
+  .sec-hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px}
+  .sec-title{font-size:18px;font-weight:700;color:var(--text1)}
+  .sec-sub{font-size:13px;color:var(--text3);margin-top:2px}
+  .sec-actions{display:flex;gap:8px;align-items:center}
+
+  /* TIMELINE */
+  .timeline-item{display:flex;gap:12px;padding-bottom:16px;position:relative}
+  .timeline-item::before{content:'';position:absolute;left:11px;top:24px;bottom:0;width:1px;background:var(--border)}
+  .timeline-item:last-child::before{display:none}
+  .tl-dot{width:24px;height:24px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;flex-shrink:0;position:relative;z-index:1}
+  .tl-green{background:var(--green-light);color:var(--green)}
+  .tl-amber{background:var(--warning-light);color:var(--warning)}
+  .tl-red{background:var(--red-light);color:var(--red)}
+  .tl-blue{background:var(--blue-light);color:var(--blue)}
+  .tl-content{flex:1}
+  .tl-title{font-size:13px;font-weight:500;color:var(--text1)}
+  .tl-meta{font-size:11px;color:var(--text3);margin-top:2px}
+
+  /* CALENDAR */
+  .cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:2px;margin-bottom:8px}
+  .cal-day-hdr{font-size:11px;color:var(--text3);text-align:center;padding:4px 0;font-weight:500}
+  .cal-cell{min-height:70px;background:var(--bg2);border:1px solid var(--border);border-radius:6px;padding:5px;cursor:pointer;transition:background .1s}
+  .cal-cell:hover{background:var(--bg3)}
+  .cal-cell.today{border-color:var(--green);background:var(--green-light)}
+  .cal-cell.other-month{background:var(--bg3)}
+  .cal-num{font-size:12px;font-weight:500;color:var(--text2);margin-bottom:3px}
+  .cal-cell.today .cal-num{color:var(--green-dark);font-weight:700}
+  .cal-event{font-size:10px;padding:1px 4px;border-radius:3px;margin-bottom:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-weight:500}
+
+  /* CHAT / NOTAS */
+  .note{background:var(--bg3);border-radius:8px;padding:10px 12px;margin-bottom:8px}
+  .note-meta{font-size:11px;color:var(--text3);margin-bottom:4px;display:flex;align-items:center;gap:6px}
+  .note-text{font-size:13px;color:var(--text1)}
+
+  /* STAT ROW */
+  .stat-row{display:flex;align-items:center;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border);font-size:13px}
+  .stat-row:last-child{border-bottom:none}
+  .stat-bar{flex:1;margin:0 12px;height:5px;background:var(--bg3);border-radius:3px;overflow:hidden}
+  .stat-fill{height:5px;border-radius:3px}
+
+  /* SCHEDULE TIME BLOCK */
+  .sched-item{display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid var(--border)}
+  .sched-item:last-child{border-bottom:none}
+  .time-lbl{font-size:11px;color:var(--text3);min-width:40px;font-variant-numeric:tabular-nums}
+
+  /* INVOICE */
+  .inv-row{display:flex;justify-content:space-between;padding:7px 0;border-bottom:1px solid var(--border);font-size:13px}
+  .inv-row:last-child{border-bottom:none}
+  .inv-total{display:flex;justify-content:space-between;padding:12px 0 0;font-size:15px;font-weight:600;color:var(--text1)}
+
+  /* CHIP */
+  .chip{font-size:11px;padding:3px 8px;border-radius:5px;font-weight:500;display:inline-block}
+  .chip-green{background:var(--green-light);color:var(--green-dark)}
+  .chip-red{background:var(--red-light);color:var(--red)}
+  .chip-amber{background:var(--amber-light);color:var(--amber)}
+  .chip-gray{background:#F1EFE8;color:var(--text2)}
+
+  /* ROOM GRID */
+  .room-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
+  .room-card{border:1px solid var(--border);border-radius:10px;padding:12px;text-align:center;cursor:pointer;transition:all .15s}
+  .room-card:hover{border-color:var(--border2);background:var(--bg3)}
+  .room-card.occupied{border-color:#9FE1CB;background:var(--green-light)}
+  .room-card.available{border-color:var(--border)}
+  .room-card.maintenance{border-color:#FAC775;background:var(--amber-light)}
+  .room-icon{font-size:24px;margin-bottom:6px}
+  .room-name{font-size:12px;font-weight:600;color:var(--text1)}
+  .room-pet{font-size:11px;color:var(--text2);margin-top:2px}
+  .room-status{font-size:10px;margin-top:5px}
+
+  /* MAP PLACEHOLDER */
+  .map-ph{background:linear-gradient(135deg,#EAF3DE 0%,#E1F5EE 50%,#E6F1FB 100%);border-radius:10px;height:220px;display:flex;align-items:center;justify-content:center;border:1px solid var(--border);position:relative;overflow:hidden}
+  .map-pin{position:absolute;font-size:20px}
+
+  /* ALERT ROW */
+  .alert-row{display:flex;align-items:flex-start;gap:10px;padding:10px 12px;border-radius:8px;margin-bottom:8px}
+  .alert-row.ar-red{background:var(--red-light);border-left:3px solid var(--red)}
+  .alert-row.ar-amber{background:var(--warning-light);border-left:3px solid var(--warning)}
+  .alert-row.ar-green{background:var(--green-light);border-left:3px solid var(--green)}
+  .alert-row.ar-blue{background:var(--blue-light);border-left:3px solid var(--blue)}
+  .ar-icon{font-size:16px;margin-top:1px;flex-shrink:0}
+  .ar-text{flex:1;font-size:13px;color:var(--text1)}
+  .ar-meta{font-size:11px;color:var(--text2);margin-top:2px}
+
+  /* SCROLL SUBTABS */
+  .subtabs{display:flex;gap:4px;margin-bottom:14px;overflow-x:auto;padding-bottom:2px}
+  .stab{font-size:12px;padding:5px 12px;border-radius:6px;border:1px solid var(--border);background:transparent;cursor:pointer;color:var(--text2);white-space:nowrap;transition:all .1s}
+  .stab:hover{background:var(--bg3)}
+  .stab.on{background:var(--green);color:#fff;border-color:var(--green)}
+
+  /* RESPONSIVE */
+  @media(max-width:900px){.grid-4{grid-template-columns:repeat(2,1fr)}.grid-2r{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+
+<div class="erp">
+  <!-- SIDEBAR -->
+  <div class="sidebar">
+    <div class="logo">
+      <div class="logo-icon"><i class="ti ti-paw"></i></div>
+      <div>
+        <div class="logo-text">PetCare ERP</div>
+        <div class="logo-sub">v1.0 · Profesional</div>
+      </div>
+    </div>
+    <nav class="nav">
+      <div class="nav-sec">Principal</div>
+      <div class="nav-item active" data-page="dashboard"><i class="ti ti-layout-dashboard"></i> Dashboard</div>
+      <div class="nav-item" data-page="agenda"><i class="ti ti-calendar"></i> Agenda <span class="nav-badge nb-green">4</span></div>
+      <div class="nav-item" data-page="servicios"><i class="ti ti-clipboard-list"></i> Servicios</div>
+
+      <div class="nav-sec">Clientes</div>
+      <div class="nav-item" data-page="duenos"><i class="ti ti-users"></i> Dueños</div>
+      <div class="nav-item" data-page="mascotas"><i class="ti ti-paw"></i> Mascotas</div>
+      <div class="nav-item" data-page="historial"><i class="ti ti-stethoscope"></i> Historial médico</div>
+
+      <div class="nav-sec">Operaciones</div>
+      <div class="nav-item" data-page="empleados"><i class="ti ti-user-check"></i> Empleados</div>
+      <div class="nav-item" data-page="instalaciones"><i class="ti ti-building"></i> Instalaciones</div>
+      <div class="nav-item" data-page="rutas"><i class="ti ti-route"></i> Rutas de paseo</div>
+
+      <div class="nav-sec">Administración</div>
+      <div class="nav-item" data-page="facturacion"><i class="ti ti-receipt"></i> Facturación <span class="nav-badge nb-red">2</span></div>
+      <div class="nav-item" data-page="reportes"><i class="ti ti-chart-bar"></i> Reportes</div>
+      <div class="nav-item" data-page="configuracion"><i class="ti ti-settings"></i> Configuración</div>
+    </nav>
+    <div class="user-bar">
+      <div class="uavatar">CA</div>
+      <div style="flex:1;min-width:0">
+        <div class="uname">Carlos Arriagada</div>
+        <div class="urole">Administrador</div>
+      </div>
+      <i class="ti ti-chevron-down" style="font-size:13px;color:var(--text3)"></i>
+    </div>
+  </div>
+
+  <!-- MAIN -->
+  <div class="main">
+    <div class="topbar">
+      <i class="ti ti-layout-dashboard" id="tb-icon" style="font-size:18px;color:var(--text2)"></i>
+      <span class="tb-title" id="tb-title">Dashboard</span>
+      <span class="tb-subtitle" id="tb-sub">Viernes 6 jun 2025</span>
+      <div class="tb-spacer"></div>
+      <div class="search-box">
+        <i class="ti ti-search"></i>
+        <input placeholder="Buscar mascota, dueño…">
+      </div>
+      <button class="icon-btn" title="Notificaciones">
+        <i class="ti ti-bell" style="font-size:16px"></i>
+        <div class="notif-dot"></div>
+      </button>
+      <button class="btn-primary" id="tb-cta"><i class="ti ti-plus" style="font-size:14px"></i> Nuevo servicio</button>
+    </div>
+
+    <div class="content" id="content">
+
+      <!-- ======================== DASHBOARD ======================== -->
+      <div class="page active" id="pg-dashboard">
+        <div class="grid-4">
+          <div class="metric">
+            <div class="metric-label"><i class="ti ti-paw" style="font-size:13px"></i> En atención hoy</div>
+            <div class="metric-value">18</div>
+            <div class="metric-delta delta-up"><i class="ti ti-trending-up" style="font-size:12px"></i> +3 vs ayer</div>
+          </div>
+          <div class="metric">
+            <div class="metric-label"><i class="ti ti-calendar-check" style="font-size:13px"></i> Servicios hoy</div>
+            <div class="metric-value">12</div>
+            <div class="metric-delta delta-up"><i class="ti ti-check" style="font-size:12px"></i> 7 completados</div>
+          </div>
+          <div class="metric">
+            <div class="metric-label"><i class="ti ti-coin" style="font-size:13px"></i> Ingresos hoy</div>
+            <div class="metric-value">$184k</div>
+            <div class="metric-delta delta-up"><i class="ti ti-trending-up" style="font-size:12px"></i> Meta 73%</div>
+          </div>
+          <div class="metric">
+            <div class="metric-label"><i class="ti ti-alert-circle" style="font-size:13px"></i> Pendientes pago</div>
+            <div class="metric-value">2</div>
+            <div class="metric-delta delta-dn"><i class="ti ti-clock" style="font-size:12px"></i> Requieren acción</div>
+          </div>
+        </div>
+
+        <div class="grid-2r">
+          <div class="card">
+            <div class="card-hdr">
+              <div><div class="card-title">Agenda de hoy</div></div>
+              <button class="card-action" onclick="goPage('agenda')">Ver agenda completa</button>
+            </div>
+            <div class="sched-item"><div class="time-lbl">08:00</div><span class="badge b-paseo">Paseo grupal</span><div style="flex:1;margin-left:8px"><div style="font-size:13px;font-weight:500">Max, Rocky, Luna</div><div style="font-size:11px;color:var(--text3)">M. Reyes · Camino Las Rosas</div></div><span class="dot dot-ok"></span></div>
+            <div class="sched-item"><div class="time-lbl">09:30</div><span class="badge b-bano">Baño y corte</span><div style="flex:1;margin-left:8px"><div style="font-size:13px;font-weight:500">Mochi</div><div style="font-size:11px;color:var(--text3)">J. López · Valentina Soto</div></div><span class="dot dot-ok"></span></div>
+            <div class="sched-item"><div class="time-lbl">11:00</div><span class="badge b-pension">Check-in pensión</span><div style="flex:1;margin-left:8px"><div style="font-size:13px;font-weight:500">Simba + Nala</div><div style="font-size:11px;color:var(--text3)">C. Pinto · Felipe Mora</div></div><span class="dot dot-ok"></span></div>
+            <div class="sched-item"><div class="time-lbl">14:00</div><span class="badge b-paseo">Paseo individual</span><div style="flex:1;margin-left:8px"><div style="font-size:13px;font-weight:500">Thor</div><div style="font-size:11px;color:var(--text3)">M. Reyes · Andrea Campos</div></div><span class="dot dot-warn"></span></div>
+            <div class="sched-item"><div class="time-lbl">15:30</div><span class="badge b-adiestramiento">Adiestramiento</span><div style="flex:1;margin-left:8px"><div style="font-size:13px;font-weight:500">Bruno</div><div style="font-size:11px;color:var(--text3)">D. Muñoz · Rodrigo Silva</div></div><span class="dot dot-warn"></span></div>
+            <div class="sched-item"><div class="time-lbl">17:00</div><span class="badge b-consulta">Consulta médica</span><div style="flex:1;margin-left:8px"><div style="font-size:13px;font-weight:500">Canela</div><div style="font-size:11px;color:var(--text3)">Dra. Lagos · Marcela Rojas</div></div><span class="dot dot-warn"></span></div>
+            <div class="sched-item"><div class="time-lbl">18:30</div><span class="badge b-paseo">Paseo grupal</span><div style="flex:1;margin-left:8px"><div style="font-size:13px;font-weight:500">Toby, Coco, Pina</div><div style="font-size:11px;color:var(--text3)">M. Reyes · Parque El Llano</div></div><span class="dot dot-bad"></span></div>
+          </div>
+
+          <div style="display:flex;flex-direction:column;gap:14px">
+            <div class="card">
+              <div class="card-hdr"><div class="card-title">Equipo activo</div><button class="card-action" onclick="goPage('empleados')">Ver todos</button></div>
+              <div class="list-row"><div class="av av-green">MR</div><div style="flex:1"><div style="font-size:13px;font-weight:500">María Reyes</div><div style="font-size:11px;color:var(--text3)">Paseadora · 3 servicios</div><div class="prog-bg"><div class="prog-fill" style="width:75%;background:var(--green)"></div></div></div><span class="dot dot-ok"></span></div>
+              <div class="list-row"><div class="av av-purple">JL</div><div style="flex:1"><div style="font-size:13px;font-weight:500">Jorge López</div><div style="font-size:11px;color:var(--text3)">Groomer · 2 servicios</div><div class="prog-bg"><div class="prog-fill" style="width:50%;background:var(--purple)"></div></div></div><span class="dot dot-ok"></span></div>
+              <div class="list-row"><div class="av av-blue">CP</div><div style="flex:1"><div style="font-size:13px;font-weight:500">Carla Pinto</div><div style="font-size:11px;color:var(--text3)">Petsitter · 4 animales</div><div class="prog-bg"><div class="prog-fill" style="width:90%;background:var(--blue)"></div></div></div><span class="dot dot-warn"></span></div>
+              <div class="list-row"><div class="av av-amber">DM</div><div style="flex:1"><div style="font-size:13px;font-weight:500">Diego Muñoz</div><div style="font-size:11px;color:var(--text3)">Adiestrador · 1 sesión</div><div class="prog-bg"><div class="prog-fill" style="width:30%;background:var(--amber)"></div></div></div><span class="dot dot-ok"></span></div>
+            </div>
+            <div class="card">
+              <div class="card-hdr"><div class="card-title">Ingresos por servicio</div><span style="font-size:11px;color:var(--text3)">Este mes</span></div>
+              <div class="stat-row"><span>Pensión</span><div class="stat-bar"><div class="stat-fill" style="width:82%;background:var(--purple)"></div></div><span style="font-weight:600">$1.4M</span></div>
+              <div class="stat-row"><span>Paseos</span><div class="stat-bar"><div class="stat-fill" style="width:60%;background:var(--green)"></div></div><span style="font-weight:600">$980k</span></div>
+              <div class="stat-row"><span>Grooming</span><div class="stat-bar"><div class="stat-fill" style="width:45%;background:var(--blue)"></div></div><span style="font-weight:600">$720k</span></div>
+              <div class="stat-row"><span>Adiestramiento</span><div class="stat-bar"><div class="stat-fill" style="width:28%;background:var(--amber)"></div></div><span style="font-weight:600">$450k</span></div>
+              <div class="stat-row"><span>Consultas</span><div class="stat-bar"><div class="stat-fill" style="width:15%;background:var(--pink)"></div></div><span style="font-weight:600">$240k</span></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="grid-2">
+          <div class="card">
+            <div class="card-hdr"><div class="card-title">Mascotas en pensión ahora</div><button class="card-action" onclick="goPage('instalaciones')">Ver habitaciones</button></div>
+            <div class="list-row"><div class="pet-ic">🐱</div><div style="flex:1"><div style="font-size:13px;font-weight:500">Simba + Nala</div><div style="font-size:11px;color:var(--text3)">Gatos persas · checkout domingo</div></div><span class="chip chip-green">Suite B</span></div>
+            <div class="list-row"><div class="pet-ic">🐶</div><div style="flex:1"><div style="font-size:13px;font-weight:500">Tobi</div><div style="font-size:11px;color:var(--text3)">Schnauzer · 3 noches</div></div><span class="chip chip-green">Hab. 2</span></div>
+            <div class="list-row"><div class="pet-ic">🐰</div><div style="flex:1"><div style="font-size:13px;font-weight:500">Nieve</div><div style="font-size:11px;color:var(--text3)">Conejo angora · checkout mañana</div></div><span class="chip chip-red">Revisar dieta</span></div>
+            <div class="list-row"><div class="pet-ic">🦜</div><div style="flex:1"><div style="font-size:13px;font-weight:500">Paco</div><div style="font-size:11px;color:var(--text3)">Loro africano · 5 noches</div></div><span class="chip chip-green">Área aves</span></div>
+            <div class="list-row"><div class="pet-ic">🐹</div><div style="flex:1"><div style="font-size:13px;font-weight:500">Coco</div><div style="font-size:11px;color:var(--text3)">Hámster dorado · 2 noches</div></div><span class="chip chip-green">Área roedores</span></div>
+          </div>
+          <div class="card">
+            <div class="card-hdr"><div class="card-title">Alertas y pendientes</div></div>
+            <div class="alert-row ar-red"><i class="ti ti-coin ar-icon" style="color:var(--red)"></i><div><div class="ar-text">Factura vencida · Felipe Mora</div><div class="ar-meta">$85.000 · pensión 3 noches</div></div><button class="btn-secondary" style="font-size:12px;padding:4px 9px" onclick="goPage('facturacion')">Cobrar</button></div>
+            <div class="alert-row ar-red"><i class="ti ti-coin ar-icon" style="color:var(--red)"></i><div><div class="ar-text">Factura vencida · Marcela Rojas</div><div class="ar-meta">$45.000 · baño + consulta</div></div><button class="btn-secondary" style="font-size:12px;padding:4px 9px" onclick="goPage('facturacion')">Cobrar</button></div>
+            <div class="alert-row ar-amber"><i class="ti ti-vaccine ar-icon" style="color:var(--warning)"></i><div><div class="ar-text">Vacuna vencida · Max (Labrador)</div><div class="ar-meta">Rabia · venció hace 12 días</div></div><button class="btn-secondary" style="font-size:12px;padding:4px 9px">Notificar</button></div>
+            <div class="alert-row ar-amber"><i class="ti ti-door-exit ar-icon" style="color:var(--warning)"></i><div><div class="ar-text">Check-out mañana · 3 mascotas</div><div class="ar-meta">Preparar documentación</div></div><button class="btn-secondary" style="font-size:12px;padding:4px 9px">Ver</button></div>
+            <div class="alert-row ar-green"><i class="ti ti-calendar-plus ar-icon" style="color:var(--green)"></i><div><div class="ar-text">Reserva nueva · Andrea Campos</div><div class="ar-meta">Pensión 7 noches · Thor (Husky)</div></div><button class="btn-secondary" style="font-size:12px;padding:4px 9px">Confirmar</button></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ======================== AGENDA ======================== -->
+      <div class="page" id="pg-agenda">
+        <div class="sec-hdr">
+          <div><div class="sec-title">Agenda</div><div class="sec-sub">Junio 2025</div></div>
+          <div class="sec-actions">
+            <div class="subtabs">
+              <button class="stab on">Mes</button>
+              <button class="stab">Semana</button>
+              <button class="stab">Día</button>
+              <button class="stab">Lista</button>
+            </div>
+            <button class="btn-primary"><i class="ti ti-plus" style="font-size:13px"></i> Nuevo evento</button>
+          </div>
+        </div>
+        <div class="card" style="margin-bottom:16px">
+          <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px">
+            <button class="icon-btn"><i class="ti ti-chevron-left"></i></button>
+            <span style="font-size:16px;font-weight:600;flex:1;text-align:center">Junio 2025</span>
+            <button class="icon-btn"><i class="ti ti-chevron-right"></i></button>
+          </div>
+          <div class="cal-grid" style="margin-bottom:4px">
+            <div class="cal-day-hdr">Lun</div><div class="cal-day-hdr">Mar</div><div class="cal-day-hdr">Mié</div><div class="cal-day-hdr">Jue</div><div class="cal-day-hdr">Vie</div><div class="cal-day-hdr">Sáb</div><div class="cal-day-hdr">Dom</div>
+          </div>
+          <div class="cal-grid">
+            <!-- Semana 1 -->
+            <div class="cal-cell other-month"><div class="cal-num">26</div></div>
+            <div class="cal-cell other-month"><div class="cal-num">27</div></div>
+            <div class="cal-cell other-month"><div class="cal-num">28</div></div>
+            <div class="cal-cell other-month"><div class="cal-num">29</div></div>
+            <div class="cal-cell other-month"><div class="cal-num">30</div></div>
+            <div class="cal-cell other-month"><div class="cal-num">31</div></div>
+            <div class="cal-cell"><div class="cal-num">1</div><div class="cal-event" style="background:#E1F5EE;color:#0F6E56">Paseo 3 perros</div></div>
+            <!-- Semana 2 -->
+            <div class="cal-cell"><div class="cal-num">2</div></div>
+            <div class="cal-cell"><div class="cal-num">3</div><div class="cal-event" style="background:#E6F1FB;color:#185FA5">Baño x2</div></div>
+            <div class="cal-cell"><div class="cal-num">4</div><div class="cal-event" style="background:#EEEDFE;color:#534AB7">Pensión Thor</div></div>
+            <div class="cal-cell"><div class="cal-num">5</div><div class="cal-event" style="background:#E1F5EE;color:#0F6E56">Paseo grupal</div><div class="cal-event" style="background:#FAEEDA;color:#BA7517">Consulta</div></div>
+            <div class="cal-cell today"><div class="cal-num">6</div><div class="cal-event" style="background:#0F6E56;color:#fff">Hoy · 7 svcs</div></div>
+            <div class="cal-cell"><div class="cal-num">7</div><div class="cal-event" style="background:#EEEDFE;color:#534AB7">Check-out x3</div></div>
+            <div class="cal-cell"><div class="cal-num">8</div></div>
+            <!-- Semana 3 -->
+            <div class="cal-cell"><div class="cal-num">9</div></div>
+            <div class="cal-cell"><div class="cal-num">10</div><div class="cal-event" style="background:#E6F1FB;color:#185FA5">Baño x3</div></div>
+            <div class="cal-cell"><div class="cal-num">11</div></div>
+            <div class="cal-cell"><div class="cal-num">12</div><div class="cal-event" style="background:#E1F5EE;color:#0F6E56">Paseo x4</div></div>
+            <div class="cal-cell"><div class="cal-num">13</div><div class="cal-event" style="background:#FBEAF0;color:#993556">Adiestr. Bruno</div></div>
+            <div class="cal-cell"><div class="cal-num">14</div></div>
+            <div class="cal-cell"><div class="cal-num">15</div></div>
+            <!-- Semana 4 -->
+            <div class="cal-cell"><div class="cal-num">16</div><div class="cal-event" style="background:#EEEDFE;color:#534AB7">Pensión x2</div></div>
+            <div class="cal-cell"><div class="cal-num">17</div></div>
+            <div class="cal-cell"><div class="cal-num">18</div><div class="cal-event" style="background:#E1F5EE;color:#0F6E56">Paseo grupal</div></div>
+            <div class="cal-cell"><div class="cal-num">19</div></div>
+            <div class="cal-cell"><div class="cal-num">20</div><div class="cal-event" style="background:#FAEEDA;color:#BA7517">Consulta Canela</div></div>
+            <div class="cal-cell"><div class="cal-num">21</div></div>
+            <div class="cal-cell"><div class="cal-num">22</div></div>
+            <!-- Semana 5 -->
+            <div class="cal-cell"><div class="cal-num">23</div></div>
+            <div class="cal-cell"><div class="cal-num">24</div><div class="cal-event" style="background:#E6F1FB;color:#185FA5">Baño x2</div></div>
+            <div class="cal-cell"><div class="cal-num">25</div></div>
+            <div class="cal-cell"><div class="cal-num">26</div><div class="cal-event" style="background:#E1F5EE;color:#0F6E56">Paseo x5</div></div>
+            <div class="cal-cell"><div class="cal-num">27</div></div>
+            <div class="cal-cell"><div class="cal-num">28</div></div>
+            <div class="cal-cell"><div class="cal-num">29</div></div>
+            <!-- Última fila -->
+            <div class="cal-cell"><div class="cal-num">30</div><div class="cal-event" style="background:#EEEDFE;color:#534AB7">Cierre mes</div></div>
+            <div class="cal-cell other-month"><div class="cal-num">1</div></div>
+            <div class="cal-cell other-month"><div class="cal-num">2</div></div>
+            <div class="cal-cell other-month"><div class="cal-num">3</div></div>
+            <div class="cal-cell other-month"><div class="cal-num">4</div></div>
+            <div class="cal-cell other-month"><div class="cal-num">5</div></div>
+            <div class="cal-cell other-month"><div class="cal-num">6</div></div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-hdr"><div class="card-title">Próximos eventos · Hoy 6 jun</div></div>
+          <table>
+            <thead><tr><th>Hora</th><th>Servicio</th><th>Mascota(s)</th><th>Dueño</th><th>Empleado</th><th>Estado</th></tr></thead>
+            <tbody>
+              <tr><td class="td-muted">08:00</td><td><span class="badge b-paseo">Paseo grupal</span></td><td>Max, Rocky, Luna</td><td>3 dueños</td><td>M. Reyes</td><td><span class="badge b-activo">Completado</span></td></tr>
+              <tr><td class="td-muted">09:30</td><td><span class="badge b-bano">Baño y corte</span></td><td>Mochi</td><td>V. Soto</td><td>J. López</td><td><span class="badge b-activo">Completado</span></td></tr>
+              <tr><td class="td-muted">11:00</td><td><span class="badge b-pension">Check-in</span></td><td>Simba + Nala</td><td>F. Mora</td><td>C. Pinto</td><td><span class="badge b-activo">Completado</span></td></tr>
+              <tr><td class="td-muted">14:00</td><td><span class="badge b-paseo">Paseo individual</span></td><td>Thor</td><td>A. Campos</td><td>M. Reyes</td><td><span class="badge b-pendiente">En curso</span></td></tr>
+              <tr><td class="td-muted">15:30</td><td><span class="badge b-adiestramiento">Adiestramiento</span></td><td>Bruno</td><td>R. Silva</td><td>D. Muñoz</td><td><span class="badge b-pendiente">Pendiente</span></td></tr>
+              <tr><td class="td-muted">17:00</td><td><span class="badge b-consulta">Consulta médica</span></td><td>Canela</td><td>M. Rojas</td><td>Dra. Lagos</td><td><span class="badge b-pendiente">Pendiente</span></td></tr>
+              <tr><td class="td-muted">18:30</td><td><span class="badge b-paseo">Paseo grupal</span></td><td>Toby, Coco, Pina</td><td>3 dueños</td><td>M. Reyes</td><td><span class="badge b-inactivo">Sin confirmar</span></td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- ======================== SERVICIOS ======================== -->
+      <div class="page" id="pg-servicios">
+        <div class="sec-hdr">
+          <div><div class="sec-title">Catálogo de servicios</div><div class="sec-sub">Tarifas y configuración</div></div>
+          <div class="sec-actions"><button class="btn-primary"><i class="ti ti-plus" style="font-size:13px"></i> Nuevo servicio</button></div>
+        </div>
+        <div class="grid-3" style="margin-bottom:20px">
+          <div class="card"><div style="display:flex;align-items:center;gap:10px;margin-bottom:10px"><div style="width:38px;height:38px;border-radius:9px;background:var(--green-light);display:flex;align-items:center;justify-content:center;color:var(--green);font-size:20px"><i class="ti ti-route"></i></div><div><div style="font-size:14px;font-weight:600">Paseo</div><span class="badge b-activo">Activo</span></div></div><div style="font-size:13px;color:var(--text2);margin-bottom:10px">Paseos individuales y grupales en rutas definidas. 30 o 60 min.</div><div style="font-size:12px;color:var(--text3);margin-bottom:6px">Tarifa base</div><div style="font-size:22px;font-weight:700">$8.500<span style="font-size:13px;font-weight:400;color:var(--text3)">/30min</span></div><div style="margin-top:10px;padding-top:10px;border-top:1px solid var(--border);display:flex;justify-content:space-between;font-size:12px;color:var(--text3)"><span>Grupal: $5.500/perro</span><span>Máx. 6 perros</span></div></div>
+          <div class="card"><div style="display:flex;align-items:center;gap:10px;margin-bottom:10px"><div style="width:38px;height:38px;border-radius:9px;background:var(--purple-light);display:flex;align-items:center;justify-content:center;color:var(--purple);font-size:20px"><i class="ti ti-home"></i></div><div><div style="font-size:14px;font-weight:600">Pensión</div><span class="badge b-activo">Activo</span></div></div><div style="font-size:13px;color:var(--text2);margin-bottom:10px">Alojamiento nocturno con cuidado completo, alimentación y paseos.</div><div style="font-size:12px;color:var(--text3);margin-bottom:6px">Tarifa base</div><div style="font-size:22px;font-weight:700">$18.000<span style="font-size:13px;font-weight:400;color:var(--text3)">/noche</span></div><div style="margin-top:10px;padding-top:10px;border-top:1px solid var(--border);display:flex;justify-content:space-between;font-size:12px;color:var(--text3)"><span>Suite: $28.000/noche</span><span>Máx. 2 mascotas/hab.</span></div></div>
+          <div class="card"><div style="display:flex;align-items:center;gap:10px;margin-bottom:10px"><div style="width:38px;height:38px;border-radius:9px;background:var(--blue-light);display:flex;align-items:center;justify-content:center;color:var(--blue);font-size:20px"><i class="ti ti-scissors"></i></div><div><div style="font-size:14px;font-weight:600">Grooming</div><span class="badge b-activo">Activo</span></div></div><div style="font-size:13px;color:var(--text2);margin-bottom:10px">Baño, secado, corte de pelo y uñas. Según tamaño del animal.</div><div style="font-size:12px;color:var(--text3);margin-bottom:6px">Desde</div><div style="font-size:22px;font-weight:700">$12.000<span style="font-size:13px;font-weight:400;color:var(--text3)">/sesión</span></div><div style="margin-top:10px;padding-top:10px;border-top:1px solid var(--border);display:flex;justify-content:space-between;font-size:12px;color:var(--text3)"><span>Raza grande: $22.000</span><span>Incluye perfume</span></div></div>
+          <div class="card"><div style="display:flex;align-items:center;gap:10px;margin-bottom:10px"><div style="width:38px;height:38px;border-radius:9px;background:var(--amber-light);display:flex;align-items:center;justify-content:center;color:var(--amber);font-size:20px"><i class="ti ti-stethoscope"></i></div><div><div style="font-size:14px;font-weight:600">Consulta médica</div><span class="badge b-activo">Activo</span></div></div><div style="font-size:13px;color:var(--text2);margin-bottom:10px">Revisión veterinaria, vacunas, desparasitación. Con médico asociado.</div><div style="font-size:12px;color:var(--text3);margin-bottom:6px">Consulta general</div><div style="font-size:22px;font-weight:700">$25.000<span style="font-size:13px;font-weight:400;color:var(--text3)">/consulta</span></div><div style="margin-top:10px;padding-top:10px;border-top:1px solid var(--border);display:flex;justify-content:space-between;font-size:12px;color:var(--text3)"><span>Vacunas aparte</span><span>Dr. Hernández</span></div></div>
+          <div class="card"><div style="display:flex;align-items:center;gap:10px;margin-bottom:10px"><div style="width:38px;height:38px;border-radius:9px;background:var(--pink-light);display:flex;align-items:center;justify-content:center;color:var(--pink);font-size:20px"><i class="ti ti-brain"></i></div><div><div style="font-size:14px;font-weight:600">Adiestramiento</div><span class="badge b-activo">Activo</span></div></div><div style="font-size:13px;color:var(--text2);margin-bottom:10px">Obediencia básica y avanzada. Sesiones individuales o en grupo de 3.</div><div style="font-size:12px;color:var(--text3);margin-bottom:6px">Sesión individual</div><div style="font-size:22px;font-weight:700">$30.000<span style="font-size:13px;font-weight:400;color:var(--text3)">/hora</span></div><div style="margin-top:10px;padding-top:10px;border-top:1px solid var(--border);display:flex;justify-content:space-between;font-size:12px;color:var(--text3)"><span>Pack 5 sesiones: $120k</span><span>D. Muñoz</span></div></div>
+          <div class="card"><div style="display:flex;align-items:center;gap:10px;margin-bottom:10px"><div style="width:38px;height:38px;border-radius:9px;background:#F1EFE8;display:flex;align-items:center;justify-content:center;color:var(--text2);font-size:20px"><i class="ti ti-home-heart"></i></div><div><div style="font-size:14px;font-weight:600">Petsitting en casa</div><span class="badge b-inactivo">Pausado</span></div></div><div style="font-size:13px;color:var(--text2);margin-bottom:10px">Cuidado del animal en el domicilio del dueño. Visitas de 1-3 horas.</div><div style="font-size:12px;color:var(--text3);margin-bottom:6px">Por visita</div><div style="font-size:22px;font-weight:700">$15.000<span style="font-size:13px;font-weight:400;color:var(--text3)">/visita</span></div><div style="margin-top:10px;padding-top:10px;border-top:1px solid var(--border);display:flex;justify-content:space-between;font-size:12px;color:var(--text3)"><span>Sin personal asignado</span><span>Requiere cobertura</span></div></div>
+        </div>
+      </div>
+
+      <!-- ======================== DUEÑOS ======================== -->
+      <div class="page" id="pg-duenos">
+        <div class="sec-hdr">
+          <div><div class="sec-title">Dueños de mascotas</div><div class="sec-sub">28 clientes registrados</div></div>
+          <div class="sec-actions">
+            <div class="search-box"><i class="ti ti-search"></i><input placeholder="Buscar dueño…" style="width:130px"></div>
+            <button class="btn-primary"><i class="ti ti-plus" style="font-size:13px"></i> Nuevo dueño</button>
+          </div>
+        </div>
+        <div class="card">
+          <table>
+            <thead><tr><th>Cliente</th><th>Mascotas</th><th>Teléfono</th><th>Servicios activos</th><th>Deuda pendiente</th><th>Desde</th><th>Estado</th></tr></thead>
+            <tbody>
+              <tr><td><div style="display:flex;align-items:center;gap:8px"><div class="av av-sm av-green">VA</div><div><div style="font-weight:500">Valentina Soto</div><div class="td-small">v.soto@gmail.com</div></div></div></td><td>Mochi 🐱 Luna 🐶</td><td class="td-muted">+56 9 8123 4567</td><td><span class="badge b-bano">Grooming</span></td><td style="color:var(--green-dark);font-weight:500">$0</td><td class="td-small">Mar 2023</td><td><span class="badge b-activo">Activo</span></td></tr>
+              <tr><td><div style="display:flex;align-items:center;gap:8px"><div class="av av-sm av-purple">FM</div><div><div style="font-weight:500">Felipe Mora</div><div class="td-small">f.mora@empresa.cl</div></div></div></td><td>Simba 🐱 Nala 🐱</td><td class="td-muted">+56 9 9234 5678</td><td><span class="badge b-pension">Pensión</span></td><td style="color:var(--red);font-weight:500">$85.000</td><td class="td-small">Ago 2022</td><td><span class="badge b-alerta">Con deuda</span></td></tr>
+              <tr><td><div style="display:flex;align-items:center;gap:8px"><div class="av av-sm av-blue">AC</div><div><div style="font-weight:500">Andrea Campos</div><div class="td-small">andrea.c@hotmail.com</div></div></div></td><td>Thor 🐶</td><td class="td-muted">+56 9 7345 6789</td><td><span class="badge b-paseo">Paseo diario</span></td><td style="color:var(--green-dark);font-weight:500">$0</td><td class="td-small">Ene 2024</td><td><span class="badge b-activo">Activo</span></td></tr>
+              <tr><td><div style="display:flex;align-items:center;gap:8px"><div class="av av-sm av-amber">RS</div><div><div style="font-weight:500">Rodrigo Silva</div><div class="td-small">rsilva@gmail.com</div></div></div></td><td>Bruno 🐶</td><td class="td-muted">+56 9 6456 7890</td><td><span class="badge b-adiestramiento">Adiestramiento</span></td><td style="color:var(--green-dark);font-weight:500">$0</td><td class="td-small">Nov 2023</td><td><span class="badge b-activo">Activo</span></td></tr>
+              <tr><td><div style="display:flex;align-items:center;gap:8px"><div class="av av-sm av-pink">MR</div><div><div style="font-weight:500">Marcela Rojas</div><div class="td-small">mrojas@outlook.com</div></div></div></td><td>Canela 🐰</td><td class="td-muted">+56 9 5567 8901</td><td><span class="badge b-consulta">Consulta</span></td><td style="color:var(--red);font-weight:500">$45.000</td><td class="td-small">Feb 2024</td><td><span class="badge b-alerta">Con deuda</span></td></tr>
+              <tr><td><div style="display:flex;align-items:center;gap:8px"><div class="av av-sm av-coral">JP</div><div><div style="font-weight:500">Juan Pérez</div><div class="td-small">jperez@gmail.com</div></div></div></td><td>Rocky 🐶 Max 🐶</td><td class="td-muted">+56 9 4678 9012</td><td><span class="badge b-paseo">Paseo grupal</span></td><td style="color:var(--green-dark);font-weight:500">$0</td><td class="td-small">Jun 2022</td><td><span class="badge b-activo">Activo</span></td></tr>
+              <tr><td><div style="display:flex;align-items:center;gap:8px"><div class="av av-sm" style="background:#888780;color:#fff">CL</div><div><div style="font-weight:500">Claudia López</div><div class="td-small">clopez@yahoo.com</div></div></div></td><td>Paco 🦜</td><td class="td-muted">+56 9 3789 0123</td><td>—</td><td style="color:var(--green-dark);font-weight:500">$0</td><td class="td-small">May 2021</td><td><span class="badge b-inactivo">Inactivo</span></td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- ======================== MASCOTAS ======================== -->
+      <div class="page" id="pg-mascotas">
+        <div class="sec-hdr">
+          <div><div class="sec-title">Mascotas</div><div class="sec-sub">43 mascotas registradas</div></div>
+          <div class="sec-actions">
+            <div class="subtabs">
+              <button class="stab on">Todos</button>
+              <button class="stab">🐶 Perros</button>
+              <button class="stab">🐱 Gatos</button>
+              <button class="stab">🐰 Otros</button>
+            </div>
+            <button class="btn-primary"><i class="ti ti-plus" style="font-size:13px"></i> Registrar mascota</button>
+          </div>
+        </div>
+        <div class="card">
+          <table>
+            <thead><tr><th>Mascota</th><th>Especie / Raza</th><th>Edad</th><th>Dueño</th><th>Vacunas</th><th>Último servicio</th><th>Estado</th></tr></thead>
+            <tbody>
+              <tr><td><div style="display:flex;align-items:center;gap:8px"><div class="pet-ic" style="width:28px;height:28px;font-size:15px">🐶</div><div style="font-weight:500">Thor</div></div></td><td><span class="badge b-perro">Perro</span> <span class="td-small">Husky siberiano</span></td><td class="td-muted">3 años</td><td>Andrea Campos</td><td><span class="chip chip-green">Al día</span></td><td class="td-small">Hoy 14:00</td><td><span class="badge b-pendiente">En paseo</span></td></tr>
+              <tr><td><div style="display:flex;align-items:center;gap:8px"><div class="pet-ic" style="width:28px;height:28px;font-size:15px">🐱</div><div style="font-weight:500">Simba</div></div></td><td><span class="badge b-gato">Gato</span> <span class="td-small">Persa</span></td><td class="td-muted">5 años</td><td>Felipe Mora</td><td><span class="chip chip-green">Al día</span></td><td class="td-small">Hoy 11:00</td><td><span class="badge b-pension">En pensión</span></td></tr>
+              <tr><td><div style="display:flex;align-items:center;gap:8px"><div class="pet-ic" style="width:28px;height:28px;font-size:15px">🐱</div><div style="font-weight:500">Nala</div></div></td><td><span class="badge b-gato">Gato</span> <span class="td-small">Persa</span></td><td class="td-muted">4 años</td><td>Felipe Mora</td><td><span class="chip chip-green">Al día</span></td><td class="td-small">Hoy 11:00</td><td><span class="badge b-pension">En pensión</span></td></tr>
+              <tr><td><div style="display:flex;align-items:center;gap:8px"><div class="pet-ic" style="width:28px;height:28px;font-size:15px">🐶</div><div style="font-weight:500">Max</div></div></td><td><span class="badge b-perro">Perro</span> <span class="td-small">Labrador</span></td><td class="td-muted">7 años</td><td>Juan Pérez</td><td><span class="chip chip-red">Vencida</span></td><td class="td-small">03 jun</td><td><span class="badge b-activo">En casa</span></td></tr>
+              <tr><td><div style="display:flex;align-items:center;gap:8px"><div class="pet-ic" style="width:28px;height:28px;font-size:15px">🐱</div><div style="font-weight:500">Mochi</div></div></td><td><span class="badge b-gato">Gato</span> <span class="td-small">Ragdoll</span></td><td class="td-muted">2 años</td><td>Valentina Soto</td><td><span class="chip chip-green">Al día</span></td><td class="td-small">Hoy 09:30</td><td><span class="badge b-activo">En casa</span></td></tr>
+              <tr><td><div style="display:flex;align-items:center;gap:8px"><div class="pet-ic" style="width:28px;height:28px;font-size:15px">🐰</div><div style="font-weight:500">Canela</div></div></td><td><span class="badge b-roedor">Conejo</span> <span class="td-small">Angora</span></td><td class="td-muted">1 año</td><td>Marcela Rojas</td><td><span class="chip chip-amber">Parcial</span></td><td class="td-small">Hoy 17:00</td><td><span class="badge b-pendiente">Pendiente</span></td></tr>
+              <tr><td><div style="display:flex;align-items:center;gap:8px"><div class="pet-ic" style="width:28px;height:28px;font-size:15px">🦜</div><div style="font-weight:500">Paco</div></div></td><td><span class="badge b-ave">Ave</span> <span class="td-small">Loro africano</span></td><td class="td-muted">12 años</td><td>Claudia López</td><td><span class="chip chip-green">Al día</span></td><td class="td-small">01 jun</td><td><span class="badge b-pension">En pensión</span></td></tr>
+              <tr><td><div style="display:flex;align-items:center;gap:8px"><div class="pet-ic" style="width:28px;height:28px;font-size:15px">🐶</div><div style="font-weight:500">Bruno</div></div></td><td><span class="badge b-perro">Perro</span> <span class="td-small">Labrador</span></td><td class="td-muted">2 años</td><td>Rodrigo Silva</td><td><span class="chip chip-green">Al día</span></td><td class="td-small">Hoy 15:30</td><td><span class="badge b-pendiente">Pendiente</span></td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- ======================== HISTORIAL MÉDICO ======================== -->
+      <div class="page" id="pg-historial">
+        <div class="sec-hdr">
+          <div><div class="sec-title">Historial médico</div><div class="sec-sub">Registros veterinarios y vacunas</div></div>
+          <div class="sec-actions"><button class="btn-primary"><i class="ti ti-plus" style="font-size:13px"></i> Nuevo registro</button></div>
+        </div>
+        <div class="grid-2r">
+          <div>
+            <div class="card" style="margin-bottom:14px">
+              <div class="card-hdr"><div class="card-title">Registros recientes</div></div>
+              <table>
+                <thead><tr><th>Fecha</th><th>Mascota</th><th>Tipo</th><th>Descripción</th><th>Veterinario</th></tr></thead>
+                <tbody>
+                  <tr><td class="td-small">06 jun 2025</td><td>Canela 🐰</td><td><span class="badge b-consulta">Consulta</span></td><td class="td-muted">Revisión digestiva</td><td class="td-small">Dr. Hernández</td></tr>
+                  <tr><td class="td-small">03 jun 2025</td><td>Thor 🐶</td><td><span class="badge b-pendiente">Revisión</span></td><td class="td-muted">Control anual</td><td class="td-small">Dra. Lagos</td></tr>
+                  <tr><td class="td-small">28 may 2025</td><td>Mochi 🐱</td><td><span class="badge b-activo">Vacuna</span></td><td class="td-muted">Triple felina</td><td class="td-small">Dr. Hernández</td></tr>
+                  <tr><td class="td-small">20 may 2025</td><td>Bruno 🐶</td><td><span class="badge b-activo">Vacuna</span></td><td class="td-muted">Rabia + parvovirus</td><td class="td-small">Dra. Lagos</td></tr>
+                  <tr><td class="td-small">15 may 2025</td><td>Max 🐶</td><td><span class="badge b-alerta">Urgencia</span></td><td class="td-muted">Pata lastimada</td><td class="td-small">Dr. Hernández</td></tr>
+                  <tr><td class="td-small">10 may 2025</td><td>Simba 🐱</td><td><span class="badge b-bano">Desparasit.</span></td><td class="td-muted">Tratamiento externo</td><td class="td-small">Dra. Lagos</td></tr>
+                </tbody>
+              </table>
+            </div>
+            <div class="card">
+              <div class="card-hdr"><div class="card-title">Vacunas próximas a vencer</div></div>
+              <div class="alert-row ar-red"><i class="ti ti-vaccine ar-icon" style="color:var(--red)"></i><div><div class="ar-text"><b>Max</b> — Rabia</div><div class="ar-meta">Venció el 25 may · Labrador · Dueño: Juan Pérez</div></div><button class="btn-secondary" style="font-size:12px;padding:4px 9px">Notificar</button></div>
+              <div class="alert-row ar-amber"><i class="ti ti-vaccine ar-icon" style="color:var(--warning)"></i><div><div class="ar-text"><b>Nieve</b> — Mixomatosis</div><div class="ar-meta">Vence el 15 jun · Conejo · Dueño: Ana Muñoz</div></div><button class="btn-secondary" style="font-size:12px;padding:4px 9px">Notificar</button></div>
+              <div class="alert-row ar-amber"><i class="ti ti-vaccine ar-icon" style="color:var(--warning)"></i><div><div class="ar-text"><b>Paco</b> — Control anual</div><div class="ar-meta">Vence el 22 jun · Loro · Dueño: Claudia López</div></div><button class="btn-secondary" style="font-size:12px;padding:4px 9px">Notificar</button></div>
+            </div>
+          </div>
+          <div>
+            <div class="card" style="margin-bottom:14px">
+              <div class="card-hdr"><div class="card-title">Ficha: Thor 🐶</div><button class="btn-secondary" style="font-size:12px;padding:4px 9px">Cambiar</button></div>
+              <div style="display:flex;align-items:center;gap:12px;margin-bottom:14px;padding-bottom:14px;border-bottom:1px solid var(--border)">
+                <div style="font-size:36px">🐶</div>
+                <div><div style="font-size:16px;font-weight:700">Thor</div><div style="font-size:13px;color:var(--text2)">Husky siberiano · Macho · 3 años</div><div style="font-size:12px;color:var(--text3)">Dueño: Andrea Campos</div></div>
+              </div>
+              <div class="form-grid" style="margin-bottom:12px">
+                <div><div class="form-label">Peso</div><div style="font-size:14px;font-weight:500">28 kg</div></div>
+                <div><div class="form-label">Color</div><div style="font-size:14px;font-weight:500">Blanco / gris</div></div>
+                <div><div class="form-label">Chip</div><div style="font-size:14px;font-weight:500">982000411236789</div></div>
+                <div><div class="form-label">Esterilizado</div><div style="font-size:14px;font-weight:500">Sí</div></div>
+                <div><div class="form-label">Sangre</div><div style="font-size:14px;font-weight:500">DEA 1.1+</div></div>
+                <div><div class="form-label">Alergias</div><div style="font-size:14px;font-weight:500;color:var(--red)">Pollo</div></div>
+              </div>
+              <div class="form-label" style="margin-bottom:6px">Notas del cuidador</div>
+              <div class="note"><div class="note-meta"><div class="av av-sm av-green">MR</div>María Reyes · 04 jun</div><div class="note-text">Muy enérgico en los paseos, jala bastante al inicio. Llevarlo con correa doble. Le gusta correr junto al canal.</div></div>
+              <div class="note"><div class="note-meta"><div class="av av-sm av-blue">CP</div>Carla Pinto · 01 jun</div><div class="note-text">Primer día en pensión muy tranquilo. Comió bien, durmió en la cama asignada sin problemas.</div></div>
+            </div>
+            <div class="card">
+              <div class="card-hdr"><div class="card-title">Historial de vacunas</div></div>
+              <div class="timeline-item"><div class="tl-dot tl-green"><i class="ti ti-check" style="font-size:11px"></i></div><div class="tl-content"><div class="tl-title">Rabia + Distemper</div><div class="tl-meta">15 oct 2024 · Dr. Hernández · Vence oct 2025</div></div></div>
+              <div class="timeline-item"><div class="tl-dot tl-green"><i class="ti ti-check" style="font-size:11px"></i></div><div class="tl-content"><div class="tl-title">Parvovirus + Hepatitis</div><div class="tl-meta">15 oct 2024 · Dr. Hernández · Al día</div></div></div>
+              <div class="timeline-item"><div class="tl-dot tl-green"><i class="ti ti-check" style="font-size:11px"></i></div><div class="tl-content"><div class="tl-title">Bordetella (tos de las perreras)</div><div class="tl-meta">02 mar 2024 · Dra. Lagos · Anual</div></div></div>
+              <div class="timeline-item"><div class="tl-dot tl-blue"><i class="ti ti-pill" style="font-size:11px"></i></div><div class="tl-content"><div class="tl-title">Desparasitación interna</div><div class="tl-meta">01 jun 2025 · Cada 3 meses</div></div></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ======================== EMPLEADOS ======================== -->
+      <div class="page" id="pg-empleados">
+        <div class="sec-hdr">
+          <div><div class="sec-title">Empleados</div><div class="sec-sub">8 personas en el equipo</div></div>
+          <div class="sec-actions"><button class="btn-primary"><i class="ti ti-plus" style="font-size:13px"></i> Nuevo empleado</button></div>
+        </div>
+        <div class="grid-3" style="margin-bottom:18px">
+          <div class="card"><div style="display:flex;align-items:center;gap:12px;margin-bottom:12px"><div class="av av-lg av-green">MR</div><div><div style="font-size:15px;font-weight:600">María Reyes</div><div style="font-size:12px;color:var(--text3)">Paseadora senior</div><span class="badge b-activo" style="margin-top:3px;display:inline-block">Activa</span></div></div><div style="font-size:12px;color:var(--text3);margin-bottom:4px">Carga de trabajo hoy</div><div class="prog-bg" style="margin-bottom:10px"><div class="prog-fill" style="width:75%;background:var(--green)"></div></div><div style="display:flex;justify-content:space-between;font-size:12px;color:var(--text2)"><span><i class="ti ti-route" style="font-size:13px"></i> 3 paseos</span><span><i class="ti ti-star" style="font-size:13px"></i> 4.9/5</span><span><i class="ti ti-coin" style="font-size:13px"></i> $580k/mes</span></div></div>
+          <div class="card"><div style="display:flex;align-items:center;gap:12px;margin-bottom:12px"><div class="av av-lg av-purple">JL</div><div><div style="font-size:15px;font-weight:600">Jorge López</div><div style="font-size:12px;color:var(--text3)">Groomer</div><span class="badge b-activo" style="margin-top:3px;display:inline-block">Activo</span></div></div><div style="font-size:12px;color:var(--text3);margin-bottom:4px">Carga de trabajo hoy</div><div class="prog-bg" style="margin-bottom:10px"><div class="prog-fill" style="width:50%;background:var(--purple)"></div></div><div style="display:flex;justify-content:space-between;font-size:12px;color:var(--text2)"><span><i class="ti ti-scissors" style="font-size:13px"></i> 2 sesiones</span><span><i class="ti ti-star" style="font-size:13px"></i> 4.8/5</span><span><i class="ti ti-coin" style="font-size:13px"></i> $620k/mes</span></div></div>
+          <div class="card"><div style="display:flex;align-items:center;gap:12px;margin-bottom:12px"><div class="av av-lg av-blue">CP</div><div><div style="font-size:15px;font-weight:600">Carla Pinto</div><div style="font-size:12px;color:var(--text3)">Petsitter</div><span class="badge b-pendiente" style="margin-top:3px;display:inline-block">Carga alta</span></div></div><div style="font-size:12px;color:var(--text3);margin-bottom:4px">Carga de trabajo hoy</div><div class="prog-bg" style="margin-bottom:10px"><div class="prog-fill" style="width:92%;background:var(--red)"></div></div><div style="display:flex;justify-content:space-between;font-size:12px;color:var(--text2)"><span><i class="ti ti-home" style="font-size:13px"></i> 4 animales</span><span><i class="ti ti-star" style="font-size:13px"></i> 4.7/5</span><span><i class="ti ti-coin" style="font-size:13px"></i> $540k/mes</span></div></div>
+          <div class="card"><div style="display:flex;align-items:center;gap:12px;margin-bottom:12px"><div class="av av-lg av-amber">DM</div><div><div style="font-size:15px;font-weight:600">Diego Muñoz</div><div style="font-size:12px;color:var(--text3)">Adiestrador</div><span class="badge b-activo" style="margin-top:3px;display:inline-block">Activo</span></div></div><div style="font-size:12px;color:var(--text3);margin-bottom:4px">Carga de trabajo hoy</div><div class="prog-bg" style="margin-bottom:10px"><div class="prog-fill" style="width:30%;background:var(--amber)"></div></div><div style="display:flex;justify-content:space-between;font-size:12px;color:var(--text2)"><span><i class="ti ti-brain" style="font-size:13px"></i> 1 sesión</span><span><i class="ti ti-star" style="font-size:13px"></i> 5.0/5</span><span><i class="ti ti-coin" style="font-size:13px"></i> $710k/mes</span></div></div>
+          <div class="card"><div style="display:flex;align-items:center;gap:12px;margin-bottom:12px"><div class="av av-lg av-pink">KV</div><div><div style="font-size:15px;font-weight:600">Karen Vidal</div><div style="font-size:12px;color:var(--text3)">Paseadora</div><span class="badge b-activo" style="margin-top:3px;display:inline-block">Activa</span></div></div><div style="font-size:12px;color:var(--text3);margin-bottom:4px">Carga de trabajo hoy</div><div class="prog-bg" style="margin-bottom:10px"><div class="prog-fill" style="width:60%;background:var(--pink)"></div></div><div style="display:flex;justify-content:space-between;font-size:12px;color:var(--text2)"><span><i class="ti ti-route" style="font-size:13px"></i> 2 paseos</span><span><i class="ti ti-star" style="font-size:13px"></i> 4.6/5</span><span><i class="ti ti-coin" style="font-size:13px"></i> $430k/mes</span></div></div>
+          <div class="card"><div style="display:flex;align-items:center;gap:12px;margin-bottom:12px"><div class="av av-lg av-coral">PH</div><div><div style="font-size:15px;font-weight:600">Dr. Pedro Hdez.</div><div style="font-size:12px;color:var(--text3)">Veterinario asociado</div><span class="badge b-inactivo" style="margin-top:3px;display:inline-block">Part-time</span></div></div><div style="font-size:12px;color:var(--text3);margin-bottom:4px">Carga de trabajo hoy</div><div class="prog-bg" style="margin-bottom:10px"><div class="prog-fill" style="width:20%;background:var(--coral)"></div></div><div style="display:flex;justify-content:space-between;font-size:12px;color:var(--text2)"><span><i class="ti ti-stethoscope" style="font-size:13px"></i> 1 consulta</span><span><i class="ti ti-star" style="font-size:13px"></i> 4.9/5</span><span><i class="ti ti-coin" style="font-size:13px"></i> Honorarios</span></div></div>
+        </div>
+        <div class="card">
+          <div class="card-hdr"><div class="card-title">Turno semanal</div><button class="btn-secondary">Exportar</button></div>
+          <table>
+            <thead><tr><th>Empleado</th><th>Lun</th><th>Mar</th><th>Mié</th><th>Jue</th><th>Vie</th><th>Sáb</th><th>Dom</th><th>Total hrs</th></tr></thead>
+            <tbody>
+              <tr><td><div style="display:flex;align-items:center;gap:6px"><div class="av av-sm av-green">MR</div>María Reyes</div></td><td><span class="chip chip-green">08-16</span></td><td><span class="chip chip-green">08-16</span></td><td><span class="chip chip-green">08-16</span></td><td><span class="chip chip-green">08-16</span></td><td><span class="chip chip-green">08-16</span></td><td><span class="chip chip-amber">09-13</span></td><td><span class="chip chip-gray">Libre</span></td><td>44 hrs</td></tr>
+              <tr><td><div style="display:flex;align-items:center;gap:6px"><div class="av av-sm av-purple">JL</div>Jorge López</div></td><td><span class="chip chip-green">09-17</span></td><td><span class="chip chip-green">09-17</span></td><td><span class="chip chip-gray">Libre</span></td><td><span class="chip chip-green">09-17</span></td><td><span class="chip chip-green">09-17</span></td><td><span class="chip chip-green">09-17</span></td><td><span class="chip chip-gray">Libre</span></td><td>40 hrs</td></tr>
+              <tr><td><div style="display:flex;align-items:center;gap:6px"><div class="av av-sm av-blue">CP</div>Carla Pinto</div></td><td><span class="chip chip-green">07-15</span></td><td><span class="chip chip-green">07-15</span></td><td><span class="chip chip-green">07-15</span></td><td><span class="chip chip-green">07-15</span></td><td><span class="chip chip-green">07-15</span></td><td><span class="chip chip-green">07-15</span></td><td><span class="chip chip-amber">07-12</span></td><td>48 hrs</td></tr>
+              <tr><td><div style="display:flex;align-items:center;gap:6px"><div class="av av-sm av-amber">DM</div>Diego Muñoz</div></td><td><span class="chip chip-gray">Libre</span></td><td><span class="chip chip-green">10-18</span></td><td><span class="chip chip-green">10-18</span></td><td><span class="chip chip-gray">Libre</span></td><td><span class="chip chip-green">10-18</span></td><td><span class="chip chip-green">10-18</span></td><td><span class="chip chip-gray">Libre</span></td><td>32 hrs</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- ======================== INSTALACIONES ======================== -->
+      <div class="page" id="pg-instalaciones">
+        <div class="sec-hdr">
+          <div><div class="sec-title">Instalaciones</div><div class="sec-sub">Habitaciones y áreas del establecimiento</div></div>
+          <div class="sec-actions"><button class="btn-primary"><i class="ti ti-plus" style="font-size:13px"></i> Nueva habitación</button></div>
+        </div>
+        <div class="grid-4" style="margin-bottom:6px">
+          <div class="metric"><div class="metric-label">Capacidad total</div><div class="metric-value">24</div><div class="metric-delta delta-neutral">lugares disponibles</div></div>
+          <div class="metric"><div class="metric-label">Ocupado</div><div class="metric-value">12</div><div class="metric-delta delta-up">50% ocupación</div></div>
+          <div class="metric"><div class="metric-label">Disponibles</div><div class="metric-value">10</div><div class="metric-delta delta-up">listos para usar</div></div>
+          <div class="metric"><div class="metric-label">Mantención</div><div class="metric-value">2</div><div class="metric-delta delta-dn">fuera de servicio</div></div>
+        </div>
+        <div class="card" style="margin-bottom:14px">
+          <div class="card-hdr"><div class="card-title">Área canina</div><span style="font-size:12px;color:var(--text3)">8 habitaciones</span></div>
+          <div class="room-grid">
+            <div class="room-card occupied"><div class="room-icon">🐶</div><div class="room-name">Hab. 1</div><div class="room-pet">Thor · Husky</div><div class="room-status"><span class="badge b-activo">Ocupado</span></div></div>
+            <div class="room-card occupied"><div class="room-icon">🐶</div><div class="room-name">Hab. 2</div><div class="room-pet">Tobi · Schnauzer</div><div class="room-status"><span class="badge b-activo">Ocupado</span></div></div>
+            <div class="room-card available"><div class="room-icon">🏠</div><div class="room-name">Hab. 3</div><div class="room-pet">Disponible</div><div class="room-status"><span class="badge b-inactivo">Libre</span></div></div>
+            <div class="room-card available"><div class="room-icon">🏠</div><div class="room-name">Hab. 4</div><div class="room-pet">Disponible</div><div class="room-status"><span class="badge b-inactivo">Libre</span></div></div>
+            <div class="room-card occupied" style="grid-column:span 2"><div class="room-icon">⭐</div><div class="room-name">Suite A — VIP</div><div class="room-pet">Rocky + Max · Labradores</div><div class="room-status"><span class="badge b-pension">Pensión 7 noches</span></div></div>
+            <div class="room-card available"><div class="room-icon">🏠</div><div class="room-name">Hab. 5</div><div class="room-pet">Disponible</div><div class="room-status"><span class="badge b-inactivo">Libre</span></div></div>
+            <div class="room-card maintenance"><div class="room-icon">🔧</div><div class="room-name">Hab. 6</div><div class="room-pet">En mantención</div><div class="room-status"><span class="badge b-pendiente">Mantención</span></div></div>
+          </div>
+        </div>
+        <div class="grid-3">
+          <div class="card">
+            <div class="card-hdr"><div class="card-title">Área felina</div><span style="font-size:12px;color:var(--text3)">6 espacios</span></div>
+            <div class="room-grid" style="grid-template-columns:repeat(3,1fr)">
+              <div class="room-card occupied"><div class="room-icon">🐱</div><div class="room-name">Suite B</div><div class="room-pet">Simba + Nala</div><div class="room-status"><span class="badge b-activo">Ocupado</span></div></div>
+              <div class="room-card available"><div class="room-icon">🏠</div><div class="room-name">Zona 2</div><div class="room-pet">Disponible</div><div class="room-status"><span class="badge b-inactivo">Libre</span></div></div>
+              <div class="room-card available"><div class="room-icon">🏠</div><div class="room-name">Zona 3</div><div class="room-pet">Disponible</div><div class="room-status"><span class="badge b-inactivo">Libre</span></div></div>
+            </div>
+          </div>
+          <div class="card">
+            <div class="card-hdr"><div class="card-title">Animales pequeños</div><span style="font-size:12px;color:var(--text3)">Roedores, aves, reptiles</span></div>
+            <div class="list-row"><div class="pet-ic">🦜</div><div style="flex:1"><div style="font-size:13px;font-weight:500">Paco · Loro</div><div style="font-size:11px;color:var(--text3)">Área aves · Jaula grande</div></div><span class="badge b-activo">Ocupado</span></div>
+            <div class="list-row"><div class="pet-ic">🐰</div><div style="flex:1"><div style="font-size:13px;font-weight:500">Nieve · Conejo</div><div style="font-size:11px;color:var(--text3)">Área roedores · Corral B</div></div><span class="badge b-alerta">Revisar dieta</span></div>
+            <div class="list-row"><div class="pet-ic">🐹</div><div style="flex:1"><div style="font-size:13px;font-weight:500">Coco · Hámster</div><div style="font-size:11px;color:var(--text3)">Área roedores · Jaula 3</div></div><span class="badge b-activo">Ocupado</span></div>
+          </div>
+          <div class="card">
+            <div class="card-hdr"><div class="card-title">Áreas comunes</div></div>
+            <div class="list-row"><div style="width:28px;height:28px;border-radius:7px;background:var(--green-light);display:flex;align-items:center;justify-content:center;font-size:15px;flex-shrink:0">🌿</div><div style="flex:1"><div style="font-size:13px;font-weight:500">Patio exterior</div><div style="font-size:11px;color:var(--text3)">300 m² · Libre</div></div><span class="badge b-activo">Disponible</span></div>
+            <div class="list-row"><div style="width:28px;height:28px;border-radius:7px;background:var(--blue-light);display:flex;align-items:center;justify-content:center;font-size:15px;flex-shrink:0">🛁</div><div style="flex:1"><div style="font-size:13px;font-weight:500">Sala de grooming</div><div style="font-size:11px;color:var(--text3)">2 mesas · J. López turno</div></div><span class="badge b-pendiente">En uso</span></div>
+            <div class="list-row"><div style="width:28px;height:28px;border-radius:7px;background:var(--amber-light);display:flex;align-items:center;justify-content:center;font-size:15px;flex-shrink:0">🏋</div><div style="flex:1"><div style="font-size:13px;font-weight:500">Zona adiestramiento</div><div style="font-size:11px;color:var(--text3)">Pista interior · 15:30 D. Muñoz</div></div><span class="badge b-inactivo">Reservado</span></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ======================== RUTAS ======================== -->
+      <div class="page" id="pg-rutas">
+        <div class="sec-hdr">
+          <div><div class="sec-title">Rutas de paseo</div><div class="sec-sub">Gestión de recorridos y seguimiento GPS</div></div>
+          <div class="sec-actions"><button class="btn-primary"><i class="ti ti-plus" style="font-size:13px"></i> Nueva ruta</button></div>
+        </div>
+        <div class="grid-2">
+          <div>
+            <div class="card" style="margin-bottom:14px">
+              <div class="card-hdr"><div class="card-title">Rutas activas · Hoy</div></div>
+              <div class="list-row">
+                <div style="width:32px;height:32px;border-radius:8px;background:var(--green-light);display:flex;align-items:center;justify-content:center;color:var(--green);font-size:16px;flex-shrink:0"><i class="ti ti-route"></i></div>
+                <div style="flex:1">
+                  <div style="font-size:13px;font-weight:500">Ruta Norte · Max, Rocky, Luna</div>
+                  <div style="font-size:11px;color:var(--text3)">M. Reyes · 08:00–08:45 · 3.2 km</div>
+                </div>
+                <span class="badge b-activo">Completada</span>
+              </div>
+              <div class="list-row">
+                <div style="width:32px;height:32px;border-radius:8px;background:var(--blue-light);display:flex;align-items:center;justify-content:center;color:var(--blue);font-size:16px;flex-shrink:0"><i class="ti ti-route"></i></div>
+                <div style="flex:1">
+                  <div style="font-size:13px;font-weight:500">Ruta Canal · Thor</div>
+                  <div style="font-size:11px;color:var(--text3)">M. Reyes · 14:00–14:50 · 4.5 km · En curso</div>
+                </div>
+                <span class="badge b-pendiente">En curso</span>
+              </div>
+              <div class="list-row">
+                <div style="width:32px;height:32px;border-radius:8px;background:var(--purple-light);display:flex;align-items:center;justify-content:center;color:var(--purple);font-size:16px;flex-shrink:0"><i class="ti ti-route"></i></div>
+                <div style="flex:1">
+                  <div style="font-size:13px;font-weight:500">Parque El Llano · Toby, Coco, Pina</div>
+                  <div style="font-size:11px;color:var(--text3)">M. Reyes · 18:30 · Por confirmar</div>
+                </div>
+                <span class="badge b-inactivo">Pendiente</span>
+              </div>
+            </div>
+            <div class="card">
+              <div class="card-hdr"><div class="card-title">Catálogo de rutas</div></div>
+              <table>
+                <thead><tr><th>Ruta</th><th>Distancia</th><th>Duración</th><th>Dificultad</th><th>Uso</th></tr></thead>
+                <tbody>
+                  <tr><td style="font-weight:500">Ruta Norte</td><td class="td-muted">3.2 km</td><td class="td-muted">45 min</td><td><span class="chip chip-green">Fácil</span></td><td class="td-small">48 veces</td></tr>
+                  <tr><td style="font-weight:500">Ruta Canal</td><td class="td-muted">4.5 km</td><td class="td-muted">55 min</td><td><span class="chip chip-amber">Media</span></td><td class="td-small">31 veces</td></tr>
+                  <tr><td style="font-weight:500">Parque El Llano</td><td class="td-muted">2.1 km</td><td class="td-muted">30 min</td><td><span class="chip chip-green">Fácil</span></td><td class="td-small">62 veces</td></tr>
+                  <tr><td style="font-weight:500">Cerro Chena</td><td class="td-muted">6.8 km</td><td class="td-muted">90 min</td><td><span class="chip chip-red">Difícil</span></td><td class="td-small">8 veces</td></tr>
+                  <tr><td style="font-weight:500">Vuelta manzana</td><td class="td-muted">1.2 km</td><td class="td-muted">20 min</td><td><span class="chip chip-green">Fácil</span></td><td class="td-small">104 veces</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+          <div class="card">
+            <div class="card-hdr"><div class="card-title">Mapa de rutas · Melipilla</div><button class="btn-secondary">Actualizar GPS</button></div>
+            <div class="map-ph">
+              <div style="position:absolute;inset:0;opacity:.15;background:repeating-linear-gradient(0deg,transparent,transparent 30px,#1D9E75 30px,#1D9E75 31px),repeating-linear-gradient(90deg,transparent,transparent 30px,#1D9E75 30px,#1D9E75 31px)"></div>
+              <div class="map-pin" style="top:30%;left:40%">📍</div>
+              <div class="map-pin" style="top:50%;left:55%">📍</div>
+              <div class="map-pin" style="top:65%;left:35%">🐶</div>
+              <div class="map-pin" style="top:25%;left:65%">🏠</div>
+              <div style="position:absolute;background:rgba(29,158,117,.15);border:2px dashed var(--green);border-radius:50%;width:80px;height:60px;top:40%;left:38%"></div>
+              <div style="position:absolute;bottom:12px;left:12px;background:rgba(255,255,255,.9);border-radius:7px;padding:6px 10px;font-size:11px;font-weight:500;color:var(--text2)"><i class="ti ti-map-pin" style="color:var(--green)"></i> Thor en Ruta Canal · Actualizado hace 2 min</div>
+            </div>
+            <div style="margin-top:14px">
+              <div class="list-row">
+                <div class="dot dot-ok"></div>
+                <div style="flex:1;font-size:13px">Thor · Ruta Canal</div>
+                <span style="font-size:12px;color:var(--text3)">2.1 km recorridos</span>
+                <span style="font-size:12px;color:var(--green-dark);font-weight:500;margin-left:8px">En ruta</span>
+              </div>
+              <div class="list-row" style="border:none">
+                <div class="dot dot-warn"></div>
+                <div style="flex:1;font-size:13px">Toby, Coco, Pina · Parque El Llano</div>
+                <span style="font-size:12px;color:var(--text3)">Inicia 18:30</span>
+                <span style="font-size:12px;color:var(--amber);font-weight:500;margin-left:8px">Pendiente</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ======================== FACTURACIÓN ======================== -->
+      <div class="page" id="pg-facturacion">
+        <div class="sec-hdr">
+          <div><div class="sec-title">Facturación</div><div class="sec-sub">Cobros, facturas y pagos</div></div>
+          <div class="sec-actions">
+            <div class="subtabs">
+              <button class="stab on">Todas</button>
+              <button class="stab">Pendientes</button>
+              <button class="stab">Pagadas</button>
+              <button class="stab">Vencidas</button>
+            </div>
+            <button class="btn-primary"><i class="ti ti-plus" style="font-size:13px"></i> Nueva factura</button>
+          </div>
+        </div>
+        <div class="grid-4" style="margin-bottom:18px">
+          <div class="metric"><div class="metric-label">Ingresos este mes</div><div class="metric-value">$3.8M</div><div class="metric-delta delta-up">+12% vs mayo</div></div>
+          <div class="metric"><div class="metric-label">Por cobrar</div><div class="metric-value">$130k</div><div class="metric-delta delta-dn">2 facturas</div></div>
+          <div class="metric"><div class="metric-label">Vencido (+30d)</div><div class="metric-value">$85k</div><div class="metric-delta delta-dn">1 factura crítica</div></div>
+          <div class="metric"><div class="metric-label">Cobrado hoy</div><div class="metric-value">$184k</div><div class="metric-delta delta-up">7 transacciones</div></div>
+        </div>
+        <div class="card">
+          <table>
+            <thead><tr><th>#</th><th>Cliente</th><th>Servicios</th><th>Emisión</th><th>Vencimiento</th><th>Monto</th><th>Estado</th><th>Acciones</th></tr></thead>
+            <tbody>
+              <tr><td style="font-weight:600;color:var(--text3)">#0042</td><td><div style="display:flex;align-items:center;gap:6px"><div class="av av-sm av-green">VS</div>Valentina Soto</div></td><td class="td-muted">Grooming Mochi × 1</td><td class="td-small">06 jun</td><td class="td-small">20 jun</td><td style="font-weight:600">$14.500</td><td><span class="badge b-pagado">Pagada</span></td><td><button class="btn-secondary" style="font-size:11px;padding:3px 7px">Ver</button></td></tr>
+              <tr><td style="font-weight:600;color:var(--text3)">#0041</td><td><div style="display:flex;align-items:center;gap:6px"><div class="av av-sm av-blue">AC</div>Andrea Campos</div></td><td class="td-muted">Paseo individual × 3</td><td class="td-small">03 jun</td><td class="td-small">17 jun</td><td style="font-weight:600">$25.500</td><td><span class="badge b-pagado">Pagada</span></td><td><button class="btn-secondary" style="font-size:11px;padding:3px 7px">Ver</button></td></tr>
+              <tr><td style="font-weight:600;color:var(--text3)">#0040</td><td><div style="display:flex;align-items:center;gap:6px"><div class="av av-sm av-purple">FM</div>Felipe Mora</div></td><td class="td-muted">Pensión gatos × 3 noches</td><td class="td-small">01 jun</td><td class="td-small">08 jun</td><td style="font-weight:600">$85.000</td><td><span class="badge b-vencido">Vencida</span></td><td><div style="display:flex;gap:4px"><button class="btn-primary" style="font-size:11px;padding:3px 8px">Cobrar</button><button class="btn-secondary" style="font-size:11px;padding:3px 7px">Ver</button></div></td></tr>
+              <tr><td style="font-weight:600;color:var(--text3)">#0039</td><td><div style="display:flex;align-items:center;gap:6px"><div class="av av-sm av-pink">MR</div>Marcela Rojas</div></td><td class="td-muted">Baño + Consulta</td><td class="td-small">30 may</td><td class="td-small">13 jun</td><td style="font-weight:600">$45.000</td><td><span class="badge b-pendiente">Pendiente</span></td><td><div style="display:flex;gap:4px"><button class="btn-primary" style="font-size:11px;padding:3px 8px">Cobrar</button><button class="btn-secondary" style="font-size:11px;padding:3px 7px">Ver</button></div></td></tr>
+              <tr><td style="font-weight:600;color:var(--text3)">#0038</td><td><div style="display:flex;align-items:center;gap:6px"><div class="av av-sm av-amber">RS</div>Rodrigo Silva</div></td><td class="td-muted">Adiestramiento × 2 sesiones</td><td class="td-small">28 may</td><td class="td-small">11 jun</td><td style="font-weight:600">$60.000</td><td><span class="badge b-pagado">Pagada</span></td><td><button class="btn-secondary" style="font-size:11px;padding:3px 7px">Ver</button></td></tr>
+              <tr><td style="font-weight:600;color:var(--text3)">#0037</td><td><div style="display:flex;align-items:center;gap:6px"><div class="av av-sm av-coral">JP</div>Juan Pérez</div></td><td class="td-muted">Paseo grupal × 8</td><td class="td-small">25 may</td><td class="td-small">08 jun</td><td style="font-weight:600">$44.000</td><td><span class="badge b-pagado">Pagada</span></td><td><button class="btn-secondary" style="font-size:11px;padding:3px 7px">Ver</button></td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- ======================== REPORTES ======================== -->
+      <div class="page" id="pg-reportes">
+        <div class="sec-hdr">
+          <div><div class="sec-title">Reportes</div><div class="sec-sub">Métricas y análisis del negocio</div></div>
+          <div class="sec-actions">
+            <div class="subtabs">
+              <button class="stab on">Este mes</button>
+              <button class="stab">Últimos 3 meses</button>
+              <button class="stab">Este año</button>
+            </div>
+            <button class="btn-secondary"><i class="ti ti-download" style="font-size:13px"></i> Exportar PDF</button>
+          </div>
+        </div>
+        <div class="grid-4" style="margin-bottom:18px">
+          <div class="metric"><div class="metric-label">Ingresos totales</div><div class="metric-value">$3.8M</div><div class="metric-delta delta-up">+12% vs mayo</div></div>
+          <div class="metric"><div class="metric-label">Servicios totales</div><div class="metric-value">187</div><div class="metric-delta delta-up">+18 vs mayo</div></div>
+          <div class="metric"><div class="metric-label">Nuevos clientes</div><div class="metric-value">6</div><div class="metric-delta delta-up">+2 vs mayo</div></div>
+          <div class="metric"><div class="metric-label">Satisfacción</div><div class="metric-value">4.8</div><div class="metric-delta delta-up">★ sobre 5.0</div></div>
+        </div>
+        <div class="grid-2" style="margin-bottom:16px">
+          <div class="card">
+            <div class="card-hdr"><div class="card-title">Ingresos por tipo de servicio</div></div>
+            <div class="stat-row"><span style="font-weight:500">Pensión</span><div class="stat-bar"><div class="stat-fill" style="width:82%;background:var(--purple)"></div></div><span style="font-weight:600;font-size:13px">$1.4M</span></div>
+            <div class="stat-row"><span style="font-weight:500">Paseos</span><div class="stat-bar"><div class="stat-fill" style="width:60%;background:var(--green)"></div></div><span style="font-weight:600;font-size:13px">$980k</span></div>
+            <div class="stat-row"><span style="font-weight:500">Grooming</span><div class="stat-bar"><div class="stat-fill" style="width:45%;background:var(--blue)"></div></div><span style="font-weight:600;font-size:13px">$720k</span></div>
+            <div class="stat-row"><span style="font-weight:500">Adiestramiento</span><div class="stat-bar"><div class="stat-fill" style="width:28%;background:var(--amber)"></div></div><span style="font-weight:600;font-size:13px">$450k</span></div>
+            <div class="stat-row"><span style="font-weight:500">Consultas</span><div class="stat-bar"><div class="stat-fill" style="width:15%;background:var(--pink)"></div></div><span style="font-weight:600;font-size:13px">$240k</span></div>
+          </div>
+          <div class="card">
+            <div class="card-hdr"><div class="card-title">Rendimiento del equipo</div></div>
+            <table>
+              <thead><tr><th>Empleado</th><th>Servicios</th><th>Ingresos</th><th>Rating</th></tr></thead>
+              <tbody>
+                <tr><td><div style="display:flex;align-items:center;gap:6px"><div class="av av-sm av-green">MR</div>M. Reyes</div></td><td>62</td><td style="font-weight:500">$1.1M</td><td>⭐ 4.9</td></tr>
+                <tr><td><div style="display:flex;align-items:center;gap:6px"><div class="av av-sm av-purple">JL</div>J. López</div></td><td>48</td><td style="font-weight:500">$960k</td><td>⭐ 4.8</td></tr>
+                <tr><td><div style="display:flex;align-items:center;gap:6px"><div class="av av-sm av-blue">CP</div>C. Pinto</div></td><td>31</td><td style="font-weight:500">$760k</td><td>⭐ 4.7</td></tr>
+                <tr><td><div style="display:flex;align-items:center;gap:6px"><div class="av av-sm av-amber">DM</div>D. Muñoz</div></td><td>18</td><td style="font-weight:500">$540k</td><td>⭐ 5.0</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+        <div class="grid-3">
+          <div class="card">
+            <div class="card-hdr"><div class="card-title">Top clientes</div></div>
+            <div class="list-row"><div class="av av-sm av-blue">AC</div><div style="flex:1"><div style="font-size:13px;font-weight:500">Andrea Campos</div><div style="font-size:11px;color:var(--text3)">Paseo diario · Thor</div></div><span style="font-weight:600;font-size:13px">$420k</span></div>
+            <div class="list-row"><div class="av av-sm av-amber">RS</div><div style="flex:1"><div style="font-size:13px;font-weight:500">Rodrigo Silva</div><div style="font-size:11px;color:var(--text3)">Adiestramiento · Bruno</div></div><span style="font-weight:600;font-size:13px">$350k</span></div>
+            <div class="list-row"><div class="av av-sm av-coral">JP</div><div style="flex:1"><div style="font-size:13px;font-weight:500">Juan Pérez</div><div style="font-size:11px;color:var(--text3)">Paseo grupal · Rocky, Max</div></div><span style="font-weight:600;font-size:13px">$290k</span></div>
+            <div class="list-row" style="border:none"><div class="av av-sm av-purple">FM</div><div style="flex:1"><div style="font-size:13px;font-weight:500">Felipe Mora</div><div style="font-size:11px;color:var(--text3)">Pensión · Simba, Nala</div></div><span style="font-weight:600;font-size:13px">$270k</span></div>
+          </div>
+          <div class="card">
+            <div class="card-hdr"><div class="card-title">Especies atendidas</div></div>
+            <div class="stat-row"><span>🐶 Perros</span><div class="stat-bar"><div class="stat-fill" style="width:68%;background:var(--green)"></div></div><span>68%</span></div>
+            <div class="stat-row"><span>🐱 Gatos</span><div class="stat-bar"><div class="stat-fill" style="width:20%;background:var(--pink)"></div></div><span>20%</span></div>
+            <div class="stat-row"><span>🐰 Roedores</span><div class="stat-bar"><div class="stat-fill" style="width:7%;background:var(--amber)"></div></div><span>7%</span></div>
+            <div class="stat-row"><span>🦜 Aves</span><div class="stat-bar"><div class="stat-fill" style="width:3%;background:var(--purple)"></div></div><span>3%</span></div>
+            <div class="stat-row" style="border:none"><span>🦎 Otros</span><div class="stat-bar"><div class="stat-fill" style="width:2%;background:var(--text3)"></div></div><span>2%</span></div>
+          </div>
+          <div class="card">
+            <div class="card-hdr"><div class="card-title">Alertas del mes</div></div>
+            <div class="list-row"><div class="dot dot-bad"></div><div style="flex:1;font-size:13px">Facturas vencidas</div><span style="font-weight:600;color:var(--red)">2</span></div>
+            <div class="list-row"><div class="dot dot-warn"></div><div style="flex:1;font-size:13px">Vacunas por vencer</div><span style="font-weight:600;color:var(--amber)">3</span></div>
+            <div class="list-row"><div class="dot dot-warn"></div><div style="flex:1;font-size:13px">Capacidad pensión >80%</div><span style="font-weight:600;color:var(--amber)">4 días</span></div>
+            <div class="list-row" style="border:none"><div class="dot dot-ok"></div><div style="flex:1;font-size:13px">Servicios sin incidentes</div><span style="font-weight:600;color:var(--green-dark)">183</span></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ======================== CONFIGURACIÓN ======================== -->
+      <div class="page" id="pg-configuracion">
+        <div class="sec-hdr">
+          <div><div class="sec-title">Configuración</div><div class="sec-sub">Ajustes del negocio y la plataforma</div></div>
+        </div>
+        <div class="grid-2">
+          <div>
+            <div class="card" style="margin-bottom:14px">
+              <div class="card-hdr"><div class="card-title">Datos del negocio</div><button class="btn-secondary">Guardar</button></div>
+              <div class="form-row"><label class="form-label">Nombre del negocio</label><input class="form-input" value="PetCare Melipilla"></div>
+              <div class="form-row"><label class="form-label">RUT</label><input class="form-input" value="76.543.210-8"></div>
+              <div class="form-grid">
+                <div class="form-row"><label class="form-label">Teléfono</label><input class="form-input" value="+56 9 9999 0000"></div>
+                <div class="form-row"><label class="form-label">Email</label><input class="form-input" value="contacto@petcare.cl"></div>
+              </div>
+              <div class="form-row"><label class="form-label">Dirección</label><input class="form-input" value="Av. O'Higgins 1234, Melipilla"></div>
+              <div class="form-row"><label class="form-label">Descripción</label><textarea class="form-textarea">Centro de cuidado integral de mascotas en Melipilla. Paseos, pensión, grooming, adiestramiento y consultas veterinarias.</textarea></div>
+            </div>
+            <div class="card">
+              <div class="card-hdr"><div class="card-title">Horarios de atención</div><button class="btn-secondary">Guardar</button></div>
+              <table>
+                <thead><tr><th>Día</th><th>Apertura</th><th>Cierre</th><th>Activo</th></tr></thead>
+                <tbody>
+                  <tr><td>Lunes–Viernes</td><td><input class="form-input" value="07:00" style="width:80px"></td><td><input class="form-input" value="19:00" style="width:80px"></td><td><span class="badge b-activo">Sí</span></td></tr>
+                  <tr><td>Sábado</td><td><input class="form-input" value="08:00" style="width:80px"></td><td><input class="form-input" value="14:00" style="width:80px"></td><td><span class="badge b-activo">Sí</span></td></tr>
+                  <tr><td>Domingo</td><td><input class="form-input" value="—" style="width:80px"></td><td><input class="form-input" value="—" style="width:80px"></td><td><span class="badge b-inactivo">No</span></td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+          <div>
+            <div class="card" style="margin-bottom:14px">
+              <div class="card-hdr"><div class="card-title">Notificaciones</div></div>
+              <div class="list-row"><div style="flex:1"><div style="font-size:13px;font-weight:500">Recordatorio de citas</div><div style="font-size:11px;color:var(--text3)">WhatsApp al dueño 24h antes</div></div><span class="badge b-activo">Activo</span></div>
+              <div class="list-row"><div style="flex:1"><div style="font-size:13px;font-weight:500">Alertas de vacunas vencidas</div><div style="font-size:11px;color:var(--text3)">Email 7 días antes del vencimiento</div></div><span class="badge b-activo">Activo</span></div>
+              <div class="list-row"><div style="flex:1"><div style="font-size:13px;font-weight:500">Facturas vencidas</div><div style="font-size:11px;color:var(--text3)">WhatsApp al dueño al vencer</div></div><span class="badge b-activo">Activo</span></div>
+              <div class="list-row"><div style="flex:1"><div style="font-size:13px;font-weight:500">Reporte diario</div><div style="font-size:11px;color:var(--text3)">Email resumen a las 20:00</div></div><span class="badge b-pendiente">Pausado</span></div>
+              <div class="list-row" style="border:none"><div style="flex:1"><div style="font-size:13px;font-weight:500">Nuevas reservas</div><div style="font-size:11px;color:var(--text3)">Alerta inmediata al admin</div></div><span class="badge b-activo">Activo</span></div>
+            </div>
+            <div class="card" style="margin-bottom:14px">
+              <div class="card-hdr"><div class="card-title">Métodos de pago</div><button class="btn-secondary">+ Agregar</button></div>
+              <div class="list-row"><div class="pet-ic" style="font-size:13px;font-weight:700;color:var(--green)">$</div><div style="flex:1"><div style="font-size:13px;font-weight:500">Transferencia bancaria</div><div style="font-size:11px;color:var(--text3)">Banco Santander · Cta. 00-123456-7</div></div><span class="badge b-activo">Principal</span></div>
+              <div class="list-row"><div class="pet-ic" style="font-size:13px;font-weight:700;color:var(--blue)">💳</div><div style="flex:1"><div style="font-size:13px;font-weight:500">Webpay / Tarjeta</div><div style="font-size:11px;color:var(--text3)">Transbank · Activo</div></div><span class="badge b-activo">Activo</span></div>
+              <div class="list-row" style="border:none"><div class="pet-ic" style="font-size:13px;font-weight:700;color:var(--purple)">📱</div><div style="flex:1"><div style="font-size:13px;font-weight:500">Efectivo</div><div style="font-size:11px;color:var(--text3)">Registrado manualmente</div></div><span class="badge b-activo">Activo</span></div>
+            </div>
+            <div class="card">
+              <div class="card-hdr"><div class="card-title">Usuarios del sistema</div><button class="btn-secondary">+ Invitar</button></div>
+              <div class="list-row"><div class="av av-sm av-green">CA</div><div style="flex:1"><div style="font-size:13px;font-weight:500">Carlos Arriagada</div><div style="font-size:11px;color:var(--text3)">carlos@petcare.cl</div></div><span class="badge b-pension">Admin</span></div>
+              <div class="list-row"><div class="av av-sm av-blue">CP</div><div style="flex:1"><div style="font-size:13px;font-weight:500">Carla Pinto</div><div style="font-size:11px;color:var(--text3)">carla@petcare.cl</div></div><span class="badge b-activo">Staff</span></div>
+              <div class="list-row" style="border:none"><div class="av av-sm av-purple">JL</div><div style="flex:1"><div style="font-size:13px;font-weight:500">Jorge López</div><div style="font-size:11px;color:var(--text3)">jorge@petcare.cl</div></div><span class="badge b-activo">Staff</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div><!-- /content -->
+  </div><!-- /main -->
+</div><!-- /erp -->
+
+<script>
+  const pages = {
+    dashboard: {icon:'ti-layout-dashboard', title:'Dashboard', sub:'Viernes 6 jun 2025', cta:'Nuevo servicio'},
+    agenda: {icon:'ti-calendar', title:'Agenda', sub:'Junio 2025', cta:'Nuevo evento'},
+    servicios: {icon:'ti-clipboard-list', title:'Servicios', sub:'Catálogo y tarifas', cta:'Nuevo servicio'},
+    duenos: {icon:'ti-users', title:'Dueños', sub:'28 clientes registrados', cta:'Nuevo dueño'},
+    mascotas: {icon:'ti-paw', title:'Mascotas', sub:'43 mascotas registradas', cta:'Registrar mascota'},
+    historial: {icon:'ti-stethoscope', title:'Historial médico', sub:'Registros veterinarios', cta:'Nuevo registro'},
+    empleados: {icon:'ti-user-check', title:'Empleados', sub:'8 personas en el equipo', cta:'Nuevo empleado'},
+    instalaciones: {icon:'ti-building', title:'Instalaciones', sub:'Habitaciones y áreas', cta:'Nueva habitación'},
+    rutas: {icon:'ti-route', title:'Rutas de paseo', sub:'Gestión de recorridos', cta:'Nueva ruta'},
+    facturacion: {icon:'ti-receipt', title:'Facturación', sub:'Cobros y pagos', cta:'Nueva factura'},
+    reportes: {icon:'ti-chart-bar', title:'Reportes', sub:'Métricas del negocio', cta:'Exportar PDF'},
+    configuracion: {icon:'ti-settings', title:'Configuración', sub:'Ajustes del sistema', cta:'Guardar cambios'},
+  };
+
+  function goPage(id) {
+    document.querySelectorAll('.nav-item').forEach(el => {
+      el.classList.toggle('active', el.dataset.page === id);
+    });
+    document.querySelectorAll('.page').forEach(el => {
+      el.classList.toggle('active', el.id === 'pg-' + id);
+    });
+    const p = pages[id];
+    if (!p) return;
+    document.getElementById('tb-icon').className = 'ti ' + p.icon;
+    document.getElementById('tb-icon').style.cssText = 'font-size:18px;color:var(--text2)';
+    document.getElementById('tb-title').textContent = p.title;
+    document.getElementById('tb-sub').textContent = p.sub;
+    document.getElementById('tb-cta').innerHTML = '<i class="ti ti-plus" style="font-size:14px"></i> ' + p.cta;
+    document.getElementById('content').scrollTop = 0;
+  }
+
+  document.querySelectorAll('.nav-item[data-page]').forEach(el => {
+    el.addEventListener('click', () => goPage(el.dataset.page));
+  });
+
+  // Subtab switching (visual only)
+  document.querySelectorAll('.subtabs').forEach(group => {
+    group.querySelectorAll('.stab').forEach(btn => {
+      btn.addEventListener('click', () => {
+        group.querySelectorAll('.stab').forEach(b => b.classList.remove('on'));
+        btn.classList.add('on');
+      });
+    });
+  });
+
+  // Tab bar switching (visual only)
+  document.querySelectorAll('.tabs').forEach(group => {
+    group.querySelectorAll('.tab-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        group.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('on'));
+        btn.classList.add('on');
+      });
+    });
+  });
+</script>
+</body>
+</html>

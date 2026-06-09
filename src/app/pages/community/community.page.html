@@ -1,0 +1,266 @@
+<app-site-header></app-site-header>
+
+<div class="community-layout">
+  <main class="community-page">
+    <div class="community-container">
+      
+      <!-- Hero Header Section -->
+      <section class="community-hero">
+        <div class="community-hero__left">
+          <p class="community-hero__eyebrow">Comunidad Pet</p>
+          <h1 class="community-hero__title">Descubre y comparte</h1>
+          <p class="community-hero__subtitle">
+            Comparte historias, haz preguntas y conéctate con otros tutores en tu equipo.
+          </p>
+        </div>
+        <div class="community-hero__actions">
+          <button type="button" class="btn-primary" (click)="showNewPostForm = !showNewPostForm">
+            <mat-icon>{{ showNewPostForm ? 'close' : 'add' }}</mat-icon>
+            {{ showNewPostForm ? 'Cancelar' : 'Crear publicación' }}
+          </button>
+        </div>
+      </section>
+
+      <!-- Category Filter & Search Toolbar -->
+      <section class="community-toolbar">
+        <div class="community-categories">
+          <button type="button" 
+                  *ngFor="let category of categoryOptions" 
+                  [class.active]="activeCategory === category.id" 
+                  (click)="activeCategory = category.id"
+                  [class]="'category-pill pill-' + category.id"
+                  [class.active]="activeCategory === category.id">
+            <mat-icon>{{ category.icon }}</mat-icon>
+            <span>{{ category.label }}</span>
+          </button>
+        </div>
+        <label class="community-search">
+          <mat-icon>search</mat-icon>
+          <input type="search" [(ngModel)]="searchQuery" placeholder="Buscar publicaciones..." />
+        </label>
+      </section>
+
+      <!-- Error Message -->
+      <div class="community-error" *ngIf="error">
+        <mat-icon>error_outline</mat-icon>
+        <span>{{ error }}</span>
+      </div>
+
+      <!-- New Post Form Card -->
+      <div class="community-new-post" *ngIf="showNewPostForm">
+        <div class="community-card community-card--form">
+          <h3 class="community-card__title">Crear nueva publicación</h3>
+          <form (ngSubmit)="submitPost()" class="community-form">
+            <div class="form-grid">
+              <label class="community-form__field">
+                <span>Título</span>
+                <input type="text" [(ngModel)]="newPost.title" name="postTitle" placeholder="Ej. El primer paseo de Bruno" required />
+              </label>
+              <label class="community-form__field">
+                <span>Categoría</span>
+                <select [(ngModel)]="newPost.category" name="postCategory">
+                  <option *ngFor="let category of categoryOptions | slice:1" [value]="category.id">{{ category.label }}</option>
+                </select>
+              </label>
+            </div>
+            
+            <label class="community-form__field">
+              <span>Contenido</span>
+              <textarea rows="4" [(ngModel)]="newPost.body" name="postBody" placeholder="Comparte tu experiencia, pregunta o consejo..." required></textarea>
+            </label>
+            
+            <div class="form-image-section">
+              <label class="community-image-picker">
+                <input type="file" accept="image/jpeg,image/png,image/webp" (change)="onPostImageSelected($event)" />
+                <mat-icon>add_photo_alternate</mat-icon>
+                <span>
+                  <strong>{{ selectedPostImage?.name || 'Seleccionar imagen' }}</strong>
+                  <small>JPG, PNG o WEBP hasta 8 MB</small>
+                </span>
+              </label>
+              <div class="community-image-preview" *ngIf="selectedPostImagePreview">
+                <img [src]="selectedPostImagePreview" alt="Vista previa de la publicación" />
+                <button type="button" (click)="clearPostImage()" aria-label="Quitar imagen">
+                  <mat-icon>close</mat-icon>
+                </button>
+              </div>
+            </div>
+            
+            <div class="form-footer">
+              <label class="community-form__checkbox">
+                <input type="checkbox" [(ngModel)]="newPost.is_anonymous" name="postAnonymous" />
+                <span>Publicar de forma anónima</span>
+              </label>
+              <button type="submit" class="btn-primary" [disabled]="newPostSubmitting || !newPost.title.trim() || !newPost.body.trim()">
+                {{ newPostSubmitting ? 'Publicando...' : 'Publicar ahora' }}
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+
+      <!-- Loading State -->
+      <div class="community-loading" *ngIf="loading">
+        <mat-icon class="spin">refresh</mat-icon>
+        <span>Cargando comunidad...</span>
+      </div>
+
+      <!-- Empty State -->
+      <div class="community-empty" *ngIf="!loading && !posts.length && !error">
+        <mat-icon>forum</mat-icon>
+        <h3>Aún no hay publicaciones</h3>
+        <p>Sé el primero en compartir algo con tu equipo.</p>
+        <button type="button" class="btn-primary" (click)="showNewPostForm = true">Crear publicación</button>
+      </div>
+
+      <!-- Posts Grid -->
+      <div class="community-posts" *ngIf="filteredPosts.length">
+        <article class="community-post-card" *ngFor="let post of filteredPosts; trackBy: trackById" (click)="openPost(post)">
+          
+          <!-- Post Visual (Image or Soft Category Placeholder) -->
+          <div class="post-card__visual" [ngClass]="postVisualClass(post)">
+            <img *ngIf="post.image_url" [src]="post.image_url" [alt]="post.title" />
+            <div class="post-card__icon-wrap" *ngIf="!post.image_url">
+              <div class="post-card__icon-circle">
+                <mat-icon>{{ postVisualIcon(post) }}</mat-icon>
+              </div>
+            </div>
+            <span class="post-card__category-tag">{{ categoryLabel(post.category) }}</span>
+            <span class="post-card__pinned-tag" *ngIf="post.is_pinned">Fijado</span>
+          </div>
+
+          <!-- Post Content -->
+          <div class="post-card__body">
+            <h3 class="post-card__title">{{ post.title }}</h3>
+            <p class="post-card__excerpt">{{ post.body }}</p>
+            
+            <div class="post-card__footer" (click)="$event.stopPropagation()">
+              <div class="post-card__author">
+                <mat-icon>account_circle</mat-icon>
+                <span>{{ post.author_name || (post.is_anonymous ? 'Anónimo' : 'Usuario') }}</span>
+              </div>
+              <div class="post-card__actions">
+                <button type="button" class="post-card__action-btn" [class.liked]="post.user_has_liked" (click)="toggleLike(post)">
+                  <mat-icon>{{ post.user_has_liked ? 'favorite' : 'favorite_border' }}</mat-icon>
+                  <span>{{ post.like_count }}</span>
+                </button>
+                <button type="button" class="post-card__action-btn" (click)="openPost(post)">
+                  <mat-icon>chat_bubble_outline</mat-icon>
+                  <span>{{ post.comment_count }}</span>
+                </button>
+              </div>
+            </div>
+          </div>
+
+        </article>
+      </div>
+
+      <!-- No Results State -->
+      <div class="community-empty" *ngIf="!loading && posts.length && !filteredPosts.length">
+        <mat-icon>search_off</mat-icon>
+        <h3>Sin resultados</h3>
+        <p>Prueba con otro tema o palabra de búsqueda.</p>
+      </div>
+
+    </div>
+  </main>
+</div>
+
+<app-site-footer></app-site-footer>
+
+<!-- Detail Modal Backdrop -->
+<div class="community-modal-backdrop" *ngIf="selectedPost" (click)="closePost()">
+  <div class="community-modal" (click)="$event.stopPropagation()">
+    <header class="community-modal__head">
+      <button type="button" class="community-modal__close" (click)="closePost()">
+        <mat-icon>close</mat-icon>
+      </button>
+    </header>
+    
+    <div class="community-modal__body">
+      <!-- Left side: Publication Details -->
+      <section class="community-modal__publication">
+        <div class="community-modal__visual" [ngClass]="postVisualClass(selectedPost)">
+          <img *ngIf="selectedPost.image_url" [src]="selectedPost.image_url" [alt]="selectedPost.title" />
+          <div class="modal-visual__icon-wrap" *ngIf="!selectedPost.image_url">
+            <div class="modal-visual__icon-circle">
+              <mat-icon>{{ postVisualIcon(selectedPost) }}</mat-icon>
+            </div>
+          </div>
+        </div>
+        
+        <div class="community-modal__publication-copy">
+          <div class="community-modal__author">
+            <mat-icon>account_circle</mat-icon>
+            <div class="author-info">
+              <strong>{{ selectedPost.author_name || (selectedPost.is_anonymous ? 'Anónimo' : 'Usuario') }}</strong>
+              <span class="community-modal__date">Publicado el {{ formatDate(selectedPost.created_at) }}</span>
+            </div>
+          </div>
+          
+          <div class="community-modal__meta-tags">
+            <span class="community-modal__category-tag">{{ categoryLabel(selectedPost.category) }}</span>
+            <span class="community-modal__pinned-tag" *ngIf="selectedPost.is_pinned">Fijado</span>
+          </div>
+          
+          <h2 class="community-modal__title">{{ selectedPost.title }}</h2>
+          <p class="community-modal__text">{{ selectedPost.body }}</p>
+          
+          <div class="community-modal__likes" (click)="$event.stopPropagation()">
+            <button type="button" class="like-btn" [class.liked]="selectedPost.user_has_liked" (click)="toggleLike(selectedPost)">
+              <mat-icon>{{ selectedPost.user_has_liked ? 'favorite' : 'favorite_border' }}</mat-icon>
+              <span>{{ selectedPost.like_count }} Me gusta</span>
+            </button>
+          </div>
+        </div>
+      </section>
+
+      <!-- Right side: Comments -->
+      <aside class="community-modal__comments">
+        <h3 class="comments-title">
+          Comentarios 
+          <span class="comments-count">{{ comments.length }}</span>
+        </h3>
+        
+        <div class="community-modal__comments-loading" *ngIf="commentsLoading">
+          <mat-icon class="spin">refresh</mat-icon>
+          <span>Cargando comentarios...</span>
+        </div>
+        
+        <div class="community-modal__comments-list" *ngIf="comments.length; else noComments">
+          <div class="community-modal__comment" *ngFor="let c of comments; trackBy: trackById">
+            <div class="community-modal__comment-author">
+              <mat-icon>account_circle</mat-icon>
+              <div class="comment-author-info">
+                <strong>{{ c.author_name || (c.is_anonymous ? 'Anónimo' : 'Usuario') }}</strong>
+                <span class="community-modal__comment-date">{{ formatDate(c.created_at) }}</span>
+              </div>
+            </div>
+            <p class="comment-body">{{ c.body }}</p>
+          </div>
+        </div>
+        
+        <ng-template #noComments>
+          <div class="community-modal__no-comments" *ngIf="!commentsLoading">
+            <mat-icon>chat_bubble_outline</mat-icon>
+            <p>Sin comentarios aún. Sé el primero en responder.</p>
+          </div>
+        </ng-template>
+        
+        <!-- Comment Input Form -->
+        <div class="community-modal__comment-form" (click)="$event.stopPropagation()">
+          <textarea rows="2" [(ngModel)]="newCommentBody" name="commentBody" placeholder="Añade un comentario..." [disabled]="newCommentSubmitting"></textarea>
+          <div class="community-modal__comment-actions">
+            <label class="community-form__checkbox">
+              <input type="checkbox" [(ngModel)]="newCommentAnonymous" name="commentAnonymous" />
+              <span>Anónimo</span>
+            </label>
+            <button type="button" class="btn-primary btn--sm" (click)="submitComment()" [disabled]="newCommentSubmitting || !newCommentBody.trim()">
+              {{ newCommentSubmitting ? 'Enviando...' : 'Comentar' }}
+            </button>
+          </div>
+        </div>
+      </aside>
+    </div>
+  </div>
+</div>

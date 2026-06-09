@@ -55,25 +55,68 @@
     </div>
 
     <section *ngIf="!loading && items.length" class="requests-list" aria-label="Listado de solicitudes">
-      <a
+      <article
         *ngFor="let item of visibleItems"
-        [routerLink]="['/care-experts']"
-        [queryParams]="{ request: item.id }"
         class="request-card"
       >
-        <div class="request-card__main">
-          <div class="request-card__topic">{{ item.topic }}</div>
-          <div class="request-card__meta">
-            <span>{{ item.channel }}</span>
-            <span class="request-card__dot" aria-hidden="true"></span>
-            <span>{{ item.created_at | date: 'dd/MM/yyyy' }}</span>
+        <a
+          [routerLink]="['/care-experts']"
+          [queryParams]="{ request: item.id }"
+          class="request-card__body"
+        >
+          <div class="request-card__main">
+            <div class="request-card__topic">{{ item.topic }}</div>
+            <div class="request-card__meta">
+              <span>{{ item.channel }}</span>
+              <span class="request-card__dot" aria-hidden="true"></span>
+              <span>{{ item.created_at | date: 'dd/MM/yyyy' }}</span>
+            </div>
           </div>
-        </div>
 
-        <span class="request-card__status" [ngClass]="statusClass(item.status)">
-          {{ statusLabel(item.status) }}
-        </span>
-      </a>
+          <span class="request-card__status" [ngClass]="statusClass(item.status)">
+            {{ statusLabel(item.status) }}
+          </span>
+        </a>
+
+        <div *ngIf="item.appointment" class="request-card__appointment">
+          <div class="request-card__appointment-main">
+            <span class="request-card__appointment-icon" aria-hidden="true">
+              <mat-icon>{{ item.appointment.kind === 'Videollamada' ? 'videocam' : item.appointment.kind === 'Llamada' ? 'call' : 'event' }}</mat-icon>
+            </span>
+            <div>
+              <strong>{{ item.appointment.kind }}</strong>
+              <span>
+                {{ item.appointment.scheduled_for | date: 'dd/MM/yyyy HH:mm' }}
+                · {{ appointmentStatusLabel(item.appointment.status) }}
+              </span>
+              <small *ngIf="item.appointment.meeting_code">Codigo: {{ item.appointment.meeting_code }}</small>
+              <small *ngIf="item.appointment.kind === 'Llamada' && item.appointment.appointment_phone">
+                Te llamaremos al {{ item.appointment.appointment_phone }}
+              </small>
+            </div>
+          </div>
+
+          <a
+            *ngIf="item.appointment.meeting_url"
+            class="request-card__meeting-link"
+            [href]="item.appointment.meeting_url"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            <mat-icon>open_in_new</mat-icon>
+            Abrir reunion
+          </a>
+
+          <span
+            *ngIf="item.appointment.kind === 'Videollamada' && !item.appointment.meeting_url"
+            class="request-card__meeting-pending"
+            [class.request-card__meeting-pending--error]="meetingGenerationErrors.has(item.appointment.id)"
+          >
+            <mat-icon>{{ meetingGenerationErrors.has(item.appointment.id) ? 'error_outline' : 'hourglass_empty' }}</mat-icon>
+            {{ meetingGenerationErrors.has(item.appointment.id) ? 'Link no disponible' : 'Preparando link' }}
+          </span>
+        </div>
+      </article>
     </section>
 
     <div *ngIf="!loading && totalPages > 1" class="requests-pagination">

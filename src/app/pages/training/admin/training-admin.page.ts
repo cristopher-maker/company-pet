@@ -2,7 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { AuthService } from '../../../core/services/auth.service';
 import { SupabaseService } from '../../../core/services/supabase.service';
 
-type CourseLevel = 'Básico' | 'Intermedio';
+type CourseLevel = 'basic' | 'intermediate' | 'advanced';
 
 type DbCourse = {
   id: string;
@@ -52,7 +52,7 @@ export class TrainingAdminPage implements OnInit {
       title: '',
       description: '',
       durationMinutes: null,
-      level: 'Básico',
+      level: 'basic',
       active: true,
     };
   }
@@ -107,7 +107,7 @@ export class TrainingAdminPage implements OnInit {
     }
 
     const { data, error } = await this.supabase.client
-      .from('training_courses')
+      .from('pet_learning_courses')
       .select('id,title,description,duration_minutes,level,active,created_at')
       .order('created_at', { ascending: true });
     if (error) throw error;
@@ -137,7 +137,7 @@ export class TrainingAdminPage implements OnInit {
     try {
       if (this.draft.id) {
         const { error } = await this.supabase.client
-          .from('training_courses')
+          .from('pet_learning_courses')
           .update({
             title,
             description: this.draft.description.trim() || null,
@@ -148,7 +148,7 @@ export class TrainingAdminPage implements OnInit {
           .eq('id', this.draft.id);
         if (error) throw error;
       } else {
-        const { error } = await this.supabase.client.from('training_courses').insert({
+        const { error } = await this.supabase.client.from('pet_learning_courses').insert({
           title,
           description: this.draft.description.trim() || null,
           duration_minutes: duration,
@@ -169,7 +169,7 @@ export class TrainingAdminPage implements OnInit {
     if (!this.isStaff) return;
 
     const { error } = await this.supabase.client
-      .from('training_courses')
+      .from('pet_learning_courses')
       .update({ active: !c.active })
       .eq('id', c.id);
     if (error) throw error;

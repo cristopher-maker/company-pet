@@ -19,7 +19,8 @@ import { AdminDashboardComponent } from './admin-dashboard.component';
     FormsModule,
     RouterModule,
     DragDropModule,
-    NgChartsModule
+    NgChartsModule,
+    AdminDashboardRoutingModule
   ],
   exports: [
     AdminDashboardComponent

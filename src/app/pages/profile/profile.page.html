@@ -1,26 +1,16 @@
-<!--
-  NOTA DE MIGRACIÓN:
-  - Se reemplaza el header de Ionic por un header estándar con Tailwind.
-  - El botón de menú ahora usa el UiService. Debes inyectar `public ui: UiService` en `profile.page.ts`.
--->
-<header class="bg-slate-50 border-b border-slate-200 sticky top-0 z-20">
-  <div class="px-4 sm:px-6 lg:px-8">
-    <div class="flex items-center justify-between h-16 -mb-px">
-      <div class="flex items-center">
-        <button (click)="ui.toggleMenu()" class="p-2 rounded-md text-gray-500 hover:text-gray-700 hover:bg-gray-100 flex items-center justify-center">
-          <mat-icon>menu</mat-icon>
-        </button>
-        <a routerLink="/home" class="p-2 rounded-md text-gray-500 hover:text-gray-700 hover:bg-gray-100 ml-1 flex items-center justify-center" title="Ir al Inicio">
-          <mat-icon>home</mat-icon>
-        </a>
-        <h1 class="text-2xl md:text-3xl text-slate-800 font-bold ml-2 md:ml-0">Mi Perfil</h1>
-      </div>
-    </div>
-  </div>
-</header>
+<app-site-header></app-site-header>
 
-<main class="profile-page bg-slate-50">
+<main class="profile-page">
   <div class="profile-shell" *ngIf="!loading">
+    <div class="profile-heading">
+      <div>
+        <span>Cuenta personal</span>
+        <h1>Mi perfil</h1>
+        <p>Administra tus datos y la seguridad de tu cuenta.</p>
+      </div>
+      <a routerLink="/dashboard" class="profile-back"><mat-icon>arrow_back</mat-icon>Volver al portal</a>
+    </div>
+
     <section class="profile-hero">
       <div class="profile-hero__bg"></div>
       <div class="profile-avatar">{{ (fullName || email || 'U').slice(0,1).toUpperCase() }}</div>
@@ -30,99 +20,88 @@
           <p>{{ email }}</p>
           <div class="profile-hero__meta">
             <span class="profile-role">{{ roleLabel(role) }}</span>
-            <span class="profile-taxid" *ngIf="companyTaxId">
-              <mat-icon>business</mat-icon>
-              RUT {{ companyTaxId }}
-            </span>
+            <span class="profile-taxid" *ngIf="company"><mat-icon>business</mat-icon>{{ company }}</span>
           </div>
+        </div>
+        <div class="profile-summary">
+          <div><mat-icon>verified_user</mat-icon><span><small>Estado</small>Cuenta activa</span></div>
+          <div><mat-icon>apartment</mat-icon><span><small>Empresa</small>{{ company || 'Sin empresa' }}</span></div>
+          <div><mat-icon>badge</mat-icon><span><small>Rol</small>{{ roleLabel(role) }}</span></div>
         </div>
       </div>
     </section>
 
-    <!-- GRID de secciones -->
     <div class="profile-grid">
-      <!-- Datos personales -->
       <section class="profile-section">
         <div class="profile-section__head">
-          <div class="profile-section__icon">
-            <mat-icon>person</mat-icon>
-          </div>
-          <div>
-            <h2>Datos personales</h2>
-            <p>Actualiza tu información visible en el portal.</p>
-          </div>
+          <div class="profile-section__icon"><mat-icon>person</mat-icon></div>
+          <div><h2>Datos personales</h2><p>Actualiza tu informacion visible en el portal.</p></div>
         </div>
-
         <form class="profile-form" (ngSubmit)="save()">
-          <div class="profile-field">
-            <label>Nombre completo</label>
-            <div class="profile-item">
-              <input [(ngModel)]="fullName" name="fullName" placeholder="Ej.: Ana Pérez" />
-            </div>
-          </div>
-
-          <div class="profile-field">
-            <label>Correo electrónico</label>
-            <div class="profile-item profile-item--readonly">
-              <mat-icon class="field-icon">mail</mat-icon>
-              <input [value]="email" readonly="true" />
-            </div>
-          </div>
-
-          <div class="profile-field">
-            <label>Empresa <span class="optional">opcional</span></label>
-            <div class="profile-item">
-              <mat-icon class="field-icon">work</mat-icon>
-              <input [(ngModel)]="company" name="company" placeholder="Ej.: Advisor" />
-            </div>
-          </div>
-
-          <div class="profile-field">
-            <label>RUT empresa</label>
-            <div class="profile-item profile-item--readonly">
-              <mat-icon class="field-icon">description</mat-icon>
-              <input [value]="companyTaxId || 'No disponible'" readonly="true" />
-            </div>
-          </div>
-
-          <button type="submit" class="profile-save btn-primary w-full" [disabled]="saving">
-            <mat-icon>check</mat-icon>
-            {{ saving ? 'Guardando...' : 'Guardar cambios' }}
-          </button>
+          <div class="profile-field"><label>Nombre completo</label><div class="profile-item"><mat-icon class="field-icon">person_outline</mat-icon><input [(ngModel)]="fullName" name="fullName" placeholder="Ej.: Ana Perez" /></div></div>
+          <div class="profile-field"><label>Correo electronico</label><div class="profile-item profile-item--readonly"><mat-icon class="field-icon">mail</mat-icon><input [value]="email" readonly="true" /></div></div>
+          <div class="profile-field"><label>Empresa <span class="optional">opcional</span></label><div class="profile-item"><mat-icon class="field-icon">work</mat-icon><input [(ngModel)]="company" name="company" placeholder="Ej.: Company Pet" /></div></div>
+          <div class="profile-field"><label>RUT empresa</label><div class="profile-item profile-item--readonly"><mat-icon class="field-icon">description</mat-icon><input [value]="companyTaxId || 'No disponible'" readonly="true" /></div></div>
+          <button type="submit" class="profile-save btn-primary w-full" [disabled]="saving"><mat-icon>check</mat-icon>{{ saving ? 'Guardando...' : 'Guardar cambios' }}</button>
         </form>
       </section>
 
-      <!-- Seguridad -->
       <section class="profile-section profile-section--security">
         <div class="profile-section__head">
-          <div class="profile-section__icon profile-section__icon--red">
-            <mat-icon>shield</mat-icon>
-          </div>
-          <div>
-            <h2>Seguridad</h2>
-            <p>Gestiona el acceso y tu contraseña.</p>
-          </div>
+          <div class="profile-section__icon profile-section__icon--red"><mat-icon>shield</mat-icon></div>
+          <div><h2>Seguridad</h2><p>Gestiona el acceso y tu contrasena.</p></div>
         </div>
-
-        <div class="security-info">
-          <mat-icon>lock</mat-icon>
-          <p>Te enviaremos un correo con un enlace para restablecer tu contraseña de forma segura.</p>
-        </div>
-
-        <button type="button" class="security-btn btn-secondary w-full" (click)="sendResetPassword()">
-          <mat-icon>mail</mat-icon>
-          Enviar correo para cambiar contraseña
-        </button>
+        <div class="security-status"><mat-icon>check_circle</mat-icon><div><strong>Cuenta protegida</strong><span>Tu acceso esta vinculado a {{ email }}</span></div></div>
+        <div class="security-info"><mat-icon>lock</mat-icon><p>Te enviaremos un correo con un enlace para restablecer tu contrasena de forma segura.</p></div>
+        <button type="button" class="security-btn btn-secondary w-full" (click)="sendResetPassword()"><mat-icon>mail</mat-icon>Enviar correo para cambiar contrasena</button>
       </section>
     </div>
+
+    <section class="profile-posts" id="mis-publicaciones">
+      <div class="profile-posts__head">
+        <div>
+          <span>Mi actividad</span>
+          <h2>Mis publicaciones</h2>
+          <p>Revisa y administra lo que has compartido en Comunidad.</p>
+        </div>
+        <a routerLink="/community"><mat-icon>groups</mat-icon>Ir a Comunidad</a>
+      </div>
+
+      <div class="profile-posts__loading" *ngIf="postsLoading"><mat-icon>hourglass_top</mat-icon>Cargando publicaciones...</div>
+
+      <div class="profile-posts__grid" *ngIf="!postsLoading && posts.length">
+        <article class="profile-post" *ngFor="let post of posts">
+          <a routerLink="/community" class="profile-post__visual">
+            <img *ngIf="post.image_url" [src]="post.image_url" [alt]="post.title" />
+            <mat-icon *ngIf="!post.image_url">pets</mat-icon>
+            <span>{{ categoryLabel(post.category) }}</span>
+          </a>
+          <div class="profile-post__body">
+            <div class="profile-post__meta">
+              <span *ngIf="post.is_anonymous"><mat-icon>visibility_off</mat-icon>Anonima</span>
+              <time>{{ formatDate(post.created_at) }}</time>
+            </div>
+            <h3>{{ post.title }}</h3>
+            <p>{{ post.body.length > 95 ? (post.body | slice:0:95) + '...' : post.body }}</p>
+            <div class="profile-post__actions">
+              <a routerLink="/community"><mat-icon>open_in_new</mat-icon>Ver</a>
+              <button type="button" (click)="deletePost(post)" [disabled]="deletingPostId === post.id">
+                <mat-icon>delete_outline</mat-icon>{{ deletingPostId === post.id ? 'Eliminando...' : 'Eliminar' }}
+              </button>
+            </div>
+          </div>
+        </article>
+      </div>
+
+      <div class="profile-posts__empty" *ngIf="!postsLoading && !posts.length">
+        <mat-icon>add_photo_alternate</mat-icon>
+        <div><h3>Aun no tienes publicaciones</h3><p>Comparte historias, preguntas o momentos con tu comunidad.</p></div>
+        <a routerLink="/community">Crear publicacion</a>
+      </div>
+    </section>
   </div>
 
-  <!-- Loading -->
-  <div class="profile-loading" *ngIf="loading">
-    <svg class="animate-spin h-8 w-8 text-indigo-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-      <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-      <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-    </svg>
-    <span>Cargando perfil...</span>
-  </div>
+  <div class="profile-loading" *ngIf="loading"><mat-icon>hourglass_top</mat-icon><span>Cargando perfil...</span></div>
 </main>
+
+<app-site-footer></app-site-footer>

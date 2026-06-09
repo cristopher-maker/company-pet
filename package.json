@@ -25,6 +25,7 @@
     "@angular/router": "^18.2.0",
     "@supabase/supabase-js": "^2.0.0",
     "chart.js": "^4.4.9",
+    "docx": "^9.7.1",
     "ng2-charts": "^5.0.4",
     "rxjs": "^7.8.0",
     "tslib": "^2.6.0",

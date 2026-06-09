@@ -5,9 +5,11 @@ import { MatIconModule } from '@angular/material/icon';
 
 import { ProfilePageRoutingModule } from './profile-routing.module';
 import { ProfilePage } from './profile.page';
+import { SiteHeaderComponent } from '../../shared/components/site-header/site-header.component';
+import { SiteFooterComponent } from '../../shared/components/site-footer/site-footer.component';
 
 @NgModule({
-  imports: [CommonModule, FormsModule, MatIconModule, ProfilePageRoutingModule],
+  imports: [CommonModule, FormsModule, MatIconModule, ProfilePageRoutingModule, SiteHeaderComponent, SiteFooterComponent],
   declarations: [ProfilePage],
 })
 export class ProfilePageModule {}

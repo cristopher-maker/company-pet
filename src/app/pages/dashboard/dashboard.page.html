@@ -5,23 +5,34 @@
     <div class="dash-page__container">
       <section class="dash-hero">
         <div class="dash-hero__left">
-          <p class="dash-hero__mode-label" *ngIf="mode === 'employee'">Portal de beneficios</p>
-          <p class="dash-hero__mode-label" *ngIf="mode === 'company'">Panel empresa<span *ngIf="companyName"> · {{ companyName }}</span></p>
+          <p class="dash-hero__mode-label" *ngIf="mode === 'employee'">
+            Portal del empleado
+            <span *ngIf="companyName"> · {{ companyName }}</span>
+          </p>
+          <p class="dash-hero__mode-label" *ngIf="mode === 'company'">Panel de empresa<span *ngIf="companyName"> · {{ companyName }}</span></p>
           <p class="dash-hero__mode-label" *ngIf="mode === 'public'">Acceso</p>
           <h1 class="dash-hero__title">Hola, <em>{{ displayName }}</em></h1>
-          <p class="dash-hero__subtitle" *ngIf="mode === 'employee'">Tu portal de beneficios: apoyo experto, proveedores, recursos y formación.</p>
-          <p class="dash-hero__subtitle" *ngIf="mode === 'company'">Métricas, co-branding y herramientas de RR.HH.</p>
-          <p class="dash-hero__subtitle" *ngIf="mode === 'public'">Inicia sesión para ver tu portal y seguimiento.</p>
+          <p class="dash-hero__subtitle" *ngIf="mode === 'employee'">
+            Resuelve necesidades de cuidado pet desde un solo lugar: asesoria, solicitudes, recursos y beneficios.
+          </p>
+          <p class="dash-hero__subtitle" *ngIf="mode === 'company'">
+            Revisa el estado del beneficio, invita empleados y administra el portal Company Pet.
+          </p>
+          <p class="dash-hero__subtitle" *ngIf="mode === 'public'">
+            Inicia sesión para acceder a tu portal de beneficios.
+          </p>
         </div>
 
         <div class="dash-hero__actions" *ngIf="mode !== 'public'">
           <ng-container *ngIf="mode === 'employee'">
-            <a class="btn-primary" routerLink="/care-experts">Solicitar asesoría</a>
-            <a class="btn-ghost" routerLink="/requests">Ver solicitudes</a>
+            <a class="btn-primary" routerLink="/care-experts">
+              <mat-icon>support_agent</mat-icon> Pedir ayuda pet
+            </a>
           </ng-container>
           <ng-container *ngIf="mode === 'company'">
-            <a class="btn-primary" routerLink="/company">Administrar empresa</a>
-            <a class="btn-ghost" routerLink="/company">Vouchers</a>
+            <button type="button" class="btn-primary" (click)="openInviteModal()">
+              <mat-icon>person_add</mat-icon> Invitar empleado
+            </button>
           </ng-container>
           <button
             type="button"
@@ -40,6 +51,135 @@
         </div>
       </section>
 
+      <section class="dash-operational-home" *ngIf="mode !== 'public'">
+        <a class="dash-op-card dash-op-card--primary" routerLink="/care-experts" *ngIf="mode === 'employee'">
+          <mat-icon>support_agent</mat-icon>
+          <span>
+            <strong>Hablar con Pet Expert</strong>
+            <small>Agenda orientacion remota o deja una solicitud.</small>
+          </span>
+        </a>
+        <a class="dash-op-card" routerLink="/resources" *ngIf="mode === 'employee'">
+          <mat-icon>library_books</mat-icon>
+          <span>
+            <strong>Centro de recursos</strong>
+            <small>Guias para salud, conducta, viajes y cuidado diario.</small>
+          </span>
+        </a>
+        <a class="dash-op-card" routerLink="/vouchers" *ngIf="mode === 'employee'">
+          <mat-icon>payments</mat-icon>
+          <span>
+            <strong>Beneficios</strong>
+            <small>Creditos, vouchers y descuentos disponibles.</small>
+          </span>
+        </a>
+        <a class="dash-op-card" routerLink="/company" *ngIf="mode === 'company'">
+          <mat-icon>pets</mat-icon>
+          <span>
+            <strong>Clientes y mascotas</strong>
+            <small>Fichas de tutores, mascotas, direcciones y contexto.</small>
+          </span>
+        </a>
+        <a class="dash-op-card dash-op-card--primary" routerLink="/admin" *ngIf="mode === 'company'">
+          <mat-icon>space_dashboard</mat-icon>
+          <span>
+            <strong>ERP empresa</strong>
+            <small>Administra beneficios pet, mascotas, agenda y seguimiento.</small>
+          </span>
+        </a>
+        <a class="dash-op-card" routerLink="/requests" *ngIf="mode === 'company'">
+          <mat-icon>assignment</mat-icon>
+          <span>
+            <strong>Solicitudes del equipo</strong>
+            <small>Revisa casos, estados, responsables y seguimiento.</small>
+          </span>
+        </a>
+        <a class="dash-op-card" routerLink="/vouchers" *ngIf="mode === 'company'">
+          <mat-icon>payments</mat-icon>
+          <span>
+            <strong>Beneficios y vouchers</strong>
+            <small>Controla creditos, beneficios activos y uso por empleados.</small>
+          </span>
+        </a>
+      </section>
+
+      <section class="dash-company-summary" *ngIf="mode === 'company'">
+        <div>
+          <span>Administracion empresa</span>
+          <strong>{{ companyInfo?.name || companyName || 'Company Pet' }}</strong>
+          <small>{{ teamMembers.length }} miembros activos · {{ pendingInvitations.length }} invitaciones pendientes</small>
+        </div>
+        <div class="dash-company-summary__actions">
+          <button type="button" class="btn-primary btn--sm" (click)="openInviteModal()">
+            <mat-icon>person_add</mat-icon>
+            Invitar empleado
+          </button>
+          <a class="btn-ghost btn--sm" routerLink="/company">Gestionar clientes y mascotas</a>
+        </div>
+      </section>
+
+      <!-- Benefit card (employee only) -->
+      <section class="dash-benefit" *ngIf="mode === 'employee' && benefitPlan">
+        <div class="dash-benefit__card">
+          <div class="dash-benefit__header">
+            <mat-icon>card_giftcard</mat-icon>
+            <div>
+              <strong>{{ benefitPlan.name }}</strong>
+              <span class="dash-benefit__company" *ngIf="companyName">{{ companyName }}</span>
+            </div>
+          </div>
+          <div class="dash-benefit__meters">
+            <div class="dash-benefit__meter">
+              <span class="dash-benefit__label">Beneficio mensual</span>
+              <span class="dash-benefit__value">{{ benefitPlan.monthlyAllowance | currency:'CLP':'symbol-narrow':'1.0-0' }}</span>
+            </div>
+            <div class="dash-benefit__meter">
+              <span class="dash-benefit__label">Usado este mes</span>
+              <span class="dash-benefit__value dash-benefit__value--used">{{ benefitPlan.usedThisMonth | currency:'CLP':'symbol-narrow':'1.0-0' }}</span>
+            </div>
+            <div class="dash-benefit__meter">
+              <span class="dash-benefit__label">Disponible</span>
+              <span class="dash-benefit__value dash-benefit__value--remaining">{{ benefitPlan.remaining | currency:'CLP':'symbol-narrow':'1.0-0' }}</span>
+            </div>
+          </div>
+          <a class="dash-benefit__cta" routerLink="/vouchers">Solicitar voucher</a>
+        </div>
+      </section>
+
+      <!-- Quick Action Cards -->
+      <section class="dash-quick-actions" *ngIf="false">
+        <a class="dash-quick-card" routerLink="/vouchers">
+          <mat-icon>payments</mat-icon>
+          <span class="dash-quick-card__title">Beneficios</span>
+          <span class="dash-quick-card__desc">Creditos y descuentos</span>
+        </a>
+        <a class="dash-quick-card" routerLink="/care-experts">
+          <mat-icon>support_agent</mat-icon>
+          <span class="dash-quick-card__title">Pet Experts</span>
+          <span class="dash-quick-card__desc">Habla con un experto</span>
+        </a>
+        <a class="dash-quick-card" routerLink="/resources">
+          <mat-icon>library_books</mat-icon>
+          <span class="dash-quick-card__title">Recursos</span>
+          <span class="dash-quick-card__desc">Guías y consejos</span>
+        </a>
+        <a class="dash-quick-card" routerLink="/training">
+          <mat-icon>school</mat-icon>
+          <span class="dash-quick-card__title">Capacitación</span>
+          <span class="dash-quick-card__desc">Cursos y eventos</span>
+        </a>
+        <a class="dash-quick-card" routerLink="/community">
+          <mat-icon>forum</mat-icon>
+          <span class="dash-quick-card__title">Comunidad</span>
+          <span class="dash-quick-card__desc">Comparte experiencias</span>
+        </a>
+        <a class="dash-quick-card" routerLink="/requests">
+          <mat-icon>content_paste</mat-icon>
+          <span class="dash-quick-card__title">Solicitudes</span>
+          <span class="dash-quick-card__desc">Seguimiento</span>
+        </a>
+      </section>
+
       <div class="dash-stats" *ngIf="stats.length">
         <div class="dash-stat" *ngFor="let s of stats">
           <div class="dash-stat__icon">
@@ -49,6 +189,178 @@
           <div class="dash-stat__label">{{ s.label }}</div>
         </div>
       </div>
+
+      <!-- Mis mascotas -->
+      <section class="dash-pets" *ngIf="mode === 'employee' && employeePets.length">
+        <div class="dash-pets__head">
+          <mat-icon>pets</mat-icon>
+          <h2>Mis mascotas ({{ employeePets.length }})</h2>
+        </div>
+        <div class="dash-pets__list">
+          <div class="dash-pets__item" *ngFor="let p of employeePets">
+            <div class="dash-pets__avatar">
+              <img *ngIf="p.pet_photo_url" [src]="p.pet_photo_url" alt="" />
+              <mat-icon *ngIf="!p.pet_photo_url">pets</mat-icon>
+            </div>
+            <div class="dash-pets__info">
+              <strong>{{ p.name }}</strong>
+              <span>{{ p.species === 'dog' ? 'Perro' : p.species === 'cat' ? 'Gato' : p.species }}<span *ngIf="p.breed"> · {{ p.breed }}</span></span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ── Company management (company mode only) ── -->
+      <ng-container *ngIf="false">
+        <!-- Company Info -->
+        <section class="dash-section">
+          <div class="dash-section__head">
+            <mat-icon>business</mat-icon>
+            <h2>Mi empresa</h2>
+            <button type="button" class="dash-card__action" (click)="toggleEditCompany()">
+              {{ editingCompany ? 'Cancelar' : 'Editar' }}
+            </button>
+          </div>
+
+          <div class="dash-section__body" *ngIf="!editingCompany">
+            <div class="info-grid">
+              <div class="info-item">
+                <span class="info-item__label">Nombre</span>
+                <span class="info-item__value">{{ companyInfo.name }}</span>
+              </div>
+              <div class="info-item">
+                <span class="info-item__label">Razón social</span>
+                <span class="info-item__value">{{ companyInfo.legal_name || '—' }}</span>
+              </div>
+              <div class="info-item">
+                <span class="info-item__label">RUT</span>
+                <span class="info-item__value">{{ companyInfo.tax_id || '—' }}</span>
+              </div>
+              <div class="info-item">
+                <span class="info-item__label">Dirección</span>
+                <span class="info-item__value">{{ companyInfo.address || '—' }}</span>
+              </div>
+              <div class="info-item">
+                <span class="info-item__label">Teléfono</span>
+                <span class="info-item__value">{{ companyInfo.phone || '—' }}</span>
+              </div>
+              <div class="info-item">
+                <span class="info-item__label">Email facturación</span>
+                <span class="info-item__value">{{ companyInfo.billing_email || '—' }}</span>
+              </div>
+              <div class="info-item">
+                <span class="info-item__label">Industria</span>
+                <span class="info-item__value">{{ companyInfo.industry || '—' }}</span>
+              </div>
+              <div class="info-item">
+                <span class="info-item__label">Empleados</span>
+                <span class="info-item__value">{{ companyInfo.employee_count ?? '—' }}</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="dash-section__body" *ngIf="editingCompany">
+            <div class="form-layout">
+              <div class="form-group">
+                <label>Nombre empresa</label>
+                <input class="form-control" [(ngModel)]="companyForm.name" />
+              </div>
+              <div class="form-group">
+                <label>Razón social</label>
+                <input class="form-control" [(ngModel)]="companyForm.legal_name" />
+              </div>
+              <div class="form-group">
+                <label>Dirección</label>
+                <input class="form-control" [(ngModel)]="companyForm.address" />
+              </div>
+              <div class="form-group">
+                <label>Teléfono</label>
+                <input class="form-control" [(ngModel)]="companyForm.phone" />
+              </div>
+              <div class="form-group">
+                <label>Email facturación</label>
+                <input class="form-control" [(ngModel)]="companyForm.billing_email" />
+              </div>
+              <div class="form-group">
+                <label>Industria</label>
+                <input class="form-control" [(ngModel)]="companyForm.industry" />
+              </div>
+              <button type="button" class="btn-primary" (click)="saveCompany()">Guardar</button>
+            </div>
+          </div>
+        </section>
+
+        <!-- Team -->
+        <section class="dash-section">
+          <div class="dash-section__head">
+            <mat-icon>group</mat-icon>
+            <h2>Equipo ({{ teamMembers.length }})</h2>
+            <button type="button" class="btn-primary" style="padding:6px 14px;font-size:13px" (click)="openInviteModal()">
+              <mat-icon style="font-size:16px;width:16px;height:16px">person_add</mat-icon> Invitar
+            </button>
+          </div>
+
+          <div class="dash-section__body">
+            <div class="team-list" *ngIf="teamMembers.length; else noTeam">
+              <div class="team-item" *ngFor="let m of teamMembers">
+                <div class="team-item__avatar">
+                  <mat-icon>person</mat-icon>
+                </div>
+                <div class="team-item__info">
+                  <strong>{{ m.full_name || 'Sin nombre' }}</strong>
+                  <span>{{ m.email }}</span>
+                </div>
+                <span class="team-item__role">{{ memberRoleLabel(m.member_role) }}</span>
+              </div>
+            </div>
+            <ng-template #noTeam>
+              <div class="dash-card__empty">
+                <mat-icon>group_off</mat-icon>
+                <p>Aún no hay miembros en tu empresa.</p>
+              </div>
+            </ng-template>
+          </div>
+        </section>
+
+        <!-- Pending Invitations -->
+        <section class="dash-section" *ngIf="pendingInvitations.length">
+          <div class="dash-section__head">
+            <mat-icon>mail</mat-icon>
+            <h2>Invitaciones pendientes ({{ pendingInvitations.length }})</h2>
+          </div>
+          <div class="dash-section__body">
+            <div class="invite-list">
+              <div class="invite-item" *ngFor="let inv of pendingInvitations">
+                <div class="invite-item__info">
+                  <strong>{{ inv.email }}</strong>
+                  <span>{{ memberRoleLabel(inv.role) }} · {{ inv.created_at | date:'dd/MM/yyyy' }}</span>
+                </div>
+                <button type="button" class="btn-ghost btn--sm" (click)="revokeInvitation(inv.id)">Revocar</button>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- Benefit Plan -->
+        <section class="dash-section" *ngIf="benefitPlan">
+          <div class="dash-section__head">
+            <mat-icon>card_giftcard</mat-icon>
+            <h2>Plan de beneficio</h2>
+          </div>
+          <div class="dash-section__body">
+            <div class="info-grid">
+              <div class="info-item">
+                <span class="info-item__label">Plan</span>
+                <span class="info-item__value">{{ benefitPlan.name }}</span>
+              </div>
+              <div class="info-item">
+                <span class="info-item__label">Monto mensual</span>
+                <span class="info-item__value">{{ benefitPlan.monthlyAllowance | currency:'CLP':'symbol-narrow':'1.0-0' }}</span>
+              </div>
+            </div>
+          </div>
+        </section>
+      </ng-container>
 
       <div class="dash-grid" *ngIf="mode !== 'public'">
         <section class="dash-card dash-card--wide" *ngIf="mode === 'employee'">
@@ -62,20 +374,20 @@
           <div class="intake-summary" *ngIf="employeeCareIntakeId; else noIntake">
             <div class="intake-summary__grid">
               <div class="intake-summary__item">
-                <span class="intake-summary__key">Tipo de apoyo</span>
-                <span class="intake-summary__val">{{ careTypeLabel(employeeCareIntakeDraft.careType) }}</span>
+                <span class="intake-summary__key">Mascota</span>
+                <span class="intake-summary__val">{{ employeeCareIntakeDraft.petName || 'Sin nombre' }}</span>
               </div>
               <div class="intake-summary__item">
                 <span class="intake-summary__key">Relación</span>
-                <span class="intake-summary__val">{{ employeeCareIntakeDraft.caregiverRelation || 'Sin dato' }}</span>
+                <span class="intake-summary__val">{{ speciesLabel(employeeCareIntakeDraft.species) }}</span>
               </div>
               <div class="intake-summary__item">
-                <span class="intake-summary__key">Nivel de apoyo requerido</span>
+                <span class="intake-summary__key">Prioridad clinica</span>
                 <span class="intake-summary__val">{{ dependencyLevelLabel(employeeCareIntakeDraft.dependencyLevel) }}</span>
               </div>
               <div class="intake-summary__item">
-                <span class="intake-summary__key">Contacto preferido</span>
-                <span class="intake-summary__val">{{ preferredContactLabel(employeeCareIntakeDraft.preferredContact) }}</span>
+                <span class="intake-summary__key">Vacunas</span>
+                <span class="intake-summary__val">{{ vaccinesStatusLabel(employeeCareIntakeDraft.vaccinesStatus) }}</span>
               </div>
             </div>
             <p class="intake-summary__date" *ngIf="employeeCareIntakeUpdatedAt">
@@ -164,7 +476,7 @@
 
       <div class="dash-public" *ngIf="mode === 'public' && !loading">
         <h2>Acceso al portal</h2>
-        <p>Inicia sesión con tu cuenta para ver tu dashboard como empleado o empresa.</p>
+        <p>Inicia sesión con tu cuenta para acceder a tu portal de beneficios de cuidado de mascotas.</p>
         <a class="btn-primary" routerLink="/login">Ingresar</a>
       </div>
     </div>
@@ -176,7 +488,6 @@
 <div
   class="care-intake-backdrop"
   *ngIf="employeeCareIntakeOpen"
-  (click)="closeEmployeeCareIntake()"
 >
   <div class="care-intake-modal" (click)="$event.stopPropagation()">
     <header class="care-intake-modal__head">
@@ -188,17 +499,54 @@
 
     <div class="care-intake-modal__body">
       <div class="care-intake-modal__intro">
-        <h3>Completa tu contexto una sola vez</h3>
-        <p>Esto ayuda a que la asesoría, el chat y las citas partan con información útil sobre tu situación.</p>
+        <h3>Completa el perfil de tu mascota</h3>
+        <p>Esto ayuda a que nuestros asesores entiendan mejor tus necesidades de cuidado y orienten cada solicitud.</p>
       </div>
 
       <form class="intake-form" (ngSubmit)="saveEmployeeCareIntake()">
         <div class="intake-form__section">
           <span class="intake-form__section-label">Sobre la mascota</span>
+          <div class="form-field">
+            <label for="petPhotoFile">Foto de la mascota</label>
+            <label class="file-picker" for="petPhotoFile">
+              <input id="petPhotoFile" type="file" accept="image/png,image/jpeg,image/webp" (change)="onPetPhotoSelected($event)" />
+              <span>{{ selectedPetPhotoFile?.name || (employeeCareIntakeDraft.petPhotoUrl ? 'Foto cargada' : 'Seleccionar foto') }}</span>
+            </label>
+          </div>
           <div class="intake-form__row">
             <div class="form-field">
-              <label for="careType">Tipo de apoyo</label>
+              <label for="petName">Nombre de la mascota</label>
+              <input id="petName" type="text" [(ngModel)]="employeeCareIntakeDraft.petName" name="petName" placeholder="Ej. Bruno" />
+            </div>
+            <div class="form-field">
+              <label for="species">Especie</label>
+              <select id="species" [(ngModel)]="employeeCareIntakeDraft.species" name="species">
+                <option value="dog">Perro</option>
+                <option value="cat">Gato</option>
+                <option value="other">Otra</option>
+              </select>
+            </div>
+          </div>
+          <div class="intake-form__row">
+            <div class="form-field">
+              <label for="breed">Raza</label>
+              <input id="breed" type="text" [(ngModel)]="employeeCareIntakeDraft.breed" name="breed" placeholder="Ej. Mestizo, poodle, siamés..." />
+            </div>
+            <div class="form-field">
+              <label for="birthDate">Fecha de nacimiento</label>
+              <input id="birthDate" type="date" [(ngModel)]="employeeCareIntakeDraft.birthDate" name="birthDate" (ngModelChange)="syncPetAgeFromBirthDate()" />
+            </div>
+          </div>
+          <div class="intake-form__row">
+            <div class="form-field">
+              <label for="careType">Motivo de apoyo</label>
               <select id="careType" [(ngModel)]="employeeCareIntakeDraft.careType" name="careType">
+                <option value="veterinary">Consulta veterinaria</option>
+                <option value="daycare">Guarderia o cupo diario</option>
+                <option value="walking">Paseo de mascotas</option>
+                <option value="grooming">Bano y peluqueria</option>
+                <option value="training">Entrenamiento</option>
+                <option value="voucher">Servicios o descuentos</option>
                 <option value="guidance">Orientación general</option>
                 <option value="home_care">Pet sitting a domicilio</option>
                 <option value="residential">Hotel para mascotas</option>
@@ -208,8 +556,11 @@
               </select>
             </div>
             <div class="form-field">
-              <label for="careReceiverAge">Edad de la mascota</label>
-              <input id="careReceiverAge" type="number" [(ngModel)]="employeeCareIntakeDraft.careReceiverAge" name="careReceiverAge" placeholder="Ej. 4" />
+              <label for="careReceiverAge">Edad aproximada</label>
+              <input *ngIf="employeeCareIntakeDraft.birthDate; else manualPetAge" id="careReceiverAge" type="text" [value]="calculatedPetAgeLabel" readonly />
+              <ng-template #manualPetAge>
+                <input id="careReceiverAge" type="number" [(ngModel)]="employeeCareIntakeDraft.careReceiverAge" name="careReceiverAge" placeholder="Ej. 4" />
+              </ng-template>
             </div>
           </div>
           <div class="intake-form__row">
@@ -226,6 +577,88 @@
                 <option value="full">Apoyo permanente</option>
               </select>
             </div>
+          </div>
+          <div class="intake-form__row">
+            <div class="form-field">
+              <label for="sex">Sexo</label>
+              <select id="sex" [(ngModel)]="employeeCareIntakeDraft.sex" name="sex">
+                <option value="female">Hembra</option>
+                <option value="male">Macho</option>
+                <option value="unknown">Sin dato</option>
+              </select>
+            </div>
+            <div class="form-field">
+              <label for="neutered">Esterilizado</label>
+              <select id="neutered" [(ngModel)]="employeeCareIntakeDraft.neutered" name="neutered">
+                <option value="yes">Si</option>
+                <option value="no">No</option>
+                <option value="unknown">Sin dato</option>
+              </select>
+            </div>
+          </div>
+          <div class="intake-form__row">
+            <div class="form-field">
+              <label for="vaccinesStatus">Vacunas</label>
+              <select id="vaccinesStatus" [(ngModel)]="employeeCareIntakeDraft.vaccinesStatus" name="vaccinesStatus">
+                <option value="up_to_date">Al dia</option>
+                <option value="pending">Pendientes</option>
+                <option value="unknown">No lo se</option>
+              </select>
+            </div>
+            <div class="form-field">
+              <label for="microchipNumber">Microchip</label>
+              <input id="microchipNumber" type="text" [(ngModel)]="employeeCareIntakeDraft.microchipNumber" name="microchipNumber" placeholder="Obligatorio en Chile" />
+            </div>
+          </div>
+          <div class="intake-form__row">
+            <div class="form-field">
+              <label for="nationalRegistryNumber">Registro Nacional</label>
+              <input id="nationalRegistryNumber" type="text" [(ngModel)]="employeeCareIntakeDraft.nationalRegistryNumber" name="nationalRegistryNumber" placeholder="Opcional" />
+            </div>
+            <div class="form-field">
+              <label for="weightKg">Peso aproximado (kg)</label>
+              <input id="weightKg" type="number" step="0.1" [(ngModel)]="employeeCareIntakeDraft.weightKg" name="weightKg" placeholder="Ej. 8.5" />
+            </div>
+          </div>
+        </div>
+
+        <div class="intake-form__section">
+          <span class="intake-form__section-label">Informacion medica y clinicas</span>
+          <div class="intake-form__row">
+            <div class="form-field">
+              <label for="veterinaryClinicName">Clinica veterinaria de cabecera</label>
+              <input id="veterinaryClinicName" type="text" [(ngModel)]="employeeCareIntakeDraft.veterinaryClinicName" name="veterinaryClinicName" placeholder="Nombre de la clinica" />
+            </div>
+            <div class="form-field">
+              <label for="veterinaryClinicCommune">Comuna de la clinica</label>
+              <input id="veterinaryClinicCommune" type="text" [(ngModel)]="employeeCareIntakeDraft.veterinaryClinicCommune" name="veterinaryClinicCommune" placeholder="Ej. Providencia" />
+            </div>
+          </div>
+          <div class="intake-form__row">
+            <div class="form-field">
+              <label for="treatingVetName">Veterinario tratante</label>
+              <input id="treatingVetName" type="text" [(ngModel)]="employeeCareIntakeDraft.treatingVetName" name="treatingVetName" placeholder="Opcional" />
+            </div>
+            <div class="form-field">
+              <label for="treatingVetContact">Contacto del veterinario</label>
+              <input id="treatingVetContact" type="text" [(ngModel)]="employeeCareIntakeDraft.treatingVetContact" name="treatingVetContact" placeholder="Telefono o email" />
+            </div>
+          </div>
+          <div class="form-field">
+            <label for="vaccineCardUrl">Carnet de vacunas</label>
+            <input id="vaccineCardUrl" type="text" [(ngModel)]="employeeCareIntakeDraft.vaccineCardUrl" name="vaccineCardUrl" placeholder="Link o referencia del archivo adjunto" />
+            <label class="file-picker" for="vaccineCardFile">
+              <input id="vaccineCardFile" type="file" accept="image/png,image/jpeg,image/webp,application/pdf" (change)="onVaccineCardSelected($event)" />
+              <span>{{ selectedVaccineCardFile?.name || (employeeCareIntakeDraft.vaccineCardUrl ? 'Carnet cargado' : 'Adjuntar foto o PDF') }}</span>
+            </label>
+          </div>
+          <div class="form-field">
+            <label for="chronicConditionsAllergies">Condiciones cronicas o alergias</label>
+            <textarea id="chronicConditionsAllergies" rows="3" [(ngModel)]="employeeCareIntakeDraft.chronicConditionsAllergies" name="chronicConditionsAllergies" placeholder="Ej. diabetes, alergia alimentaria, displasia..."></textarea>
+          </div>
+          <div class="form-field">
+            <label for="currentMedications">Medicamentos actuales y dosis</label>
+            <textarea id="currentMedications" rows="3" [(ngModel)]="employeeCareIntakeDraft.currentMedications" name="currentMedications" placeholder="Medicamento, dosis y frecuencia"></textarea>
           </div>
         </div>
 
@@ -295,8 +728,8 @@
               <input id="caregiverName" type="text" [(ngModel)]="employeeCareIntakeDraft.caregiverName" name="caregiverName" />
             </div>
             <div class="form-field">
-              <label for="caregiverRelation">Relación con la persona cuidada</label>
-              <input id="caregiverRelation" type="text" [(ngModel)]="employeeCareIntakeDraft.caregiverRelation" name="caregiverRelation" placeholder="Ej. Hijo/a, cónyuge..." />
+              <label for="caregiverRelation">Relación con la mascota</label>
+              <input id="caregiverRelation" type="text" [(ngModel)]="employeeCareIntakeDraft.caregiverRelation" name="caregiverRelation" placeholder="Ej. Tutor, cuidador, familiar..." />
             </div>
           </div>
           <div class="form-field">
@@ -305,10 +738,61 @@
           </div>
         </div>
 
+        <label class="consent-box">
+          <input type="checkbox" [(ngModel)]="employeeCareIntakeDraft.dataConsentAccepted" name="dataConsentAccepted" />
+          <span>
+            Acepto que Company Pet comparta estos datos exclusivamente con veterinarios o cuidadores responsables cuando yo solicite una atencion o servicio.
+          </span>
+        </label>
+
         <button type="button" class="btn-primary btn--full" (click)="saveEmployeeCareIntake()" [disabled]="loading">
           {{ loading ? 'Guardando...' : 'Guardar mi ficha' }}
         </button>
+        <button type="button" class="btn-secondary btn--full" (click)="prepareAddAnotherPet(); saveEmployeeCareIntake()" [disabled]="loading">
+          Guardar y registrar otra mascota
+        </button>
       </form>
+    </div>
+  </div>
+</div>
+
+<!-- Invite Modal -->
+<div class="modal-overlay" *ngIf="inviteModalOpen" (click.self)="closeInviteModal()">
+  <div class="modal-card">
+    <button type="button" class="modal-close" (click)="closeInviteModal()" aria-label="Cerrar">
+      <mat-icon>close</mat-icon>
+    </button>
+    <h2 class="modal-title">Invitar empleado</h2>
+    <p class="modal-desc">Enviaremos un correo con el enlace para que se una a {{ companyName }}</p>
+
+    <div class="modal-body">
+      <div class="form-group">
+        <label for="invite-email">Correo electrónico</label>
+        <input
+          id="invite-email"
+          type="email"
+          class="form-control"
+          placeholder="correo@empresa.cl"
+          [(ngModel)]="inviteEmail"
+          [disabled]="inviteSending"
+        />
+      </div>
+
+      <div class="form-group">
+        <label for="invite-role">Rol</label>
+        <select id="invite-role" class="form-control" [(ngModel)]="inviteRole" [disabled]="inviteSending">
+          <option value="employee">Empleado</option>
+          <option value="hr_admin">RR.HH.</option>
+          <option value="manager">Manager</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="modal-footer">
+      <button type="button" class="btn-secondary" (click)="closeInviteModal()" [disabled]="inviteSending">Cancelar</button>
+      <button type="button" class="btn-primary" (click)="sendInvite()" [disabled]="inviteSending || !inviteEmail.trim()">
+        {{ inviteSending ? 'Enviando...' : 'Enviar invitación' }}
+      </button>
     </div>
   </div>
 </div>

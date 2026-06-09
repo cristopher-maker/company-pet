@@ -8,6 +8,20 @@ type CareRequestRow = {
   channel: string;
   status: 'open' | 'assigned' | 'in_progress' | 'resolved' | 'closed';
   created_at: string;
+  appointment?: RequestAppointmentRow | null;
+};
+
+type RequestAppointmentRow = {
+  id: string;
+  request_id: string;
+  kind: string;
+  scheduled_for: string;
+  status: string;
+  appointment_phone?: string | null;
+  appointment_contact_name?: string | null;
+  meeting_url?: string | null;
+  meeting_code?: string | null;
+  meeting_provider?: string | null;
 };
 
 @Component({
@@ -22,8 +36,11 @@ export class RequestsPage implements OnInit, OnDestroy {
   public items: CareRequestRow[] = [];
   public currentPage = 1;
   public readonly pageSize = 6;
+  public generatingMeetingId: string | null = null;
+  public meetingGenerationErrors = new Map<string, string>();
 
   private unsub?: { data: { subscription: { unsubscribe: () => void } } };
+  private readonly attemptedMeetingGeneration = new Set<string>();
 
   constructor(
     private readonly supabase: SupabaseService,
@@ -53,20 +70,60 @@ export class RequestsPage implements OnInit, OnDestroy {
 
     try {
       const { data, error } = await this.supabase.client
-        .from('care_requests')
-        .select('id, topic, channel, status, created_at')
+        .from('pet_support_requests')
+        .select('id, title, channel, status, created_at')
         .eq('employee_id', userId)
         .order('created_at', { ascending: false });
 
       if (error) throw error;
-      this.items = (data ?? []) as CareRequestRow[];
+      const requestRows = (data ?? []) as any[];
+      const appointmentsByRequest = await this.loadAppointmentsByRequest(userId, requestRows.map((item) => item.id));
+
+      this.items = requestRows.map((item: any) => ({
+        id: item.id,
+        topic: item.title,
+        channel: item.channel,
+        status: item.status,
+        created_at: item.created_at,
+        appointment: appointmentsByRequest.get(item.id) ?? null,
+      })) as CareRequestRow[];
       const totalPages = this.totalPages;
       if (this.currentPage > totalPages) this.currentPage = totalPages;
+      void this.ensureMissingMeetingLinks();
     } catch (err: any) {
       this.error = err.message;
     } finally {
       this.loading = false;
     }
+  }
+
+  private async loadAppointmentsByRequest(userId: string, requestIds: string[]): Promise<Map<string, RequestAppointmentRow>> {
+    const result = new Map<string, RequestAppointmentRow>();
+    if (!requestIds.length) return result;
+
+    const { data, error } = await this.supabase.client
+      .from('appointments')
+      .select('id, request_id, kind, scheduled_for, status, appointment_phone, appointment_contact_name, meeting_url, meeting_code, meeting_provider')
+      .eq('employee_id', userId)
+      .in('request_id', requestIds)
+      .order('scheduled_for', { ascending: true });
+
+    if (error) throw error;
+
+    const now = Date.now();
+    const rows = ((data ?? []) as RequestAppointmentRow[]).filter((appointment) => appointment.status !== 'cancelled');
+
+    for (const requestId of requestIds) {
+      const requestAppointments = rows.filter((appointment) => appointment.request_id === requestId);
+      const nextAppointment =
+        requestAppointments.find((appointment) => new Date(appointment.scheduled_for).getTime() >= now) ??
+        requestAppointments[requestAppointments.length - 1] ??
+        null;
+
+      if (nextAppointment) result.set(requestId, nextAppointment);
+    }
+
+    return result;
   }
 
   public statusLabel(status: CareRequestRow['status']): string {
@@ -85,6 +142,70 @@ export class RequestsPage implements OnInit, OnDestroy {
       closed: 'request-card__status--closed',
     };
     return classes[status] ?? 'request-card__status--closed';
+  }
+
+  public appointmentStatusLabel(status: string): string {
+    const normalized = (status || '').toLowerCase();
+    const labels: Record<string, string> = {
+      scheduled: 'Agendada',
+      confirmed: 'Confirmada',
+      completed: 'Realizada',
+      cancelled: 'Cancelada',
+    };
+    return labels[normalized] ?? status;
+  }
+
+  private async ensureMissingMeetingLinks(): Promise<void> {
+    const pendingAppointment = this.items
+      .map((item) => item.appointment)
+      .find((appointment): appointment is RequestAppointmentRow =>
+        !!appointment &&
+        appointment.kind === 'Videollamada' &&
+        !appointment.meeting_url &&
+        !this.attemptedMeetingGeneration.has(appointment.id)
+      );
+
+    if (!pendingAppointment) return;
+    await this.generateMeetingLink(pendingAppointment, false);
+  }
+
+  public async generateMeetingLink(appointment: RequestAppointmentRow, showErrors = true): Promise<void> {
+    if (!appointment?.id || this.generatingMeetingId) return;
+
+    this.generatingMeetingId = appointment.id;
+    this.attemptedMeetingGeneration.add(appointment.id);
+    this.meetingGenerationErrors.delete(appointment.id);
+
+    try {
+      const session = await this.supabase.client.auth.getSession();
+      const accessToken = session.data.session?.access_token;
+      if (!accessToken) throw new Error('Tu sesion expiro. Vuelve a iniciar sesion e intentalo otra vez.');
+
+      const { data, error } = await this.supabase.client.functions.invoke('create-google-meet', {
+        body: { appointmentId: appointment.id },
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      });
+
+      if (error) {
+        const context = (error as any).context;
+        if (context instanceof Response) {
+          const payload = await context.json().catch(() => null);
+          if (payload?.error) throw new Error(String(payload.error));
+        }
+        throw new Error(error.message);
+      }
+
+      if ((data as any)?.error) throw new Error(String((data as any).error));
+      await this.refresh();
+    } catch (err: any) {
+      const message = err?.message ?? 'No se pudo generar el enlace de Google Meet.';
+      this.meetingGenerationErrors.set(appointment.id, message);
+      if (showErrors) alert(message);
+    } finally {
+      this.generatingMeetingId = null;
+    }
   }
 
   public get openRequestsCount(): number {

@@ -71,6 +71,8 @@ type AppointmentRow = {
   notes: string | null;
   status: AppointmentStatus;
   created_at: string;
+  appointment_phone?: string | null;
+  appointment_contact_name?: string | null;
   meeting_provider?: string | null;
   meeting_url?: string | null;
   meeting_code?: string | null;
@@ -131,9 +133,12 @@ export class CareExpertsPage implements OnInit, OnDestroy {
   public employeeTasks: CareTaskRow[] = [];
   public saving = false;
   public selectedAppointments: AppointmentRow[] = [];
+  public scheduledAppointmentConfirmation: AppointmentRow | null = null;
   public appointmentDate = '';
   public appointmentTime = '';
   public appointmentKind: 'Videollamada' | 'Llamada' = 'Videollamada';
+  public appointmentPhone = '';
+  public appointmentContactName = '';
   public appointmentNotes = '';
   public taskDraftTitle = '';
   public taskDraftDueDate = '';
@@ -239,6 +244,10 @@ export class CareExpertsPage implements OnInit, OnDestroy {
     return this.appointmentKind === 'Llamada' ? this.appointmentCallSlots : this.appointmentVideoSlots;
   }
 
+  public get normalizedAppointmentPhone(): string {
+    return this.appointmentPhone.trim();
+  }
+
   public get canScheduleAppointment(): boolean {
     return this.channel === 'Videollamada' || this.channel === 'Llamada';
   }
@@ -316,7 +325,7 @@ export class CareExpertsPage implements OnInit, OnDestroy {
   }
 
   private realtimeChannel: any | null = null;
-  private readonly allowedRoles: ProfileRole[] = ['employee', 'pet_expert', 'admin'];
+  private readonly allowedRoles: ProfileRole[] = ['employee', 'cuidador', 'pet_expert', 'admin'];
 
   constructor(
     public readonly auth: AuthService,
@@ -332,6 +341,39 @@ export class CareExpertsPage implements OnInit, OnDestroy {
 
   public ngOnDestroy(): void {
     void this.teardownRealtime();
+  }
+
+  private toPetChannel(channel: SupportChannel): 'chat' | 'video' | 'call' {
+    if (channel === 'Videollamada') return 'video';
+    if (channel === 'Llamada') return 'call';
+    return 'chat';
+  }
+
+  private fromPetChannel(channel: string | null | undefined): SupportChannel {
+    if (channel === 'video') return 'Videollamada';
+    if (channel === 'call') return 'Llamada';
+    return 'Chat';
+  }
+
+  private toPetRequestType(topic: string): string {
+    const normalized = topic.toLowerCase();
+    if (normalized.includes('veterin')) return 'veterinary';
+    if (normalized.includes('pase')) return 'walking';
+    if (normalized.includes('guard') || normalized.includes('hotel')) return 'daycare';
+    if (normalized.includes('groom')) return 'grooming';
+    if (normalized.includes('form') || normalized.includes('entren')) return 'training';
+    if (normalized.includes('voucher') || normalized.includes('descuento')) return 'voucher';
+    return 'other';
+  }
+
+  private parseJsonDetails(value: unknown): any {
+    if (!value) return null;
+    if (typeof value !== 'string') return value;
+    try {
+      return JSON.parse(value);
+    } catch {
+      return { notes: value };
+    }
   }
 
   public async startRequest(): Promise<void> {
@@ -357,11 +399,12 @@ export class CareExpertsPage implements OnInit, OnDestroy {
     this.saving = true;
     try {
       const { data: requestRow, error: requestError } = await this.supabase.client
-        .from('care_requests')
+        .from('pet_support_requests')
         .insert({
           employee_id: user.id,
-          channel: this.channel,
-          topic: this.topic,
+          channel: this.toPetChannel(this.channel),
+          request_type: this.toPetRequestType(this.topic),
+          title: this.topic,
           details: firstMessage,
         })
         .select('id')
@@ -372,7 +415,7 @@ export class CareExpertsPage implements OnInit, OnDestroy {
       this.activeRequestId = requestRow.id as string;
       this.activeRequestChannel = 'Chat';
 
-      const { error: messageError } = await this.supabase.client.from('care_messages').insert({
+      const { error: messageError } = await this.supabase.client.from('pet_support_messages').insert({
         request_id: this.activeRequestId,
         sender_id: user.id,
         body: firstMessage,
@@ -516,6 +559,10 @@ export class CareExpertsPage implements OnInit, OnDestroy {
     return !!appointment.meeting_url && appointment.kind === 'Videollamada';
   }
 
+  public dismissScheduledAppointmentConfirmation(): void {
+    this.scheduledAppointmentConfirmation = null;
+  }
+
   public get nextAppointment(): AppointmentRow | null {
     const now = Date.now();
     return (
@@ -565,17 +612,16 @@ export class CareExpertsPage implements OnInit, OnDestroy {
 
     this.loading = true;
     try {
-      const dueAt = this.taskDraftDueDate ? new Date(`${this.taskDraftDueDate}T23:59:00`).toISOString() : null;
-      const { error } = await this.supabase.client.from('care_tasks').insert({
-        request_id: this.activeRequestId,
-        employee_id: user.id,
-        created_by: user.id,
-        title,
-        due_at: dueAt,
-        priority: 'medium',
-        status: 'pending',
-      } as any);
-      if (error) throw error;
+      if (this.activeRequestId) {
+        const dueAt = this.taskDraftDueDate ? ` Vence: ${this.taskDraftDueDate}.` : '';
+        const { error } = await this.supabase.client.from('pet_support_messages').insert({
+          request_id: this.activeRequestId,
+          sender_id: user.id,
+          body: `Tarea sugerida: ${title}.${dueAt}`,
+          visibility: 'internal',
+        });
+        if (error) throw error;
+      }
 
       this.taskDraftTitle = '';
       this.taskDraftDueDate = '';
@@ -588,20 +634,12 @@ export class CareExpertsPage implements OnInit, OnDestroy {
   }
 
   public async updateTaskStatus(task: CareTaskRow, status: CareTaskStatus): Promise<void> {
-    const { error } = await this.supabase.client.from('care_tasks').update({ status }).eq('id', task.id);
-    if (error) {
-      alert(error.message);
-      return;
-    }
+    task.status = status;
     await this.loadEmployeeTasks();
   }
 
   public async removeTask(task: CareTaskRow): Promise<void> {
-    const { error } = await this.supabase.client.from('care_tasks').delete().eq('id', task.id);
-    if (error) {
-      alert(error.message);
-      return;
-    }
+    this.employeeTasks = this.employeeTasks.filter((item) => item.id !== task.id);
     await this.loadEmployeeTasks();
   }
 
@@ -620,6 +658,11 @@ export class CareExpertsPage implements OnInit, OnDestroy {
       return;
     }
 
+    if (this.appointmentKind === 'Llamada' && !this.normalizedAppointmentPhone) {
+      alert('Ingresa un telefono de contacto para la llamada.');
+      return;
+    }
+
     const scheduledFor = new Date(`${this.appointmentDate}T${this.appointmentTime}:00`);
     if (Number.isNaN(scheduledFor.getTime()) || scheduledFor.getTime() <= Date.now()) {
       alert('La cita debe quedar agendada en una fecha futura.');
@@ -632,11 +675,12 @@ export class CareExpertsPage implements OnInit, OnDestroy {
       if (!requestId) {
         const requestSummary = this.details.trim() || `Solicitud para ${this.appointmentKind.toLowerCase()}`;
         const { data: requestRow, error: requestError } = await this.supabase.client
-          .from('care_requests')
+          .from('pet_support_requests')
           .insert({
             employee_id: user.id,
-            channel: this.appointmentKind,
-            topic: this.topic,
+            channel: this.toPetChannel(this.appointmentKind),
+            request_type: this.toPetRequestType(this.topic),
+            title: this.topic,
             details: requestSummary,
           })
           .select('id')
@@ -657,12 +701,15 @@ export class CareExpertsPage implements OnInit, OnDestroy {
           kind: this.appointmentKind,
           scheduled_for: scheduledFor.toISOString(),
           notes: this.appointmentNotes.trim() || this.details.trim() || null,
+          appointment_phone: this.appointmentKind === 'Llamada' ? this.normalizedAppointmentPhone : null,
+          appointment_contact_name: this.appointmentKind === 'Llamada' ? (this.appointmentContactName.trim() || null) : null,
           created_by: user.id,
         })
-        .select('id')
-        .single<{ id: string }>();
+        .select('id, request_id, employee_id, expert_id, kind, scheduled_for, notes, status, created_at, appointment_phone, appointment_contact_name, meeting_provider, meeting_url, meeting_code, meeting_space_name')
+        .single<AppointmentRow>();
       if (error) throw error;
 
+      let createdAppointment: AppointmentRow = appointmentRow;
       if (this.appointmentKind === 'Videollamada' && appointmentRow?.id) {
         const { error: meetingError } = await this.createGoogleMeetForAppointment(appointmentRow.id);
         if (meetingError) {
@@ -672,11 +719,16 @@ export class CareExpertsPage implements OnInit, OnDestroy {
 
       this.appointmentDate = '';
       this.appointmentTime = '';
+      this.appointmentPhone = '';
+      this.appointmentContactName = '';
       this.appointmentNotes = '';
       await this.loadEmployeeAppointments();
+      this.scheduledAppointmentConfirmation =
+        this.employeeAppointments.find((appointment) => appointment.id === appointmentRow.id) || appointmentRow;
       if (requestId) {
         await this.openRequest(requestId);
       }
+      this.advisorStep = 1;
     } catch (err: any) {
       alert(err?.message ?? 'No se pudo agendar la hora.');
     } finally {
@@ -693,6 +745,16 @@ export class CareExpertsPage implements OnInit, OnDestroy {
     window.open(appointment.meeting_url, '_blank', 'noopener,noreferrer');
   }
 
+  public normalizePhoneForTel(phone: string | null | undefined): string {
+    return (phone ?? '').replace(/[^\d+]/g, '');
+  }
+
+  public openPhoneCall(phone: string | null | undefined): void {
+    const normalized = this.normalizePhoneForTel(phone);
+    if (!normalized) return;
+    window.location.href = `tel:${normalized}`;
+  }
+
   public advisorSummaryValue(field: 'channel' | 'topic' | 'details' | 'date' | 'time'): string {
     switch (field) {
       case 'channel':
@@ -700,6 +762,9 @@ export class CareExpertsPage implements OnInit, OnDestroy {
       case 'topic':
         return this.topic;
       case 'details':
+        if (this.canScheduleAppointment) {
+          return this.appointmentNotes.trim() || this.details.trim() || 'Sin contexto adicional por ahora.';
+        }
         return this.details.trim() || 'Sin contexto adicional por ahora.';
       case 'date':
         return this.appointmentDate || 'No seleccionado';
@@ -745,11 +810,12 @@ export class CareExpertsPage implements OnInit, OnDestroy {
     this.messages = [...this.messages, optimisticMessage];
 
     const { data, error } = await this.supabase.client
-      .from('care_messages')
+      .from('pet_support_messages')
       .insert({
         request_id: requestId,
         sender_id: user.id,
         body,
+        visibility: this.expertMode && this.composerMode === 'internal' ? 'internal' : 'thread',
       })
       .select('id, body, created_at, sender_id')
       .single();
@@ -896,22 +962,12 @@ export class CareExpertsPage implements OnInit, OnDestroy {
 
     this.selectedTags = next;
 
-    if (alreadySelected) {
-      const { error } = await this.supabase.client
-        .from('care_request_tags')
-        .delete()
-        .eq('request_id', request.id)
-        .eq('tag', tag);
-      if (error) alert(error.message);
-      return;
-    }
-
-    const { error } = await this.supabase.client.from('care_request_tags').insert({
+    await this.supabase.client.from('pet_support_messages').insert({
       request_id: request.id,
-      tag,
-      created_by: userId,
+      sender_id: userId,
+      body: alreadySelected ? `Etiqueta removida: ${tag}` : `Etiqueta agregada: ${tag}`,
+      visibility: 'internal',
     });
-    if (error) alert(error.message);
   }
 
   public insertQuickReply(body: string): void {
@@ -981,8 +1037,8 @@ export class CareExpertsPage implements OnInit, OnDestroy {
     this.loading = true;
     try {
       const { error } = await this.supabase.client
-        .from('care_requests')
-        .update({ assigned_expert_id: userId, status: request.status === 'open' ? 'assigned' : request.status })
+        .from('pet_support_requests')
+        .update({ assigned_to: userId, status: request.status === 'open' ? 'assigned' : request.status })
         .eq('id', request.id);
       if (error) throw error;
 
@@ -1007,7 +1063,7 @@ export class CareExpertsPage implements OnInit, OnDestroy {
     this.loading = true;
     try {
       const { error } = await this.supabase.client
-        .from('care_requests')
+        .from('pet_support_requests')
         .update({ status: this.statusDraft })
         .eq('id', request.id);
       if (error) throw error;
@@ -1059,9 +1115,9 @@ export class CareExpertsPage implements OnInit, OnDestroy {
         return;
       }
 
-      this.hasBenefitAccess = await this.loadCurrentUserBenefitAccess(sessionData?.session?.user?.id ?? null);
+      this.hasBenefitAccess = await this.loadCurrentUserBenefitAccess(sessionData?.session?.user?.id ?? null, role);
       if (!this.hasBenefitAccess) {
-        alert('Tu empresa necesita una suscripcion activa para solicitar Pet Experts.');
+        alert('No tienes acceso al módulo de asesoría.');
         await this.router.navigateByUrl('/dashboard');
         return;
       }
@@ -1090,12 +1146,14 @@ export class CareExpertsPage implements OnInit, OnDestroy {
 
   private ensureBenefitAccess(): boolean {
     if (this.hasBenefitAccess) return true;
-    alert('Tu empresa necesita una suscripcion activa para usar Pet Experts.');
+    alert('No tienes acceso al módulo de asesoría.');
     return false;
   }
 
-  private async loadCurrentUserBenefitAccess(userId: string | null): Promise<boolean> {
+  private async loadCurrentUserBenefitAccess(userId: string | null, role?: string): Promise<boolean> {
     if (!userId) return false;
+
+    if (role === 'cuidador') return true;
 
     const { data: membership, error: membershipError } = await this.supabase.client
       .from('company_members')
@@ -1118,8 +1176,8 @@ export class CareExpertsPage implements OnInit, OnDestroy {
     this.loading = true;
     try {
       const { data, error } = await this.supabase.client
-        .from('care_requests')
-        .select('id, channel, topic')
+        .from('pet_support_requests')
+        .select('id, channel, title')
         .eq('id', requestId)
         .maybeSingle();
 
@@ -1127,9 +1185,9 @@ export class CareExpertsPage implements OnInit, OnDestroy {
       if (!data?.id) throw new Error('No se encontró la solicitud.');
 
       this.activeRequestId = data.id as string;
-      this.activeRequestChannel = (data.channel as SupportChannel) ?? 'Chat';
-      this.channel = (data.channel as SupportChannel) ?? 'Chat';
-      this.topic = (data.topic as string) ?? this.topic;
+      this.activeRequestChannel = this.fromPetChannel(data.channel as string | null);
+      this.channel = this.fromPetChannel(data.channel as string | null);
+      this.topic = (data.title as string) ?? this.topic;
 
       await this.loadMessages();
       await this.setupRealtime();
@@ -1148,14 +1206,14 @@ export class CareExpertsPage implements OnInit, OnDestroy {
     if (!requestId) return;
 
     const { data, error } = await this.supabase.client
-      .from('care_messages')
-      .select('id, body, created_at, sender_id')
+      .from('pet_support_messages')
+      .select('id, body, created_at, sender_id, visibility')
       .eq('request_id', requestId)
       .order('created_at', { ascending: true });
 
     if (error) throw error;
 
-    const messages = (data ?? []) as CareMessage[];
+    const messages = (data ?? []).filter((message: any) => message.visibility !== 'internal') as CareMessage[];
     const senderIds = Array.from(new Set(messages.map((message) => message.sender_id).filter(Boolean)));
 
     let senderNames = new Map<string, string | null>();
@@ -1215,7 +1273,7 @@ export class CareExpertsPage implements OnInit, OnDestroy {
     const { data, error } = await this.supabase.client
       .from('appointments')
       .select(
-        'id, request_id, employee_id, expert_id, kind, scheduled_for, notes, status, created_at, meeting_provider, meeting_url, meeting_code, meeting_space_name'
+        'id, request_id, employee_id, expert_id, kind, scheduled_for, notes, status, created_at, appointment_phone, appointment_contact_name, meeting_provider, meeting_url, meeting_code, meeting_space_name'
       )
       .eq('employee_id', userId)
       .order('scheduled_for', { ascending: true })
@@ -1236,18 +1294,7 @@ export class CareExpertsPage implements OnInit, OnDestroy {
       return;
     }
 
-    const { data, error } = await this.supabase.client
-      .from('care_tasks')
-      .select('id, request_id, employee_id, created_by, title, notes, due_at, priority, status, created_at')
-      .eq('employee_id', userId)
-      .order('created_at', { ascending: true });
-
-    if (error) {
-      this.employeeTasks = [];
-      return;
-    }
-
-    this.employeeTasks = (data ?? []) as CareTaskRow[];
+    this.employeeTasks = [];
   }
 
   private async loadSelectedAppointments(): Promise<void> {
@@ -1260,7 +1307,7 @@ export class CareExpertsPage implements OnInit, OnDestroy {
     const { data, error } = await this.supabase.client
       .from('appointments')
       .select(
-        'id, request_id, employee_id, expert_id, kind, scheduled_for, notes, status, created_at, meeting_provider, meeting_url, meeting_code, meeting_space_name'
+        'id, request_id, employee_id, expert_id, kind, scheduled_for, notes, status, created_at, appointment_phone, appointment_contact_name, meeting_provider, meeting_url, meeting_code, meeting_space_name'
       )
       .eq('request_id', request.id)
       .order('scheduled_for', { ascending: true })
@@ -1276,8 +1323,8 @@ export class CareExpertsPage implements OnInit, OnDestroy {
 
   private async loadExpertRequests(preferredRequestId?: string): Promise<void> {
     const { data: requests, error } = await this.supabase.client
-      .from('care_requests')
-      .select('id, topic, channel, status, created_at, updated_at, details, employee_id, assigned_expert_id')
+      .from('pet_support_requests')
+      .select('id, title, channel, status, created_at, updated_at, details, employee_id, assigned_to')
       .order('created_at', { ascending: false })
       .limit(20);
 
@@ -1317,10 +1364,7 @@ export class CareExpertsPage implements OnInit, OnDestroy {
           .from('appointments')
           .select('request_id, scheduled_for, status')
           .in('request_id', requestIds),
-        this.supabase.client
-          .from('care_tasks')
-          .select('request_id, due_at, status')
-          .in('request_id', requestIds),
+        Promise.resolve({ data: [], error: null }),
       ]);
 
       if (appointmentsResult.error) throw appointmentsResult.error;
@@ -1361,14 +1405,14 @@ export class CareExpertsPage implements OnInit, OnDestroy {
       const profile = profilesById.get(request.employee_id as string);
       return {
         id: request.id as string,
-        topic: request.topic as string,
-        channel: request.channel as SupportChannel,
+        topic: request.title as string,
+        channel: this.fromPetChannel(request.channel as string | null),
         status: request.status as CareRequestStatus,
         created_at: request.created_at as string,
         updated_at: request.updated_at as string,
         details: (request.details as string | null | undefined) ?? null,
         employee_id: request.employee_id as string,
-        assigned_expert_id: (request.assigned_expert_id as string | null | undefined) ?? null,
+        assigned_expert_id: (request.assigned_to as string | null | undefined) ?? null,
         employee_name: profile?.full_name ?? null,
         employee_email: profile?.email ?? null,
       };
@@ -1412,13 +1456,13 @@ export class CareExpertsPage implements OnInit, OnDestroy {
     await this.teardownRealtime();
 
     this.realtimeChannel = this.supabase.client
-      .channel(`care_messages:${requestId}`)
+      .channel(`pet_support_messages:${requestId}`)
       .on(
         'postgres_changes',
         {
           event: 'INSERT',
           schema: 'public',
-          table: 'care_messages',
+          table: 'pet_support_messages',
           filter: `request_id=eq.${requestId}`,
         },
         (payload: any) => {
@@ -1488,7 +1532,7 @@ export class CareExpertsPage implements OnInit, OnDestroy {
     }
 
     const { data, error } = await this.supabase.client
-      .from('care_messages')
+      .from('pet_support_messages')
       .select('request_id, sender_id, created_at')
       .in('request_id', requestIds)
       .order('created_at', { ascending: true });
@@ -1537,12 +1581,7 @@ export class CareExpertsPage implements OnInit, OnDestroy {
       .filter((item) => item.employee_id === request.employee_id && item.id !== request.id)
       .slice(0, 4);
 
-    const { data: tags } = await this.supabase.client
-      .from('care_request_tags')
-      .select('tag')
-      .eq('request_id', request.id)
-      .order('created_at', { ascending: true });
-    this.selectedTags = (tags ?? []).map((item: any) => item.tag as string);
+    this.selectedTags = [];
 
     let company: string | null = null;
     let memberRole: string | null = null;
@@ -1581,14 +1620,14 @@ export class CareExpertsPage implements OnInit, OnDestroy {
 
     try {
       const { data: intake } = await this.supabase.client
-        .from('care_intakes')
-        .select('payload')
+        .from('pet_support_requests')
+        .select('details')
         .eq('employee_id', request.employee_id)
         .order('created_at', { ascending: false })
         .limit(1)
         .maybeSingle();
 
-      const payload = (intake?.payload as any) ?? null;
+      const payload = this.parseJsonDetails((intake as any)?.details);
       location = this.readPayloadValue(payload, [
         ['location', 'postal_code'],
         ['location', 'comuna'],
@@ -1602,7 +1641,12 @@ export class CareExpertsPage implements OnInit, OnDestroy {
         ['dependent', 'age'],
       ]);
       relation = this.readPayloadValue(payload, [['caregiver', 'relation'], ['family', 'relation']]);
-      condition = this.readPayloadValue(payload, [['care_receiver', 'primary_condition'], ['clinical_profile']]);
+      condition = this.readPayloadValue(payload, [
+        ['clinical', 'main_reason'],
+        ['clinical', 'chronic_conditions_allergies'],
+        ['care_receiver', 'primary_condition'],
+        ['clinical_profile'],
+      ]);
       dependencyLevel = this.readPayloadValue(payload, [['care_receiver', 'dependency_level']]);
       preferredContact = this.readPayloadValue(payload, [['preferences', 'preferred_contact']]);
       supportNetwork = this.readPayloadValue(payload, [['family_context', 'support_network']]);

@@ -126,6 +126,55 @@ Deno.serve(async (request) => {
     const { error: authInviteError } = await supabaseAdmin.auth.admin.inviteUserByEmail(email, inviteOptions);
 
     if (authInviteError) {
+      // If user already exists, add them directly to the company
+      if (authInviteError.message?.includes('already been registered')) {
+        const { data: userList } = await supabaseAdmin.auth.admin.listUsers();
+        const existingUser = userList?.users?.find(
+          (u: { email?: string }) => u.email?.toLowerCase() === email,
+        );
+
+        if (!existingUser) {
+          await supabaseAdmin.from('company_invitations').update({ status: 'expired' }).eq('id', invitation.id);
+          return jsonResponse({ error: 'Usuario no encontrado.' }, 400);
+        }
+
+        const userId = existingUser.id;
+
+        // Check if already a member
+        const { data: existingMember } = await supabaseAdmin
+          .from('company_members')
+          .select('user_id')
+          .eq('company_id', companyId)
+          .eq('user_id', userId)
+          .maybeSingle();
+
+        if (existingMember) {
+          await supabaseAdmin.from('company_invitations').update({ status: 'expired' }).eq('id', invitation.id);
+          return jsonResponse({ error: 'El usuario ya pertenece a esta empresa.' }, 409);
+        }
+
+        // Ensure profile exists
+        await supabaseAdmin.from('profiles').upsert({ id: userId, role }, { onConflict: 'id' });
+
+        // Add to company_members
+        const { error: memberError } = await supabaseAdmin
+          .from('company_members')
+          .insert({ company_id: companyId, user_id: userId, member_role: role });
+
+        if (memberError) {
+          await supabaseAdmin.from('company_invitations').update({ status: 'expired' }).eq('id', invitation.id);
+          return jsonResponse({ error: memberError.message }, 400);
+        }
+
+        // Mark invitation as accepted
+        await supabaseAdmin
+          .from('company_invitations')
+          .update({ status: 'accepted', accepted_at: new Date().toISOString() })
+          .eq('id', invitation.id);
+
+        return jsonResponse({ invitation: { ...invitation, status: 'accepted' } });
+      }
+
       await supabaseAdmin.from('company_invitations').update({ status: 'expired' }).eq('id', invitation.id);
       return jsonResponse({ error: authInviteError.message }, 400);
     }

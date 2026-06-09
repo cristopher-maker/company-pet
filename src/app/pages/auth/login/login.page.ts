@@ -44,7 +44,7 @@ export class LoginPage implements OnDestroy {
   }
 
   public goRegister(): void {
-    void this.router.navigate(['/register'], { queryParams: { role: 'employee' } });
+    void this.router.navigate(['/register']);
   }
 
   public togglePasswordVisibility(): void {

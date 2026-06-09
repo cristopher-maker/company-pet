@@ -14,20 +14,20 @@ type AppPage = { title: string; url: string; icon: string; queryParams?: Record<
   styleUrls: ['./app.component.scss'],
 })
 export class AppComponent implements OnDestroy {
-  public readonly appTitle = 'company pet';
+  public readonly appTitle = 'Company Pet';
   public isMenuOpen = false;
   public profileRole: ProfileRole | null = null;
   public hasBenefitAccess = false;
 
   private readonly primaryPageUrls = new Set([
     '/home',
+    '/admin',
     '/dashboard',
+    '/community',
     '/care-experts',
-    '/providers',
     '/resources',
     '/training',
     '/requests',
-    '/tasks',
     '/vouchers',
     '/company',
   ]);
@@ -36,21 +36,53 @@ export class AppComponent implements OnDestroy {
 
   public readonly appPages: AppPage[] = [
     { title: 'Inicio', url: '/home', icon: 'home' },
-    { title: 'Dashboard', url: '/dashboard', icon: 'dashboard' },
-    { title: 'Asesoria personalizada', url: '/care-experts', icon: 'forum' },
-    { title: 'Proveedores verificados', url: '/providers', icon: 'search' },
-    { title: 'Recursos digitales', url: '/resources', icon: 'library_books' },
-    { title: 'Formacion', url: '/training', icon: 'school' },
+    { title: 'Admin interno', url: '/admin', icon: 'admin_panel_settings' },
+    { title: 'Portal Company Pet', url: '/dashboard', icon: 'dashboard' },
+    { title: 'Comunidad', url: '/community', icon: 'forum' },
+    { title: 'Pet Experts', url: '/care-experts', icon: 'support_agent' },
+    { title: 'Centro de recursos', url: '/resources', icon: 'library_books' },
+    { title: 'Formacion pet', url: '/training', icon: 'school' },
+    { title: 'Solicitudes', url: '/requests', icon: 'content_paste' },
+    { title: 'Beneficios', url: '/vouchers', icon: 'payments' },
+    { title: 'Mi empresa', url: '/company', icon: 'business' },
+    { title: 'Perfil', url: '/profile', icon: 'account_circle' },
+  ];
+
+  public readonly employeePages: AppPage[] = [
+    { title: 'Inicio', url: '/home', icon: 'home' },
+    { title: 'Portal Company Pet', url: '/dashboard', icon: 'dashboard' },
+    { title: 'Comunidad', url: '/community', icon: 'forum' },
+    { title: 'Pet Experts', url: '/care-experts', icon: 'support_agent' },
+    { title: 'Centro de recursos', url: '/resources', icon: 'library_books' },
+    { title: 'Formacion pet', url: '/training', icon: 'school' },
     { title: 'Mis solicitudes', url: '/requests', icon: 'content_paste' },
-    { title: 'Mis tareas', url: '/tasks', icon: 'task_alt' },
-    { title: 'Vouchers', url: '/vouchers', icon: 'local_activity' },
-    { title: 'Administrar empresa', url: '/company', icon: 'business' },
+    { title: 'Beneficios', url: '/vouchers', icon: 'payments' },
+    { title: 'Perfil', url: '/profile', icon: 'account_circle' },
+  ];
+
+  public readonly companyAdminPages: AppPage[] = [
+    { title: 'Inicio', url: '/home', icon: 'home' },
+    { title: 'Panel empresa', url: '/dashboard', icon: 'dashboard' },
+    { title: 'ERP empresa', url: '/admin', icon: 'space_dashboard' },
+    { title: 'Clientes y mascotas', url: '/company', icon: 'pets' },
+    { title: 'Solicitudes del equipo', url: '/requests', icon: 'content_paste' },
+    { title: 'Beneficios y vouchers', url: '/vouchers', icon: 'payments' },
+    { title: 'Perfil', url: '/profile', icon: 'account_circle' },
+  ];
+
+  public readonly cuidadorPages: AppPage[] = [
+    { title: 'Inicio', url: '/home', icon: 'home' },
+    { title: 'Portal cuidador', url: '/dashboard', icon: 'dashboard' },
+    { title: 'Solicitudes', url: '/requests', icon: 'content_paste' },
+    { title: 'Recursos', url: '/resources', icon: 'library_books' },
+    { title: 'Beneficios', url: '/vouchers', icon: 'payments' },
     { title: 'Perfil', url: '/profile', icon: 'account_circle' },
   ];
 
   public readonly careExpertPages: AppPage[] = [
     { title: 'Inicio', url: '/home', icon: 'home' },
-    { title: 'Inbox de casos', url: '/care-experts', icon: 'forum' },
+    { title: 'Inbox Pet Experts', url: '/care-experts', icon: 'forum' },
+    { title: 'Comunidad', url: '/community', icon: 'forum' },
     { title: 'Formacion', url: '/training', icon: 'school' },
     { title: 'Recursos digitales', url: '/resources', icon: 'library_books' },
     { title: 'Perfil', url: '/profile', icon: 'account_circle' },
@@ -76,26 +108,32 @@ export class AppComponent implements OnDestroy {
   }
 
   public get visiblePages(): AppPage[] {
+    const isAdmin = this.profileRole === 'admin';
     const isCompany = this.profileRole === 'company_admin' || this.profileRole === 'manager';
     const isCareExpert = this.profileRole === 'pet_expert';
-    const isEmployeeLike = this.profileRole === 'employee' || this.profileRole === 'admin';
+    const isEmployee = this.profileRole === 'employee';
+    const isCuidador = this.profileRole === 'cuidador';
+
+    if (isAdmin) {
+      return this.appPages;
+    }
 
     if (isCompany) {
-      return this.appPages.filter(
-        (page) => page.url !== '/care-experts' && page.url !== '/requests' && page.url !== '/tasks'
-      );
+      return this.companyAdminPages;
     }
 
     if (isCareExpert) {
       return this.careExpertPages;
     }
 
-    if (isEmployeeLike) {
-      const lockedWithoutPlan = new Set(['/care-experts', '/requests', '/tasks', '/providers', '/resources', '/training', '/vouchers']);
-      return this.appPages.filter((page) => page.url !== '/company' && (this.hasBenefitAccess || !lockedWithoutPlan.has(page.url)));
+    if (isCuidador) {
+      return this.cuidadorPages;
     }
 
-    // For public (not logged in) users, show only public pages.
+    if (isEmployee) {
+      return this.employeePages;
+    }
+
     const publicUrls = new Set(['/home']);
     return this.appPages.filter((page) => publicUrls.has(page.url));
   }
@@ -143,6 +181,7 @@ export class AppComponent implements OnDestroy {
   private async loadBenefitAccess(): Promise<boolean> {
     if (!this.auth.user) return false;
     if (this.profileRole === 'admin' || this.profileRole === 'pet_expert') return true;
+    if (this.profileRole === 'cuidador') return true;
 
     const { data: membership, error: membershipError } = await this.supabase.client
       .from('company_members')

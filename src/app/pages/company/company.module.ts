@@ -5,7 +5,8 @@ import { MatIconModule } from '@angular/material/icon';
 
 import { CompanyPageRoutingModule } from './company-routing.module';
 import { CompanyPage } from './company.page';
-import { AdminDashboardModule } from '../admin-dashboard/admin-dashboard.module';
+import { SiteHeaderComponent } from '../../shared/components/site-header/site-header.component';
+import { SiteFooterComponent } from '../../shared/components/site-footer/site-footer.component';
 
 @NgModule({
   imports: [
@@ -13,7 +14,8 @@ import { AdminDashboardModule } from '../admin-dashboard/admin-dashboard.module'
     FormsModule, 
     CompanyPageRoutingModule,
     MatIconModule,
-    AdminDashboardModule
+    SiteHeaderComponent,
+    SiteFooterComponent,
   ],
   declarations: [CompanyPage],
 })

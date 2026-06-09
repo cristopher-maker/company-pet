@@ -5,9 +5,10 @@ import { AuthService } from '../../core/services/auth.service';
 import { CdkDragDrop, moveItemInArray, transferArrayItem } from '@angular/cdk/drag-drop';
 import { ChartConfiguration } from 'chart.js';
 
-type LeadStatus = 'nuevo' | 'contactado' | 'evaluacion' | 'match' | 'cerrado' | 'perdido';
+type LeadStatus = 'nuevo' | 'contactado' | 'demo' | 'negociacion' | 'cerrado' | 'perdido';
+type DemoRequestStatus = 'new' | 'contacted' | 'qualified' | 'discarded';
 type ConfigSection = 'company' | 'appearance' | 'workflow' | 'business' | 'documents' | 'messages';
-type DashboardView = 'metricas' | 'sedes' | 'camas' | 'pacientes' | 'admisiones' | 'tareas' | 'empleados' | 'vouchers' | 'config' | 'facturacion' | 'gastos';
+type DashboardView = 'metricas' | 'demos' | 'sedes' | 'camas' | 'pacientes' | 'admisiones' | 'tareas' | 'empleados' | 'vouchers' | 'config' | 'facturacion' | 'gastos';
 type SummaryTone = 'primary' | 'blue' | 'green' | 'warn' | 'danger' | 'neutral';
 type DashboardNavItem = { view: DashboardView; label: string; icon: string; locked?: boolean };
 type ToastTone = 'info' | 'success' | 'warning' | 'error';
@@ -54,6 +55,7 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
   savingPaciente = false;
   savingLead = false;
   loadingLeadDetail = false;
+  loadingDemoRequests = false;
   savingTarea = false;
   savingGasto = false;
   showGastoModal = false;
@@ -63,16 +65,31 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
 
   readonly dashboardViewLabels: Record<DashboardView, string> = {
     metricas: 'M\u00e9tricas',
-    sedes: 'Mis sedes',
-    camas: 'Camas y vacantes',
-    pacientes: 'Pacientes',
-    admisiones: 'Admisiones',
+    demos: 'Prospectos empresas',
+    sedes: 'Servicios',
+    camas: 'Servicios disponibles',
+    pacientes: 'Empresas cliente',
+    admisiones: 'Pipeline ventas',
     tareas: 'Tareas',
-    empleados: 'Empleados',
-    vouchers: 'Vouchers',
+    empleados: 'Colaboradores',
+    vouchers: 'Beneficios',
     config: 'Configuraci\u00f3n',
-    facturacion: 'Facturaci\u00f3n',
+    facturacion: 'Facturaci\u00f3n empresas',
     gastos: 'Gastos y finanzas'
+  };
+
+  readonly companyDashboardViewLabels: Partial<Record<DashboardView, string>> = {
+    metricas: 'Resumen',
+    empleados: 'Clientes',
+    vouchers: 'Servicios',
+    admisiones: 'Reportes',
+    pacientes: 'Mascotas',
+    tareas: 'Agenda',
+    sedes: 'Servicios',
+    camas: 'Beneficios y capacidad',
+    config: 'Configuracion',
+    facturacion: 'Uso del beneficio',
+    gastos: 'Presupuesto y costos'
   };
 
   readonly mobileNavSections: Array<{ label: string; items: DashboardNavItem[] }> = [
@@ -80,20 +97,20 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
       label: 'Gesti\u00f3n',
       items: [
         { view: 'metricas', label: 'M\u00e9tricas', icon: 'monitoring' },
-        { view: 'admisiones', label: 'Admisiones', icon: 'view_kanban', locked: true },
+        { view: 'demos', label: 'Prospectos', icon: 'campaign' },
+        { view: 'admisiones', label: 'Pipeline ventas', icon: 'view_kanban', locked: true },
         { view: 'tareas', label: 'Tareas', icon: 'checklist', locked: true },
-        { view: 'sedes', label: 'Mis sedes', icon: 'business', locked: true },
-        { view: 'camas', label: 'Camas y vacantes', icon: 'bed', locked: true },
-        { view: 'pacientes', label: 'Pacientes', icon: 'people', locked: true },
-        { view: 'facturacion', label: 'Facturaci\u00f3n', icon: 'receipt_long', locked: true },
-        { view: 'gastos', label: 'Gastos y finanzas', icon: 'account_balance_wallet', locked: true }
+        { view: 'camas', label: 'Beneficios y capacidad', icon: 'room_service', locked: true },
+        { view: 'pacientes', label: 'Empresas cliente', icon: 'people', locked: true },
+        { view: 'facturacion', label: 'Uso del beneficio', icon: 'receipt_long', locked: true },
+        { view: 'gastos', label: 'Presupuesto y costos', icon: 'account_balance_wallet', locked: true }
       ]
     },
     {
       label: 'Configuraci\u00f3n',
       items: [
-        { view: 'empleados', label: 'Empleados', icon: 'badge', locked: true },
-        { view: 'vouchers', label: 'Vouchers', icon: 'local_activity', locked: true },
+        { view: 'empleados', label: 'Colaboradores', icon: 'badge', locked: true },
+        { view: 'vouchers', label: 'Beneficios', icon: 'local_activity', locked: true },
         { view: 'config', label: 'Configuraci\u00f3n', icon: 'settings' }
       ]
     }
@@ -107,9 +124,24 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
   selectedLeadIntake: any = null;
 
   sedeDraft: any = { id: null, nombre: '', ubicacion: '' };
-  camaDraft: any = { db_id: null, resource_code: '', provider_id: '', care_type: 'Basico', status: 'Disponible', notes: '' };
+  camaDraft: any = {
+    db_id: null,
+    resource_code: '',
+    provider_id: '',
+    care_type: 'Basico',
+    status: 'Disponible',
+    notes: '',
+    title: '',
+    description: '',
+    service_type: 'guarderia',
+    price_from: null,
+    duration_minutes: null,
+    max_daily_slots: null,
+    requirements: '',
+    active: true
+  };
   pacienteDraft: any = { id: null, first_name: '', last_name: '', document_id: '', emergency_contact_name: '', emergency_contact_phone: '', resource_id: null, monthly_fee: null, guarantor_name: '', guarantor_document_id: '', guarantor_email: '' };
-  leadDraft: any = { id: null, nombre: '', comuna: '', dependencia: '', presupuesto: null };
+  leadDraft: any = { id: null, nombre: '', company_name: '', contact_name: '', contact_position: '', email: '', phone: '', company_size: '', industry: '', comuna: '', source: 'website', notes: '', presupuesto: null };
   tareaDraft: any = {
     id: null,
     title: '',
@@ -123,11 +155,15 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
   };
   gastoDraft: any = { id: null, category: 'Operativos', amount: null, expense_date: '', description: '' };
   rawProviders: any[] = [];
+  demoRequests: any[] = [];
   leads: any[] = [];
   pacientes: any[] = [];
   patientContracts: any[] = [];
   patientInvoices: any[] = [];
   gastos: any[] = [];
+  _allClientCompanies: any[] = [];
+  _allCompanyInvoices: any[] = [];
+  selectedCompanyInvoices: any[] = [];
   private readonly planLockedViews = new Set<DashboardView>([
     'sedes',
     'camas',
@@ -162,7 +198,7 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
 
   // Configuracion del grafico de admisiones (Leads)
   totalLeads = 0;
-  public barChartLabels: string[] = ['Nuevas', 'Contact.', 'Eval.', 'Propuesta', 'Cerrado', 'Perdido'];
+  public barChartLabels: string[] = ['Nuevos', 'Contact.', 'Demo', 'Negoc.', 'Cerrado', 'Perdido'];
   public barChartDatasets: ChartConfiguration<'bar'>['data']['datasets'] = [
     { data: [0, 0, 0, 0, 0, 0], backgroundColor: '#6366f1', borderRadius: 4 }
   ];
@@ -195,6 +231,29 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
       }
     }
   };
+  totalPetTrendRequests = 0;
+  public petTrendChartLabels: string[] = [];
+  public petTrendChartDatasets: ChartConfiguration<'line'>['data']['datasets'] = [
+    {
+      data: [],
+      label: 'Solicitudes',
+      borderColor: '#0f766e',
+      backgroundColor: 'rgba(15, 118, 110, 0.14)',
+      pointBackgroundColor: '#0f766e',
+      pointRadius: 4,
+      tension: 0.35,
+      fill: true
+    }
+  ];
+  public petTrendChartOptions: ChartConfiguration<'line'>['options'] = {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: { legend: { display: false } },
+    scales: {
+      y: { beginAtZero: true, ticks: { stepSize: 1, precision: 0 } },
+      x: { grid: { display: false } }
+    }
+  };
 
   // Configuracion del grafico de gastos
   public expensesChartLabels: string[] = [];
@@ -215,6 +274,13 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
 
   taskSummaryCards: Array<{ label: string; value: number; tone: 'warn' | 'blue' | 'green' | 'neutral' }> = [];
   operationalAlerts: Array<{ level: 'high' | 'medium' | 'info'; title: string; detail: string }> = [];
+  petSupportRequests: any[] = [];
+  petProfiles: any[] = [];
+  petProviders: any[] = [];
+  petProviderServices: any[] = [];
+  companyMembersCount = 0;
+  companyActiveVouchersCount = 0;
+  benefitUsageRecords: any[] = [];
   selectedEntityType: 'lead' | 'sede' | 'cama' | 'paciente' | null = null;
   selectedEntityId: string | null = null;
   taskFilters = {
@@ -227,6 +293,15 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
     query: '',
     status: 'all',
     comuna: ''
+  };
+  petRequestFilters = {
+    query: '',
+    status: 'all',
+    channel: ''
+  };
+  petTableFilters = {
+    query: '',
+    species: 'all'
   };
   configSearch = '';
   configSection: ConfigSection = 'appearance';
@@ -250,7 +325,7 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
   parameterDraft: any = { key: '', label: '', value: '', value_type: 'text', description: '' };
   documentDraft: any = { document_type: 'company_file', title: '', entity_type: 'company', storage_path: '' };
   commentDraft: any = { entity_type: 'company', entity_id: null, body: '', visibility: 'internal' };
-  onboardingDraft: any = { title: 'Activacion de empresa', starts_at: null };
+  onboardingDraft: any = { title: 'Activacion del negocio', starts_at: null };
   onboardingStepDraft: any = { project_id: null, title: '', description: '', step_key: '' };
   brandingDraft: any = {
     logo_url: '',
@@ -289,19 +364,90 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
   }
 
   get currentViewLabel(): string {
+    if (this.companyConfigMode) {
+      return this.companyDashboardViewLabels[this.currentView] || 'Resumen';
+    }
+
     return this.dashboardViewLabels[this.currentView] || 'Dashboard';
   }
 
+  get shellSubtitle(): string {
+    return this.companyConfigMode ? 'v1.0 · Profesional' : 'Panel de gestion';
+  }
+
+  get currentUserLabel(): string {
+    return this.companyConfigMode ? 'Empresa' : 'Administrador';
+  }
+
+  get currentUserRoleLabel(): string {
+    return this.companyConfigMode ? 'Company admin' : 'Super admin';
+  }
+
+  get topbarStatusLabel(): string {
+    return this.companyConfigMode ? 'Espacio Pro' : 'Sistema operativo';
+  }
+
+  get newDemoRequestsCount(): number {
+    return this.demoRequests.filter((request) => (request.status || 'new') === 'new').length;
+  }
+
+  get contactedDemoRequestsCount(): number {
+    return this.demoRequests.filter((request) => request.status === 'contacted').length;
+  }
+
+  get qualifiedDemoRequestsCount(): number {
+    return this.demoRequests.filter((request) => request.status === 'qualified').length;
+  }
+
   get dashboardSummaryCards(): Array<{ label: string; value: string | number; detail: string; icon: string; tone: SummaryTone }> {
+    if (this.companyConfigMode) {
+      const openRequests = this.petSupportRequests.filter((request) => !['resolved', 'closed', 'cancelled'].includes(request.status)).length;
+      const completeProfiles = this.petProfiles.filter((pet) => !!pet.microchip_number && !!pet.vaccine_status && pet.vaccine_status !== 'unknown').length;
+
+      return [
+        {
+          label: 'Reportes abiertos',
+          value: openRequests,
+          detail: `${this.petSupportRequests.length} reportes totales`,
+          icon: 'forum',
+          tone: openRequests > 0 ? 'blue' : 'green'
+        },
+        {
+          label: 'Mascotas registradas',
+          value: this.petProfiles.length,
+          detail: `${completeProfiles} con datos clave completos`,
+          icon: 'pets',
+          tone: this.petProfiles.length > 0 ? 'primary' : 'neutral'
+        },
+        {
+          label: 'Clientes',
+          value: this.companyMembersCount,
+          detail: 'Tutores asociados al negocio',
+          icon: 'groups',
+          tone: this.companyMembersCount > 0 ? 'green' : 'neutral'
+        },
+        {
+          label: 'Beneficios configurados',
+          value: this.companyActiveBenefitsCount,
+          detail: 'Coberturas internas disponibles',
+          icon: 'local_activity',
+          tone: this.companyActiveBenefitsCount > 0 ? 'warn' : 'neutral'
+        }
+      ];
+    }
+
     const pendingTasks = this.tareas.filter((task) => task.status === 'pending').length;
     const openLeads = this.leads.filter((lead) => !['cerrado', 'perdido'].includes(lead.estado)).length;
     const activeAlerts = this.operationalAlerts.filter((alert) => alert.level !== 'info').length;
+    const activeCompanies = this._allClientCompanies.filter((c: any) =>
+      (c.subscriptions || []).some((s: any) => s.status === 'active')
+    ).length;
 
     return [
       {
-        label: 'Admisiones abiertas',
+        label: 'Prospectos activos',
         value: openLeads,
-        detail: `${this.totalLeads} admisiones totales`,
+        detail: `${this.totalLeads} leads totales en pipeline`,
         icon: 'view_kanban',
         tone: openLeads > 0 ? 'blue' : 'neutral'
       },
@@ -313,11 +459,11 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
         tone: pendingTasks > 0 ? 'warn' : 'green'
       },
       {
-        label: 'Camas libres',
-        value: this.camasDisponibles,
-        detail: this.camasTotales > 0 ? `${this.porcentajeOcupacion}% de ocupaci\u00f3n` : 'Sin camas registradas',
-        icon: 'bed',
-        tone: this.camasDisponibles === 0 && this.camasTotales > 0 ? 'danger' : 'primary'
+        label: 'Empresas activas',
+        value: activeCompanies,
+        detail: `${this._allClientCompanies.length} empresas registradas`,
+        icon: 'business',
+        tone: activeCompanies > 0 ? 'primary' : 'neutral'
       },
       {
         label: 'Alertas activas',
@@ -330,6 +476,26 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
   }
 
   get dashboardActionItems(): Array<{ title: string; detail: string; icon: string; view: DashboardView; tone: SummaryTone }> {
+    if (this.companyConfigMode) {
+      const openRequests = this.petSupportRequests.filter((request) => !['resolved', 'closed', 'cancelled'].includes(request.status)).length;
+      const missingMicrochip = this.petProfiles.filter((pet) => !pet.microchip_number).length;
+      const items: Array<{ title: string; detail: string; icon: string; view: DashboardView; tone: SummaryTone }> = [];
+
+      if (openRequests > 0) {
+        items.push({ title: 'Revisar reportes pet', detail: `${openRequests} casos abiertos requieren seguimiento`, icon: 'forum', view: 'admisiones', tone: 'blue' });
+      }
+      if (missingMicrochip > 0) {
+        items.push({ title: 'Completar datos legales', detail: `${missingMicrochip} fichas sin microchip registrado`, icon: 'badge', view: 'pacientes', tone: 'warn' });
+      }
+      if (this.companyActiveBenefitsCount === 0) {
+        items.push({ title: 'Configurar beneficios pet', detail: 'Aun no hay beneficios operativos disponibles para empleados', icon: 'local_activity', view: 'vouchers', tone: 'warn' });
+      }
+      if (!items.length) {
+        items.push({ title: 'Mantener fichas actualizadas', detail: 'La operacion pet esta sin alertas criticas', icon: 'check_circle', view: 'config', tone: 'green' });
+      }
+      return items;
+    }
+
     const now = new Date();
     const overdueTasks = this.tareas.filter((task) => task.due_at && task.status !== 'done' && new Date(task.due_at) < now).length;
     const newLeads = this.kanbanData['nuevo']?.length || 0;
@@ -339,15 +505,24 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
       items.push({ title: 'Resolver tareas vencidas', detail: `${overdueTasks} pendientes fuera de plazo`, icon: 'priority_high', view: 'tareas', tone: 'danger' });
     }
     if (newLeads > 0) {
-      items.push({ title: 'Contactar admisiones nuevas', detail: `${newLeads} consultas esperan primer contacto`, icon: 'record_voice_over', view: 'admisiones', tone: 'blue' });
+      items.push({ title: 'Contactar nuevos prospectos', detail: `${newLeads} empresas esperan primer contacto`, icon: 'record_voice_over', view: 'admisiones', tone: 'blue' });
     }
-    if (this.camasTotales > 0 && this.camasDisponibles <= 2) {
-      items.push({ title: 'Revisar disponibilidad', detail: `${this.camasDisponibles} camas libres registradas`, icon: 'bed', view: 'camas', tone: this.camasDisponibles === 0 ? 'danger' : 'warn' });
+    if (this.newDemoRequestsCount > 0) {
+      items.push({ title: 'Responder solicitudes demo', detail: `${this.newDemoRequestsCount} empresas pidieron contacto`, icon: 'campaign', view: 'demos', tone: 'blue' });
     }
     return items.slice(0, 5);
   }
 
   get latestOperationalEvents(): Array<{ title: string; detail: string; icon: string; created_at: string }> {
+    if (this.companyConfigMode) {
+      return this.petSupportRequests.slice(0, 6).map((request) => ({
+        title: request.title || 'Solicitud pet',
+        detail: `${this.petRequestStatusLabel(request.status)} · ${this.petChannelLabel(request.channel)}`,
+        icon: 'pets',
+        created_at: request.created_at || request.updated_at || new Date().toISOString()
+      }));
+    }
+
     const taskEvents = this.tareas.slice(0, 3).map((task) => ({
       title: task.title || 'Tarea sin titulo',
       detail: this.statusLabel(task.status),
@@ -437,32 +612,60 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
   }
 
   get allInvoicesView() {
-    return this.patientInvoices.map(inv => {
-      const patient = this.pacientes.find(p => p.id === inv.patient_id);
-      return {
-        ...inv,
-        patientName: patient ? `${patient.first_name} ${patient.last_name}` : 'Paciente desconocido',
-        document: patient ? patient.document_id : '-'
-      };
-    }).sort((a, b) => new Date(b.issue_date).getTime() - new Date(a.issue_date).getTime());
+    if (this.companyConfigMode) {
+      return this.patientInvoices.map(inv => {
+        const patient = this.pacientes.find(p => p.id === inv.patient_id);
+        return {
+          ...inv,
+          patientName: patient ? `${patient.first_name} ${patient.last_name}` : 'Paciente desconocido',
+          document: patient ? patient.document_id : '-'
+        };
+      }).sort((a, b) => new Date(b.issue_date).getTime() - new Date(a.issue_date).getTime());
+    }
+
+    return (this._allCompanyInvoices || []).map(inv => ({
+      ...inv,
+      patientName: (inv.company as any)?.name || 'Empresa desconocida',
+      document: (inv.company as any)?.tax_id || '-',
+      issue_date: inv.created_at,
+      amount: inv.amount_due
+    })).sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
   }
 
   get pacientesActivos() {
-    // Mapear los pacientes reales y cruzar con la cama que tienen asignada
-    return this.pacientes.filter(p => p.status === 'active').map(p => {
-      const cama = this.camasDetalle.find(c => c.paciente_id === p.id);
-      const contract = this.patientContracts.find(c => c.patient_id === p.id);
+    if (this.companyConfigMode) {
+      return this.pacientes.filter(p => p.status === 'active').map(p => {
+        const cama = this.camasDetalle.find(c => c.paciente_id === p.id);
+        const contract = this.patientContracts.find(c => c.patient_id === p.id);
+        return {
+          id: p.id,
+          nombreCompleto: `${p.first_name} ${p.last_name}`,
+          documento: p.document_id || 'N/A',
+          contacto: p.emergency_contact_name ? `${p.emergency_contact_name} (${p.emergency_contact_phone || '-'})` : 'Sin contacto',
+          camaAsignada: cama ? `${cama.sede} - ${cama.id}` : 'Sin cama',
+          cama_id: cama ? cama.dbId : null,
+          monthly_fee: contract?.monthly_fee || 0,
+          guarantor_name: contract?.guarantor_name || 'Sin tutor',
+          contract_id: contract?.id || null,
+          raw: p
+        };
+      });
+    }
+
+    return (this._allClientCompanies || []).map(c => {
+      const subs = (c.subscriptions || []).filter((s: any) => s.status === 'active');
+      const sub = subs.length > 0 ? subs[0] : (c.subscriptions || [])[0];
       return {
-        id: p.id,
-        nombreCompleto: `${p.first_name} ${p.last_name}`,
-        documento: p.document_id || 'N/A',
-        contacto: p.emergency_contact_name ? `${p.emergency_contact_name} (${p.emergency_contact_phone || '-'})` : 'Sin contacto',
-        camaAsignada: cama ? `${cama.sede} - ${cama.id}` : 'Sin cama',
-        cama_id: cama ? cama.dbId : null,
-        monthly_fee: contract?.monthly_fee || 0,
-        guarantor_name: contract?.guarantor_name || 'Sin tutor',
-        contract_id: contract?.id || null,
-        raw: p
+        id: c.id,
+        nombreCompleto: c.name || 'Empresa sin nombre',
+        documento: c.tax_id || 'Sin RUT',
+        contacto: sub?.status === 'active' ? 'Activo' : (sub?.status || 'Sin suscripci\u00f3n'),
+        camaAsignada: sub?.plan_tier || '-',
+        cama_id: null,
+        monthly_fee: 0,
+        guarantor_name: c.domain || 'Sin contacto',
+        contract_id: sub?.id || null,
+        raw: c
       };
     });
   }
@@ -485,27 +688,137 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
   }
 
   get hasOperationalAccess(): boolean {
-    return this.profileRole === 'admin' || this.hasActivePlan;
+    if (this.companyConfigMode) return true;
+    return this.profileRole === 'admin' || this.profileRole === 'company_admin' || this.hasActivePlan;
+  }
+
+  get benefitUsageTotalClaimed(): number {
+    return this.benefitUsageRecords.reduce((total, record) => total + Number(record.amount_claimed || 0), 0);
+  }
+
+  get benefitUsagePendingCount(): number {
+    return this.benefitUsageRecords.filter((record) => record.status === 'pending').length;
+  }
+
+  get benefitUsageApprovedCount(): number {
+    return this.benefitUsageRecords.filter((record) => ['approved', 'reimbursed'].includes(record.status)).length;
+  }
+
+  get benefitUsageApprovedAmount(): number {
+    return this.benefitUsageRecords
+      .filter((record) => ['approved', 'reimbursed'].includes(record.status))
+      .reduce((total, record) => total + Number(record.amount_claimed || 0), 0);
+  }
+
+  get benefitUsagePendingAmount(): number {
+    return this.benefitUsageRecords
+      .filter((record) => record.status === 'pending')
+      .reduce((total, record) => total + Number(record.amount_claimed || 0), 0);
+  }
+
+  get companyActiveBenefitsCount(): number {
+    return this.petProviderServices.filter((service) => service.active !== false).length;
+  }
+
+  get openPetRequestsCount(): number {
+    return this.petSupportRequests.filter((request) => !['resolved', 'closed', 'cancelled'].includes(request.status)).length;
+  }
+
+  get completePetProfilesCount(): number {
+    return this.petProfiles.filter((pet) => !!pet.microchip_number && !!pet.vaccine_status && pet.vaccine_status !== 'unknown').length;
+  }
+
+  get recentPetRequests(): any[] {
+    return this.petSupportRequests.slice(0, 7);
+  }
+
+  get recentPets(): any[] {
+    return this.petProfiles.slice(0, 5);
+  }
+
+  get filteredCompanyPets(): any[] {
+    const query = this.petTableFilters.query.trim().toLowerCase();
+    const species = this.petTableFilters.species;
+
+    return this.petProfiles.filter((pet) => {
+      const petSpecies = (pet.species || '').toLowerCase();
+      const speciesMatch =
+        species === 'all'
+        || (species === 'dog' && ['dog', 'perro', 'canino'].includes(petSpecies))
+        || (species === 'cat' && ['cat', 'gato', 'felino'].includes(petSpecies))
+        || (species === 'other' && !['dog', 'perro', 'canino', 'cat', 'gato', 'felino'].includes(petSpecies));
+
+      if (!query) return speciesMatch;
+
+      const haystack = [
+        pet.name,
+        pet.species,
+        pet.breed,
+        pet.owner?.full_name,
+        pet.owner?.email,
+        pet.microchip_number,
+        pet.veterinary_clinic_name
+      ].filter(Boolean).join(' ').toLowerCase();
+
+      return speciesMatch && haystack.includes(query);
+    });
+  }
+
+  get activeBenefitsPreview(): any[] {
+    return this.petProviderServices.filter((service) => service.active !== false).slice(0, 4);
+  }
+
+  get erpTodayLabel(): string {
+    return new Intl.DateTimeFormat('es-CL', {
+      weekday: 'long',
+      day: 'numeric',
+      month: 'short',
+      year: 'numeric'
+    }).format(new Date());
+  }
+
+  getInitials(value: string | null | undefined): string {
+    const words = String(value || '')
+      .trim()
+      .split(/\s+/)
+      .filter(Boolean);
+    return (words[0]?.[0] || 'P').toUpperCase() + (words[1]?.[0] || '').toUpperCase();
+  }
+
+  async updateBenefitUsageStatus(usage: any, status: 'approved' | 'rejected' | 'reimbursed') {
+    const { error } = await this.supabase.client
+      .from('benefit_usage')
+      .update({
+        status,
+        approved_at: status === 'approved' || status === 'reimbursed' ? new Date().toISOString() : null,
+        approved_by: this.auth.user?.id || null
+      })
+      .eq('id', usage.id);
+
+    if (error) return this.flash('No se pudo actualizar el uso del beneficio.');
+    usage.status = status;
+    usage.approved_at = status === 'approved' || status === 'reimbursed' ? new Date().toISOString() : null;
+    this.flash('Uso del beneficio actualizado.');
   }
 
   get planGateMessage(): string {
     return this.hasActivePlan
-      ? `Plan activo: ${this.activePlanTier || 'empresa'}`
-      : 'Contrata un plan para activar sedes, camas, pacientes, admisiones, tareas, empleados y vouchers.';
+      ? `Plan activo: ${this.activePlanTier || 'plataforma'}`
+      : 'Contrata un plan para activar empleados, mascotas, agenda, reportes, beneficios y seguimiento.';
   }
 
-  // --- Estado del tablero Kanban de Admisiones ---
+  // --- Estado del tablero Kanban de Ventas B2B ---
   kanbanColumns: { id: LeadStatus; label: string }[] = [
-    { id: 'nuevo', label: 'Nuevas Consultas' },
+    { id: 'nuevo', label: 'Nuevo prospecto' },
     { id: 'contactado', label: 'Contactado' },
-    { id: 'evaluacion', label: 'Evaluacion Clinica' },
-    { id: 'match', label: 'Propuesta' },
-    { id: 'cerrado', label: 'Ingresado / Cerrado' },
+    { id: 'demo', label: 'Demo programada' },
+    { id: 'negociacion', label: 'Negociacion' },
+    { id: 'cerrado', label: 'Cliente / Cerrado' },
     { id: 'perdido', label: 'Perdido' }
   ];
   // Usamos un Record para que sea ms seguro y fcil de acceder
   kanbanData: Record<LeadStatus, any[]> = {
-    nuevo: [], contactado: [], evaluacion: [], match: [], cerrado: [], perdido: []
+    nuevo: [], contactado: [], demo: [], negociacion: [], cerrado: [], perdido: []
   };
 
   get totalKanbanLeads(): number {
@@ -519,9 +832,9 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
   getKanbanColumnHint(columnId: LeadStatus): string {
     const hints: Record<LeadStatus, string> = {
       nuevo: 'Entrada del pipeline',
-      contactado: 'Primer seguimiento',
-      evaluacion: 'Validacion clinica',
-      match: 'Definicion comercial',
+      contactado: 'Primer contacto con la empresa',
+      demo: 'Demo agendada con el prospecto',
+      negociacion: 'Propuesta comercial en curso',
       cerrado: 'Resultado favorable',
       perdido: 'Salida no concretada'
     };
@@ -536,15 +849,15 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
 
   getKanbanEmptyHint(columnId: LeadStatus): string {
     if (this.hasActiveLeadFilters()) {
-      return 'Prueba con otro texto, comuna o etapa para ampliar el resultado.';
+      return 'Prueba con otro texto o filtro para ampliar el resultado.';
     }
     const hints: Record<LeadStatus, string> = {
-      nuevo: 'Las nuevas consultas apareceran aquii.',
-      contactado: 'Arrastra una consulta cuando ya exista contacto inicial.',
-      evaluacion: 'Mueve aquii los casos que requieran evaluacion clinica.',
-      match: 'Usa esta etapa para propuestas o ajuste de oferta.',
-      cerrado: 'Los ingresos concretados quedan agrupados aquii.',
-      perdido: 'Marca aquii los casos que no avanzaron.'
+      nuevo: 'Los nuevos prospectos apareceran aqui al solicitar contacto.',
+      contactado: 'Arrastra un prospecto cuando ya exista contacto inicial.',
+      demo: 'Mueve aqui los prospectos con demo programada.',
+      negociacion: 'Usa esta etapa para propuestas comerciales activas.',
+      cerrado: 'Los clientes concretados quedan agrupados aqui.',
+      perdido: 'Marca aqui los prospectos que no avanzaron.'
     };
     return hints[columnId];
   }
@@ -555,9 +868,12 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
     return (this.kanbanData[columnId] || []).filter((lead) => {
       const haystack = [
         lead.nombre,
+        lead.company_name,
+        lead.contact_name,
+        lead.email,
         lead.comuna,
         lead.dependencia
-      ].join(' ').toLowerCase();
+      ].filter(Boolean).join(' ').toLowerCase();
       const matchesQuery = !query || haystack.includes(query);
       const matchesComuna = !comuna || String(lead.comuna || '').toLowerCase().includes(comuna);
       return matchesQuery && matchesComuna;
@@ -596,12 +912,14 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
   async ngOnInit() {
     if (this.companyConfigMode) {
       this.configSection = 'company';
+      this.currentView = 'metricas';
     }
 
     this.route.queryParamMap.subscribe((params) => {
       const requestedView = params.get('view') as any;
       if (requestedView) {
-        this.currentView = requestedView;
+        const normalizedView = requestedView === 'sedes' ? 'camas' : requestedView;
+        this.currentView = this.companyConfigMode ? this.normalizeCompanyConfigView(normalizedView) : normalizedView;
       }
       this.selectedEntityType = (params.get('entityType') as any) || null;
       this.selectedEntityId = params.get('entityId');
@@ -630,6 +948,9 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
         // Recargamos los datos para reflejar el estado actual
         this.loadData();
       })
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'demo_requests' }, () => {
+        this.loadDemoRequests();
+      })
       .subscribe();
   }
 
@@ -647,6 +968,12 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
         .eq('id', userId)
         .maybeSingle();
       this.profileRole = (profileData?.role as string | undefined) ?? null;
+      if (this.profileRole && this.profileRole !== 'admin') {
+        this.companyConfigMode = true;
+        this.hideWorkflowConfig = true;
+        this.currentView = this.normalizeCompanyConfigView(this.currentView);
+      }
+      await this.loadDemoRequests();
 
       // 2. Obtener el company_id del usuario (para mostrar solo lo de su empresa)
       const { data: memberData } = await this.supabase.client
@@ -655,64 +982,82 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
         .eq('user_id', userId)
         .maybeSingle();
       
-      const companyId = memberData?.company_id;
-      if (!companyId) {
-        this.companyId = null;
-        this.hasActivePlan = false;
-        this.activePlanTier = null;
-        this.sedes = [];
-        this.camasDetalle = [];
-        return;
-      }
+      const companyId = memberData?.company_id ?? null;
       this.companyId = companyId;
 
-      const { data: activeSubscription } = await this.supabase.client
-        .from('company_subscriptions')
-        .select('plan_tier,status,current_period_end')
-        .eq('company_id', companyId)
-        .eq('status', 'active')
-        .or(`current_period_end.is.null,current_period_end.gte.${new Date().toISOString()}`)
-        .order('current_period_end', { ascending: false, nullsFirst: false })
-        .limit(1)
-        .maybeSingle();
-      this.hasActivePlan = !!activeSubscription;
-      this.activePlanTier = (activeSubscription?.plan_tier as string | undefined) ?? null;
+      if (companyId) {
+        const { data: activeSubscription } = await this.supabase.client
+          .from('company_subscriptions')
+          .select('plan_tier,status,current_period_end')
+          .eq('company_id', companyId)
+          .eq('status', 'active')
+          .or(`current_period_end.is.null,current_period_end.gte.${new Date().toISOString()}`)
+          .order('current_period_end', { ascending: false, nullsFirst: false })
+          .limit(1)
+          .maybeSingle();
+        this.hasActivePlan = !!activeSubscription;
+        this.activePlanTier = (activeSubscription?.plan_tier as string | undefined) ?? null;
+      } else {
+        this.hasActivePlan = this.profileRole === 'admin' || this.profileRole === 'company_admin';
+        this.activePlanTier = null;
+      }
+
+      if (this.companyConfigMode && companyId) {
+        await this.loadCompanyPetOperations(companyId);
+        await this.loadErpOperationalModules(companyId);
+        return;
+      }
 
       if (this.isPlanLockedView(this.currentView)) {
         this.currentView = 'metricas';
       }
 
-      // Cargar sedes (providers) de la empresa para que aparezcan en el selector, 
-      // incluso si an no tienen camas asignadas.
-      const { data: providersData } = await this.supabase.client
-        .from('providers')
-        .select('*')
-        .eq('company_id', companyId);
+      const eqCompany = (col: string) => companyId ? this.supabase.client.from(col).select('*').eq('company_id', companyId) : this.supabase.client.from(col).select('*');
+      const eqCompanyFallback = async (col: string, target: any[], errPrefix: string) => {
+        const { data, error } = await eqCompany(col);
+        if (error && !this.isMissingRelationError(error, col)) {
+          console.warn(`${errPrefix}:`, error.message);
+        }
+        (target as any[]).length = 0;
+        if (data) target.push(...data);
+      };
+
+      const { data: providersData } = await eqCompany('providers');
       this.rawProviders = providersData || [];
 
-      // Cargar tabla de Pacientes
-      const { data: patientsData } = await this.supabase.client.from('patients').select('*').eq('company_id', companyId);
-      this.pacientes = patientsData || [];
+      await eqCompanyFallback('patients', this.pacientes, 'patients');
+      await eqCompanyFallback('patient_contracts', this.patientContracts, 'patient_contracts');
+      await eqCompanyFallback('patient_invoices', this.patientInvoices, 'patient_invoices');
 
-      const { data: contractsData, error: contractsError } = await this.supabase.client
-        .from('patient_contracts')
-        .select('*')
-        .eq('company_id', companyId);
-      if (contractsError && !this.isMissingRelationError(contractsError, 'patient_contracts')) throw contractsError;
-      this.patientContracts = contractsData || [];
+      // B2B: Cargar empresas cliente y facturación corporativa (solo admin mode)
+      const { data: clientCos, error: clientCoErr } = await this.supabase.client
+        .from('companies')
+        .select('*, subscriptions:company_subscriptions(*)');
+      if (!clientCoErr) {
+        this._allClientCompanies = clientCos || [];
+      } else {
+        this._allClientCompanies = [];
+      }
 
-      const { data: invoicesData, error: invoicesError } = await this.supabase.client
-        .from('patient_invoices')
-        .select('*')
-        .eq('company_id', companyId);
-      if (invoicesError && !this.isMissingRelationError(invoicesError, 'patient_invoices')) throw invoicesError;
-      this.patientInvoices = invoicesData || [];
+      const { data: corpInvs, error: corpInvErr } = await this.supabase.client
+        .from('company_invoices')
+        .select('*, company:companies(name, tax_id)');
+      if (!corpInvErr) {
+        this._allCompanyInvoices = corpInvs || [];
+      } else {
+        this._allCompanyInvoices = [];
+      }
 
-      const { data: gastosData } = await this.supabase.client.from('company_expenses').select('*').eq('company_id', companyId).order('expense_date', { ascending: false });
+      let gastosQ = this.supabase.client.from('company_expenses').select('*');
+      if (companyId) gastosQ = gastosQ.eq('company_id', companyId);
+      const { data: gastosData } = await gastosQ.order('expense_date', { ascending: false });
       this.gastos = gastosData || [];
 
       // Calcular balance financiero (Ingresos pagados vs Gastos totales)
-      this.totalIngresos = this.patientInvoices.filter(i => i.status === 'paid').reduce((sum, i) => sum + Number(i.amount || 0), 0);
+      const paidPatientInvoices = this.patientInvoices.filter(i => i.status === 'paid');
+      const paidCompanyInvoices = this._allCompanyInvoices.filter(i => i.status === 'paid');
+      this.totalIngresos = paidPatientInvoices.reduce((sum, i) => sum + Number(i.amount || 0), 0)
+        + paidCompanyInvoices.reduce((sum, i) => sum + Number(i.amount_paid || 0), 0);
       this.totalGastos = this.gastos.reduce((sum, g) => sum + Number(g.amount || 0), 0);
 
       // Procesar datos para el grafico de gastos
@@ -731,10 +1076,16 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
       ];
 
       // 3. Obtener los cupos/camas de la empresa junto a la info de su sede (provider)
-      const { data: resources } = await this.supabase.client
+      let resourcesQuery = this.supabase.client
         .from('care_resources')
-        .select('*, provider:providers(id, name, area), patient:patients(id, first_name, last_name)')
-        .eq('company_id', companyId);
+        .select('*, provider:providers(id, name, area), patient:patients(id, first_name, last_name)');
+      if (companyId) resourcesQuery = resourcesQuery.eq('company_id', companyId);
+      const { data: resources, error: resourcesError } = await resourcesQuery;
+      if (
+        resourcesError &&
+        !this.isMissingRelationError(resourcesError, 'care_resources') &&
+        !this.isMissingRelationError(resourcesError, 'patients')
+      ) throw resourcesError;
 
       const resArray = resources || [];
 
@@ -750,7 +1101,7 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
           paciente: r.patient ? `${r.patient.first_name} ${r.patient.last_name}` : '-'
       }));
 
-      // 5. Agrupar las camas por Proveedor/Sede para armar la tabla "Mis Sedes"
+      // 5. Agrupar los servicios por responsable para calcular disponibilidad.
       const sedesMap = new Map<string, any>();
       
       // Inicializar el mapa con las sedes vacas
@@ -812,11 +1163,9 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
       ];
 
       // 7. Cargar Leads para el Kanban de Admisiones
-      const { data: leadsData, error: leadsError } = await this.supabase.client
-        .from('leads')
-        .select('*')
-        .eq('company_id', companyId);
-
+      let leadsQuery = this.supabase.client.from('leads').select('*');
+      if (companyId) leadsQuery = leadsQuery.eq('company_id', companyId);
+      const { data: leadsData, error: leadsError } = await leadsQuery;
       if (leadsError) throw leadsError;
       this.leads = leadsData || [];
 
@@ -840,8 +1189,8 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
           data: [
             this.kanbanData['nuevo'].length,
             this.kanbanData['contactado'].length,
-            this.kanbanData['evaluacion'].length,
-            this.kanbanData['match'].length,
+            this.kanbanData['demo'].length,
+            this.kanbanData['negociacion'].length,
             this.kanbanData['cerrado'].length,
             this.kanbanData['perdido'].length
           ],
@@ -852,10 +1201,9 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
       ];
 
       // 8. Cargar Empleados para selectores
-      const { data: membersData, error: membersError } = await this.supabase.client
-        .from('company_members')
-        .select('user_id, profiles(full_name, email)')
-        .eq('company_id', companyId);
+      let membersQ = this.supabase.client.from('company_members').select('user_id, profiles(full_name, email)');
+      if (companyId) membersQ = membersQ.eq('company_id', companyId);
+      const { data: membersData, error: membersError } = await membersQ;
       
       if (membersError) console.warn('No se pudieron cargar los empleados:', membersError.message);
       this.empleados = (membersData || []).map(m => ({
@@ -1005,8 +1353,8 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
     const labels: Record<string, string> = {
       nuevo: 'Nuevo',
       contactado: 'Contactado',
-      evaluacion: 'En evaluaci\u00f3n',
-      match: 'Propuesta',
+      demo: 'Demo programada',
+      negociacion: 'Negociaci\u00f3n',
       cerrado: 'Cerrado',
       perdido: 'Perdido'
     };
@@ -1015,12 +1363,18 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
 
   careTypeLabel(value: string | null | undefined): string {
     const labels: Record<string, string> = {
-      guidance: 'Orientaci\u00f3n general',
-      home_care: 'Cuidados a domicilio',
+      guidance: 'Orientacion veterinaria',
+      home_care: 'Pet sitting / domicilio',
       residential: 'Hotel para mascotas',
-      nursing: 'Enfermer\u00eda',
-      dementia: 'Demencia / Alzheimer',
-      respite: 'Cuidado de respiro'
+      veterinary: 'Consulta veterinaria',
+      daycare: 'Guarderia o cupo diario',
+      walking: 'Paseo de mascotas',
+      grooming: 'Bano y peluqueria',
+      training: 'Entrenamiento',
+      voucher: 'Servicios o descuentos',
+      nursing: 'Control veterinario',
+      dementia: 'Conducta / ansiedad',
+      respite: 'Guarderia temporal'
     };
     return labels[value || ''] || value || 'Sin dato';
   }
@@ -1030,9 +1384,81 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
       low: 'Baja',
       medium: 'Media',
       high: 'Alta',
-      full: 'Dependencia total'
+      full: 'Urgente / seguimiento permanente'
     };
     return labels[value || ''] || value || 'Sin dato';
+  }
+
+  speciesLabel(value: string | null | undefined): string {
+    const labels: Record<string, string> = {
+      dog: 'Perro',
+      cat: 'Gato',
+      other: 'Otra especie'
+    };
+    return labels[value || ''] || value || 'Sin dato';
+  }
+
+  petSexLabel(value: string | null | undefined): string {
+    const labels: Record<string, string> = {
+      female: 'Hembra',
+      male: 'Macho',
+      unknown: 'Sin dato'
+    };
+    return labels[value || ''] || value || 'Sin dato';
+  }
+
+  yesNoUnknownLabel(value: string | null | undefined): string {
+    const labels: Record<string, string> = {
+      yes: 'Si',
+      no: 'No',
+      unknown: 'Sin dato'
+    };
+    return labels[value || ''] || value || 'Sin dato';
+  }
+
+  vaccinesStatusLabel(value: string | null | undefined): string {
+    const labels: Record<string, string> = {
+      up_to_date: 'Al dia',
+      pending: 'Pendientes',
+      unknown: 'Sin dato'
+    };
+    return labels[value || ''] || value || 'Sin dato';
+  }
+
+  petSpeciesBadgeClass(value: string | null | undefined): string {
+    const normalized = (value || '').toLowerCase();
+    if (['dog', 'perro', 'canino'].includes(normalized)) return 'petcare-kind--dog';
+    if (['cat', 'gato', 'felino'].includes(normalized)) return 'petcare-kind--cat';
+    return 'petcare-kind--other';
+  }
+
+  petSpeciesIcon(value: string | null | undefined): string {
+    const normalized = (value || '').toLowerCase();
+    if (['dog', 'perro', 'canino'].includes(normalized)) return 'pets';
+    if (['cat', 'gato', 'felino'].includes(normalized)) return 'cruelty_free';
+    return 'favorite';
+  }
+
+  petAgeLabel(birthDate: string | null | undefined): string {
+    if (!birthDate) return 'Sin dato';
+    const birth = new Date(birthDate);
+    if (Number.isNaN(birth.getTime())) return 'Sin dato';
+
+    const now = new Date();
+    let years = now.getFullYear() - birth.getFullYear();
+    const monthDelta = now.getMonth() - birth.getMonth();
+    if (monthDelta < 0 || (monthDelta === 0 && now.getDate() < birth.getDate())) {
+      years -= 1;
+    }
+    if (years <= 0) return 'Menos de 1 año';
+    return `${years} año${years === 1 ? '' : 's'}`;
+  }
+
+  petTableStatusLabel(pet: any): string {
+    if (!pet.microchip_number) return 'Ficha incompleta';
+    if (!pet.vaccine_status || pet.vaccine_status === 'unknown') return 'Por revisar';
+    if (pet.vaccine_status === 'pending') return 'Vacunas pendientes';
+    return 'En regla';
   }
 
   preferredContactLabel(value: string | null | undefined): string {
@@ -1072,20 +1498,31 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
     this.loadingLeadDetail = true;
     try {
       const { data, error } = await this.supabase.client
-        .from('care_intakes')
-        .select('id, payload, created_at, updated_at')
-        .eq('company_id', lead.company_id)
+        .from('pet_support_requests')
+        .select('id, details, created_at, updated_at')
         .eq('employee_id', lead.employee_id)
         .order('updated_at', { ascending: false })
         .limit(1)
         .maybeSingle();
 
       if (error) throw error;
-      this.selectedLeadIntake = data || null;
+      this.selectedLeadIntake = data
+        ? { ...data, payload: this.parsePetSupportDetails((data as any).details) }
+        : null;
     } catch (error) {
       console.warn('No se pudo cargar la ficha de la admision:', error);
     } finally {
       this.loadingLeadDetail = false;
+    }
+  }
+
+  private parsePetSupportDetails(value: unknown): any {
+    if (!value) return {};
+    if (typeof value !== 'string') return value;
+    try {
+      return JSON.parse(value);
+    } catch {
+      return { notes: value };
     }
   }
 
@@ -1124,11 +1561,80 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
     link.click();
   }
 
+  async loadDemoRequests() {
+    this.loadingDemoRequests = true;
+    try {
+      const { data, error } = await this.supabase.client
+        .from('demo_requests')
+        .select('id, full_name, company_name, work_email, phone, message, source, status, created_at, updated_at')
+        .order('created_at', { ascending: false });
+
+      if (error) {
+        if (!this.isMissingRelationError(error, 'demo_requests')) {
+          console.warn('No se pudieron cargar las solicitudes demo:', error.message);
+        }
+        this.demoRequests = [];
+        return;
+      }
+
+      this.demoRequests = data || [];
+    } finally {
+      this.loadingDemoRequests = false;
+    }
+  }
+
+  async updateDemoRequestStatus(request: any, status: DemoRequestStatus) {
+    const { error } = await this.supabase.client
+      .from('demo_requests')
+      .update({ status })
+      .eq('id', request.id);
+
+    if (error) {
+      this.notifyError('No se pudo actualizar la solicitud demo.');
+      console.error('Error actualizando demo request:', error);
+      return;
+    }
+
+    this.demoRequests = this.demoRequests.map((item) =>
+      item.id === request.id ? { ...item, status } : item
+    );
+    this.notifySuccess('Solicitud demo actualizada.');
+  }
+
+  demoStatusLabel(status: string | null | undefined): string {
+    const labels: Record<DemoRequestStatus, string> = {
+      new: 'Nueva',
+      contacted: 'Contactada',
+      qualified: 'Calificada',
+      discarded: 'Descartada'
+    };
+    return labels[(status || 'new') as DemoRequestStatus] || 'Nueva';
+  }
+
+  demoStatusBadge(status: string | null | undefined): string {
+    const badges: Record<DemoRequestStatus, string> = {
+      new: 'badge-blue',
+      contacted: 'badge-warn',
+      qualified: 'badge-green',
+      discarded: 'badge-gray'
+    };
+    return badges[(status || 'new') as DemoRequestStatus] || 'badge-blue';
+  }
+
   isPlanLockedView(view: DashboardView): boolean {
+    if (this.companyConfigMode && this.isCompanyConfigView(view)) return false;
     return this.planLockedViews.has(view) && !this.hasOperationalAccess;
   }
 
   setView(view: DashboardView) {
+    if (view === 'sedes') view = 'camas';
+    if (this.companyConfigMode) {
+      this.currentView = this.normalizeCompanyConfigView(view);
+      this.mobileNavOpen = false;
+      this.clearSelectedEntity();
+      return;
+    }
+
     if (this.isPlanLockedView(view)) {
       this.notifyWarning('Necesitas un plan activo para usar este modulo.');
       return;
@@ -1138,12 +1644,291 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
     this.clearSelectedEntity();
   }
 
+  private isCompanyConfigView(view: DashboardView): boolean {
+    return ['metricas', 'admisiones', 'tareas', 'camas', 'pacientes', 'facturacion', 'gastos', 'empleados', 'vouchers', 'config'].includes(view);
+  }
+
+  private normalizeCompanyConfigView(view: DashboardView): DashboardView {
+    return this.isCompanyConfigView(view) ? view : 'config';
+  }
+
   toggleMobileNav() {
     this.mobileNavOpen = !this.mobileNavOpen;
   }
 
   closeMobileNav() {
     this.mobileNavOpen = false;
+  }
+
+  private async loadCompanyPetOperations(companyId: string): Promise<void> {
+    const [
+      requestsRes,
+      petsRes,
+      membersRes,
+      usageRes,
+    ] = await Promise.all([
+      this.supabase.client
+        .from('pet_support_requests')
+        .select('id,title,status,channel,created_at,updated_at,details,employee_id,pet_id')
+        .eq('company_id', companyId)
+        .order('created_at', { ascending: false })
+        .limit(200),
+      this.supabase.client
+        .from('pets')
+        .select('id,name,species,breed,birth_date,microchip_number,national_registry_number,vaccine_status,veterinary_clinic_name,veterinary_clinic_commune,chronic_conditions_allergies,current_medications,created_at,owner:profiles!pets_owner_id_fkey(full_name,email)')
+        .eq('company_id', companyId)
+        .order('created_at', { ascending: false }),
+      this.supabase.client
+        .from('company_members')
+        .select('user_id', { count: 'exact', head: true })
+        .eq('company_id', companyId),
+      this.supabase.client
+        .from('benefit_usage')
+        .select('id, amount_claimed, status, claimed_at, notes, employee:profiles!benefit_usage_employee_id_fkey(full_name,email), pet:pets!benefit_usage_pet_id_fkey(name), voucher:vouchers(title)')
+        .eq('company_id', companyId)
+        .order('claimed_at', { ascending: false })
+        .limit(25),
+    ]);
+
+    this.petSupportRequests = (requestsRes.data || []).map((request: any) => ({
+      ...request,
+      message: this.extractPetRequestMessage(request.details)
+    }));
+    this.petProfiles = petsRes.data || [];
+    this.companyMembersCount = membersRes.count || 0;
+    this.benefitUsageRecords = usageRes.data || [];
+    const { data: providersData } = await this.supabase.client
+      .from('providers')
+      .select('id,name,type,area,active')
+      .eq('company_id', companyId)
+      .order('created_at', { ascending: true });
+
+    this.petProviders = providersData || [];
+    this.sedes = (providersData || []).map((provider: any) => ({
+      id: provider.id,
+      nombre: provider.name,
+      ubicacion: provider.area,
+      tipo: provider.type,
+      active: provider.active
+    }));
+
+    const { data: servicesData } = await this.supabase.client
+      .from('provider_services')
+      .select('*, providers(name)')
+      .eq('company_id', companyId)
+      .order('created_at', { ascending: false });
+    this.petProviderServices = servicesData || [];
+
+    const withMicrochip = this.petProfiles.filter((pet) => !!pet.microchip_number).length;
+    const withoutMicrochip = this.petProfiles.length - withMicrochip;
+    this.camasTotales = this.petProfiles.length;
+    this.camasDisponibles = withMicrochip;
+    this.camasOcupadas = withMicrochip;
+    this.camasEnMantenimiento = withoutMicrochip;
+
+    const dogs = this.petProfiles.filter((pet) => ['dog', 'perro', 'canino'].includes((pet.species || '').toLowerCase())).length;
+    const cats = this.petProfiles.filter((pet) => ['cat', 'gato', 'felino'].includes((pet.species || '').toLowerCase())).length;
+    const otherSpecies = this.petProfiles.length - dogs - cats;
+    this.doughnutChartLabels = ['Perros', 'Gatos', 'Otras especies'];
+    this.doughnutChartDatasets = [
+      { data: [dogs, cats, otherSpecies], backgroundColor: ['#0f766e', '#f59e0b', '#8b5cf6'] }
+    ];
+
+    const requestStatuses = ['open', 'assigned', 'in_progress', 'resolved', 'closed', 'cancelled'];
+    this.totalLeads = this.petSupportRequests.length;
+    this.barChartLabels = ['Abiertas', 'Asignadas', 'En curso', 'Resueltas', 'Cerradas', 'Canceladas'];
+    this.barChartDatasets = [
+      {
+        data: requestStatuses.map((status) => this.petSupportRequests.filter((request) => request.status === status).length),
+        backgroundColor: ['#f59e0b', '#3b82f6', '#14b8a6', '#22c55e', '#64748b', '#ef4444'],
+        borderRadius: 4
+      }
+    ];
+
+    const hasKnownVaccines = (pet: any) => !!pet.vaccine_status && pet.vaccine_status !== 'unknown';
+    const completeProfiles = this.petProfiles.filter((pet) => !!pet.microchip_number && hasKnownVaccines(pet)).length;
+    const missingHealth = this.petProfiles.filter((pet) => !!pet.microchip_number && !hasKnownVaccines(pet)).length;
+    const missingLegal = this.petProfiles.filter((pet) => !pet.microchip_number && hasKnownVaccines(pet)).length;
+    const missingBoth = this.petProfiles.length - completeProfiles - missingHealth - missingLegal;
+    this.totalTareas = this.petProfiles.length;
+    this.tasksChartLabels = ['Completas', 'Falta salud', 'Falta legal', 'Faltan ambos'];
+    this.tasksChartDatasets = [
+      {
+        data: [completeProfiles, missingHealth, missingLegal, missingBoth],
+        backgroundColor: ['#22c55e', '#3b82f6', '#f59e0b', '#ef4444']
+      }
+    ];
+
+    const trendDays = Array.from({ length: 7 }, (_, offset) => {
+      const date = new Date();
+      date.setHours(0, 0, 0, 0);
+      date.setDate(date.getDate() - (6 - offset));
+      return date;
+    });
+    const trendData = trendDays.map((date) => {
+      const nextDay = new Date(date);
+      nextDay.setDate(nextDay.getDate() + 1);
+      return this.petSupportRequests.filter((request) => {
+        const createdAt = new Date(request.created_at);
+        return createdAt >= date && createdAt < nextDay;
+      }).length;
+    });
+    this.totalPetTrendRequests = trendData.reduce((total, count) => total + count, 0);
+    this.petTrendChartLabels = trendDays.map((date) =>
+      date.toLocaleDateString('es-CL', { weekday: 'short', day: 'numeric' })
+    );
+    this.petTrendChartDatasets = [
+      {
+        data: trendData,
+        label: 'Solicitudes',
+        borderColor: '#0f766e',
+        backgroundColor: 'rgba(15, 118, 110, 0.14)',
+        pointBackgroundColor: '#0f766e',
+        pointRadius: 4,
+        tension: 0.35,
+        fill: true
+      }
+    ];
+
+    const openRequests = this.petSupportRequests.filter((request) => !['resolved', 'closed', 'cancelled'].includes(request.status)).length;
+    const missingMicrochip = withoutMicrochip;
+    const alerts: Array<{ level: 'high' | 'medium' | 'info'; title: string; detail: string }> = [];
+
+    if (openRequests > 0) {
+      alerts.push({
+        level: openRequests >= 3 ? 'medium' : 'info',
+        title: 'Reportes pet abiertos',
+        detail: `${openRequests} caso${openRequests === 1 ? '' : 's'} requiere${openRequests === 1 ? '' : 'n'} seguimiento.`
+      });
+    }
+    if (missingMicrochip > 0) {
+      alerts.push({
+        level: 'medium',
+        title: 'Fichas sin microchip',
+        detail: `${missingMicrochip} mascota${missingMicrochip === 1 ? '' : 's'} sin microchip registrado.`
+      });
+    }
+
+    this.operationalAlerts = alerts.length
+      ? alerts
+      : [{
+          level: 'info',
+          title: 'Operacion pet estable',
+          detail: 'No hay alertas criticas en solicitudes ni fichas de mascotas.'
+        }];
+  }
+
+  petRequestStatusLabel(status: string | null | undefined): string {
+    const labels: Record<string, string> = {
+      open: 'Abierta',
+      assigned: this.companyConfigMode ? 'Vista' : 'Asignada',
+      in_progress: 'En curso',
+      resolved: 'Resuelta',
+      closed: 'Cerrada',
+      cancelled: 'Cancelada'
+    };
+    return labels[status || ''] || 'Sin estado';
+  }
+
+  petChannelLabel(channel: string | null | undefined): string {
+    const labels: Record<string, string> = {
+      chat: 'Chat',
+      call: 'Llamada',
+      video: 'Video',
+      portal: 'Portal'
+    };
+    return labels[channel || ''] || 'Portal';
+  }
+
+  private extractPetRequestMessage(details: unknown): string {
+    if (!details) return '';
+    if (typeof details === 'string') {
+      const parsed = this.parsePetSupportDetails(details);
+      if (typeof parsed === 'string') return parsed;
+      return parsed?.notes || parsed?.message || parsed?.clinical?.main_reason || '';
+    }
+    const payload = details as any;
+    return payload?.notes || payload?.message || payload?.clinical?.main_reason || '';
+  }
+
+  getPetRequestsByStatus(status: string): any[] {
+    return this.filteredPetSupportRequests.filter((request) => request.status === status);
+  }
+
+  get filteredPetSupportRequests(): any[] {
+    const query = this.petRequestFilters.query.trim().toLowerCase();
+    const channel = this.petRequestFilters.channel.trim().toLowerCase();
+
+    return this.petSupportRequests.filter((request) => {
+      const matchesStatus = this.petRequestFilters.status === 'all' || request.status === this.petRequestFilters.status;
+      const matchesChannel = !channel || (request.channel || '').toLowerCase().includes(channel);
+      const haystack = [
+        request.title,
+        request.message,
+        request.channel,
+        this.petRequestStatusLabel(request.status)
+      ].filter(Boolean).join(' ').toLowerCase();
+      const matchesQuery = !query || haystack.includes(query);
+      return matchesStatus && matchesChannel && matchesQuery;
+    });
+  }
+
+  get filteredFinalPetSupportRequests(): number {
+    return this.filteredPetSupportRequests.filter((request) => ['resolved', 'closed', 'cancelled'].includes(request.status)).length;
+  }
+
+  resetPetRequestFilters(): void {
+    this.petRequestFilters = { query: '', status: 'all', channel: '' };
+  }
+
+  petRequestStatusHint(status: string): string {
+    const labels: Record<string, string> = {
+      open: 'Entrada del caso',
+      assigned: 'Ya fue visto por el cuidador',
+      in_progress: 'En seguimiento con Company Pet',
+      resolved: 'Caso resuelto',
+      closed: 'Cierre administrativo'
+    };
+    return labels[status] || 'Sin detalle';
+  }
+
+  petRequestNextStatus(status: string): 'assigned' | 'in_progress' | 'resolved' | 'closed' | null {
+    const next: Record<string, 'assigned' | 'in_progress' | 'resolved' | 'closed'> = {
+      open: 'assigned',
+      assigned: 'in_progress',
+      in_progress: 'resolved',
+      resolved: 'closed'
+    };
+    return next[status] || null;
+  }
+
+  petRequestNextActionLabel(status: string): string {
+    const labels: Record<string, string> = {
+      open: 'Marcar visto',
+      assigned: 'Pasar a seguimiento',
+      in_progress: 'Resolver',
+      resolved: 'Cerrar'
+    };
+    return labels[status] || 'Sin acciones';
+  }
+
+  async updatePetRequestStatus(request: any, status: 'assigned' | 'in_progress' | 'resolved' | 'closed') {
+    const { error } = await this.supabase.client
+      .from('pet_support_requests')
+      .update({ status })
+      .eq('id', request.id);
+
+    if (error) {
+      this.notifyError('No se pudo actualizar la solicitud pet.');
+      console.error('Error actualizando solicitud pet:', error);
+      return;
+    }
+
+    this.petSupportRequests = this.petSupportRequests.map((item) =>
+      item.id === request.id ? { ...item, status, updated_at: new Date().toISOString() } : item
+    );
+    await this.loadCompanyPetOperations(this.companyId || request.company_id);
+    this.notifySuccess('Solicitud pet actualizada.');
   }
 
   dismissToast(id: number) {
@@ -1275,17 +2060,32 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
       });
     }
 
+    if (!this.companyConfigMode) {
+      const overdueInvoices = this._allCompanyInvoices.filter(i => i.status === 'overdue');
+      if (overdueInvoices.length > 0) {
+        alerts.push({
+          level: 'high',
+          title: 'Facturas vencidas',
+          detail: `${overdueInvoices.length} factura${overdueInvoices.length === 1 ? '' : 's'} corporativa${overdueInvoices.length === 1 ? '' : 's'} est\u00e1${overdueInvoices.length === 1 ? '' : 'n'} vencida${overdueInvoices.length === 1 ? '' : 's'}.`
+        });
+      }
+    }
+
     if (this.camasTotales > 0 && this.camasDisponibles === 0) {
       alerts.push({
         level: 'high',
-        title: 'Sin camas disponibles',
-        detail: 'La ocupaci\u00f3n est\u00e1 al m\u00e1ximo y no hay vacantes libres para nuevas admisiones.'
+        title: this.companyConfigMode ? 'Sin cupos disponibles' : 'Servicios sin disponibilidad',
+        detail: this.companyConfigMode
+          ? 'No hay cupos libres para nuevas solicitudes.'
+          : 'Todos los servicios registrados se encuentran ocupados.'
       });
     } else if (this.camasTotales > 0 && this.camasDisponibles <= 2) {
       alerts.push({
         level: 'medium',
-        title: 'Disponibilidad baja',
-        detail: `Quedan ${this.camasDisponibles} camas disponibles en toda la operaci\u00f3n.`
+        title: this.companyConfigMode ? 'Disponibilidad baja' : 'Disponibilidad de servicios baja',
+        detail: this.companyConfigMode
+          ? `Quedan ${this.camasDisponibles} camas disponibles en toda la operaci\u00f3n.`
+          : `Solo ${this.camasDisponibles} beneficios tienen capacidad disponible.`
       });
     }
 
@@ -1293,16 +2093,26 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
     if (newLeads > 0) {
       alerts.push({
         level: newLeads >= 3 ? 'medium' : 'info',
-        title: 'Consultas por contactar',
-        detail: `${newLeads} lead${newLeads === 1 ? '' : 's'} sigue${newLeads === 1 ? '' : 'n'} en etapa inicial.`
+        title: 'Prospectos por contactar',
+        detail: `${newLeads} prospecto${newLeads === 1 ? '' : 's'} sigue${newLeads === 1 ? '' : 'n'} en etapa inicial.`
       });
     }
 
     if (this.camasEnMantenimiento > 0) {
       alerts.push({
         level: 'info',
-        title: 'Camas fuera de servicio',
-        detail: `${this.camasEnMantenimiento} cama${this.camasEnMantenimiento === 1 ? '' : 's'} est\u00e1${this.camasEnMantenimiento === 1 ? '' : 'n'} en limpieza o mantenci\u00f3n.`
+        title: this.companyConfigMode ? 'Camas fuera de servicio' : 'Servicios fuera de l\u00ednea',
+        detail: this.companyConfigMode
+          ? `${this.camasEnMantenimiento} cama${this.camasEnMantenimiento === 1 ? '' : 's'} est\u00e1${this.camasEnMantenimiento === 1 ? '' : 'n'} en limpieza o mantenci\u00f3n.`
+          : `${this.camasEnMantenimiento} beneficio${this.camasEnMantenimiento === 1 ? '' : 's'} est\u00e1${this.camasEnMantenimiento === 1 ? '' : 'n'} pausado o sin capacidad.`
+      });
+    }
+
+    if (!this.companyConfigMode && this.pacientesActivos.length === 0 && this._allClientCompanies.length > 0) {
+      alerts.push({
+        level: 'info',
+        title: 'Sin empresas activas',
+        detail: 'Hay empresas registradas pero ninguna tiene una suscripci\u00f3n activa.'
       });
     }
 
@@ -1318,17 +2128,23 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
   openLeadModal(lead?: any) {
     if (!this.ensureOperationalAccess()) return;
     if (lead) {
-      // Para editar (aunque el boton actual es solo para crear)
       this.leadDraft = { 
         id: lead.id, 
         nombre: lead.nombre, 
+        company_name: lead.company_name || '',
+        contact_name: lead.contact_name || '',
+        contact_position: lead.contact_position || '',
+        email: lead.email || '',
+        phone: lead.phone || '',
+        company_size: lead.company_size || '',
+        industry: lead.industry || '',
         comuna: lead.comuna, 
-        dependencia: lead.dependencia,
+        source: lead.source || 'website',
+        notes: lead.notes || '',
         presupuesto: lead.presupuesto
       };
     } else {
-      // Para crear
-      this.leadDraft = { id: null, nombre: '', comuna: '', dependencia: '', presupuesto: null };
+      this.leadDraft = { id: null, nombre: '', company_name: '', contact_name: '', contact_position: '', email: '', phone: '', company_size: '', industry: '', comuna: '', source: 'website', notes: '', presupuesto: null };
     }
     this.showLeadModal = true;
   }
@@ -1344,13 +2160,21 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
       const payload: any = {
         company_id: this.companyId,
         nombre: this.leadDraft.nombre,
+        company_name: this.leadDraft.company_name || null,
+        contact_name: this.leadDraft.contact_name || null,
+        contact_position: this.leadDraft.contact_position || null,
+        email: this.leadDraft.email || null,
+        phone: this.leadDraft.phone || null,
+        company_size: this.leadDraft.company_size || null,
+        industry: this.leadDraft.industry || null,
         comuna: this.leadDraft.comuna || null,
-        dependencia: this.leadDraft.dependencia || null,
+        source: this.leadDraft.source || 'website',
+        notes: this.leadDraft.notes || null,
         presupuesto: this.leadDraft.presupuesto || null
       };
 
       if (!this.leadDraft.id) {
-        payload.estado = 'nuevo'; // Las nuevas consultas siempre empiezan en la columna 'nuevo'
+        payload.estado = 'nuevo';
       }
 
       const { error } = this.leadDraft.id
@@ -1425,6 +2249,37 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
 
   openCamaModal(cama?: any) {
     if (!this.ensureOperationalAccess()) return;
+    if (this.companyConfigMode) {
+      if (cama) {
+        this.camaDraft = {
+          db_id: cama.id,
+          provider_id: cama.provider_id,
+          title: cama.title || '',
+          description: cama.description || '',
+          service_type: cama.service_type || 'guarderia',
+          price_from: cama.price_from ?? null,
+          duration_minutes: cama.duration_minutes ?? null,
+          max_daily_slots: cama.max_daily_slots ?? null,
+          requirements: cama.requirements || '',
+          active: cama.active !== false
+        };
+      } else {
+        this.camaDraft = {
+          db_id: null,
+          provider_id: this.sedes[0]?.id || '',
+          title: '',
+          description: '',
+          service_type: 'guarderia',
+          price_from: null,
+          duration_minutes: 60,
+          max_daily_slots: 1,
+          requirements: '',
+          active: true
+        };
+      }
+      this.showCamaModal = true;
+      return;
+    }
     if (cama) {
       // Mapeo inverso de Base de Datos -> Formulario
       let formCareType = 'Basico';
@@ -1447,6 +2302,10 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
 
   async saveCama() {
     if (!this.ensureOperationalAccess()) return;
+    if (this.companyConfigMode) {
+      await this.saveProviderService();
+      return;
+    }
     if (!this.companyId || !this.camaDraft.resource_code || !this.camaDraft.provider_id) {
       this.flash('Por favor ingresa un ID y selecciona una sede.');
       return;
@@ -1503,8 +2362,86 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
     }
   }
 
+  private async saveProviderService(): Promise<void> {
+    if (!this.companyId || !this.camaDraft.title?.trim()) {
+      this.flash('Ingresa al menos el nombre del servicio.');
+      return;
+    }
+
+    this.savingCama = true;
+    try {
+      const providerId = this.camaDraft.provider_id || await this.ensureCompanyProvider();
+      const payload = {
+        company_id: this.companyId,
+        provider_id: providerId,
+        title: this.camaDraft.title.trim(),
+        description: this.camaDraft.description?.trim() || null,
+        service_type: this.camaDraft.service_type || 'guarderia',
+        price_from: this.camaDraft.price_from === null || this.camaDraft.price_from === '' ? null : Number(this.camaDraft.price_from),
+        currency: 'CLP',
+        duration_minutes: this.camaDraft.duration_minutes === null || this.camaDraft.duration_minutes === '' ? null : Number(this.camaDraft.duration_minutes),
+        max_daily_slots: this.camaDraft.max_daily_slots === null || this.camaDraft.max_daily_slots === '' ? null : Number(this.camaDraft.max_daily_slots),
+        requirements: this.camaDraft.requirements?.trim() || null,
+        active: this.camaDraft.active !== false
+      };
+
+      const result = this.camaDraft.db_id
+        ? await this.supabase.client.from('provider_services').update(payload as any).eq('id', this.camaDraft.db_id)
+        : await this.supabase.client.from('provider_services').insert(payload as any);
+
+      if (result.error) throw result.error;
+      this.showCamaModal = false;
+      await this.loadData();
+    } catch (error: any) {
+      console.error('Error guardando servicio pet:', error);
+      this.flash(error?.message || 'No se pudo guardar el servicio pet.');
+    } finally {
+      this.savingCama = false;
+    }
+  }
+
+  private async ensureCompanyProvider(): Promise<string> {
+    if (this.sedes[0]?.id) return this.sedes[0].id;
+    if (!this.companyId) throw new Error('Empresa no disponible.');
+
+    const { data, error } = await this.supabase.client
+      .from('providers')
+      .insert({
+        company_id: this.companyId,
+        name: 'Operacion pet',
+        area: 'Empresa',
+        type: 'Pet sitter a domicilio',
+        verified: true,
+        active: true
+      } as any)
+      .select('id,name,area,type,active')
+      .single();
+
+    if (error) throw error;
+    this.sedes = [{
+      id: data.id,
+      nombre: data.name,
+      ubicacion: data.area,
+      tipo: data.type,
+      active: data.active
+    }];
+    return data.id as string;
+  }
+
   async deleteCama(cama: any) {
     if (!this.ensureOperationalAccess()) return;
+    if (this.companyConfigMode) {
+      if (!await this.confirmAction(`Estas seguro de eliminar el servicio "${cama.title}"?`)) return;
+      try {
+        const { error } = await this.supabase.client.from('provider_services').delete().eq('id', cama.id);
+        if (error) throw error;
+        await this.loadData();
+      } catch (error) {
+        console.error('Error eliminando servicio:', error);
+        this.flash('Error al eliminar el servicio.');
+      }
+      return;
+    }
     if (!await this.confirmAction(`Estas seguro de eliminar la cama/vacante "${cama.id}"?`)) return;
     try {
       const { error } = await this.supabase.client.from('care_resources').delete().eq('id', cama.dbId);
@@ -1546,6 +2483,10 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
 
   openPacienteModal(pacienteView: any) {
     if (!this.ensureOperationalAccess()) return;
+    if (!this.companyConfigMode) {
+      this.flash('Usa Pipeline ventas > "Convertir en cliente" para gestionar empresas cliente.');
+      return;
+    }
     const p = pacienteView.raw;
     const contract = this.patientContracts.find(c => c.patient_id === p.id);
 
@@ -1643,42 +2584,60 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
     }
   }
 
-  openInvoicesModal(pacienteView: any) {
+  openInvoicesModal(entityView: any) {
     if (!this.ensureOperationalAccess()) return;
-    this.selectedPatientForInvoices = pacienteView;
-    this.selectedPatientInvoices = this.patientInvoices.filter(inv => inv.patient_id === pacienteView.id);
+    this.selectedPatientForInvoices = entityView;
+    if (this.companyConfigMode) {
+      this.selectedPatientInvoices = this.patientInvoices.filter(inv => inv.patient_id === entityView.id);
+    } else {
+      this.selectedPatientInvoices = this._allCompanyInvoices.filter(inv => inv.company_id === entityView.id) || [];
+    }
     this.showInvoicesModal = true;
   }
 
-  async emitirCobro(pacienteView: any) {
+  async emitirCobro(entityView: any) {
     if (!this.ensureOperationalAccess()) return;
-    if (!pacienteView.contract_id || !pacienteView.monthly_fee) {
-      this.flash('Primero debes configurar la tarifa mensual (editar paciente) para emitir cobros.');
-      return;
-    }
-    if (await this.confirmAction(`Generar un recordatorio de cobro (boleta) por ${pacienteView.monthly_fee} para ${pacienteView.nombreCompleto}?`)) {
-      const payload = {
-        company_id: this.companyId,
-        patient_id: pacienteView.id,
-        contract_id: pacienteView.contract_id,
-        amount: pacienteView.monthly_fee,
-        issue_date: new Date().toISOString().split('T')[0],
-        due_date: new Date(Date.now() + 5 * 24 * 60 * 60 * 1000).toISOString().split('T')[0], // 5 das de vencimiento
-        status: 'draft'
-      };
-      const { error } = await this.supabase.client.from('patient_invoices').insert(payload);
-      if (error) {
-        this.flash('Error al generar cobro.');
-      } else {
-        this.flash('Cobro generado correctamente. (En una siguiente etapa podrs enviarlo por email o PDF).');
-        await this.loadData(); // Recargamos para que aparezca en el historial
+    if (this.companyConfigMode) {
+      if (!entityView.contract_id || !entityView.monthly_fee) {
+        this.flash('Primero debes configurar la tarifa mensual (editar paciente) para emitir cobros.');
+        return;
       }
+      if (!await this.confirmAction(`Generar cobro por ${entityView.monthly_fee} para ${entityView.nombreCompleto}?`)) return;
+      const { error } = await this.supabase.client.from('patient_invoices').insert({
+        company_id: this.companyId,
+        patient_id: entityView.id,
+        contract_id: entityView.contract_id,
+        amount: entityView.monthly_fee,
+        issue_date: new Date().toISOString().split('T')[0],
+        due_date: new Date(Date.now() + 5 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+        status: 'draft'
+      });
+      if (error) { this.flash('Error al generar cobro.'); return; }
+      this.flash('Cobro generado correctamente.');
+    } else {
+      if (!entityView.contract_id) {
+        this.flash('La empresa no tiene una suscripci\u00f3n activa. Configura un plan primero.');
+        return;
+      }
+      if (!await this.confirmAction(`Emitir factura a ${entityView.nombreCompleto} por su plan corporativo?`)) return;
+      const { error } = await this.supabase.client.from('company_invoices').insert({
+        company_id: entityView.id,
+        subscription_id: entityView.contract_id,
+        amount_due: entityView.monthly_fee || 0,
+        amount_paid: 0,
+        status: 'open',
+        due_at: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString()
+      });
+      if (error) { this.flash('Error al emitir factura.'); return; }
+      this.flash('Factura corporativa emitida correctamente.');
     }
+    await this.loadData();
   }
 
   async updateInvoiceStatus(invoice: any, status: string) {
     if (!this.ensureOperationalAccess()) return;
-    const { error } = await this.supabase.client.from('patient_invoices').update({ status }).eq('id', invoice.id);
+    const table = this.companyConfigMode ? 'patient_invoices' : 'company_invoices';
+    const { error } = await this.supabase.client.from(table).update({ status }).eq('id', invoice.id);
     if (error) {
       this.flash('Error al actualizar el estado.');
     } else {
@@ -1926,6 +2885,36 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
     if (!companyId) return;
     this.configLoading = true;
     try {
+      if (this.companyConfigMode) {
+        const [documentsRes, brandingRes] = await Promise.all([
+          this.supabase.client
+            .from('company_documents')
+            .select('id,company_id,document_type,title,status,storage_path,created_at,updated_at')
+            .eq('company_id', companyId)
+            .order('created_at', { ascending: false }),
+          this.supabase.client
+            .from('company_branding')
+            .select('*')
+            .eq('company_id', companyId)
+            .maybeSingle()
+        ]);
+
+        this.systemCategories = [];
+        this.systemStatuses = [];
+        this.emailTemplates = [];
+        this.planSlas = [];
+        this.businessParameters = [];
+        this.entityComments = [];
+        this.onboardingProjects = [];
+        this.onboardingSteps = [];
+        this.companyInvitations = [];
+        this.companyDocuments = documentsRes.error ? [] : documentsRes.data || [];
+        if (brandingRes.data) {
+          this.brandingDraft = { ...this.brandingDraft, ...brandingRes.data };
+        }
+        return;
+      }
+
       const [
         categoriesRes,
         statusesRes,
@@ -2308,7 +3297,7 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
       .from('onboarding_projects')
       .insert({
         company_id: this.companyId,
-        title: this.onboardingDraft.title || 'Activacion de empresa',
+        title: this.onboardingDraft.title || 'Activacion del negocio',
         starts_at: this.onboardingDraft.starts_at || null,
         owner_id: this.auth.user?.id,
         created_by: this.auth.user?.id,
@@ -2319,10 +3308,10 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
     if (error) return this.flash('No se pudo crear el onboarding.');
 
     const defaultSteps = [
-      { step_key: 'company_profile', title: 'Completar ficha empresa', sort_order: 1 },
-      { step_key: 'upload_employees', title: 'Cargar colaboradores', sort_order: 2 },
-      { step_key: 'benefits_setup', title: 'Configurar beneficios y SLA', sort_order: 3 },
-      { step_key: 'review_employees', title: 'Revisar colaboradores', sort_order: 4 }
+      { step_key: 'company_profile', title: 'Completar ficha del negocio', sort_order: 1 },
+      { step_key: 'upload_employees', title: 'Cargar clientes', sort_order: 2 },
+      { step_key: 'benefits_setup', title: 'Configurar servicios y SLA', sort_order: 3 },
+      { step_key: 'review_employees', title: 'Revisar clientes', sort_order: 4 }
     ];
     await this.supabase.client.from('onboarding_steps').insert(
       defaultSteps.map(step => ({ ...step, project_id: data.id }))

@@ -1,9 +1,9 @@
 -- Company Pet
--- Pet Expert appointment scheduling MVP.
+-- Pet expert appointment scheduling.
 
 create table if not exists public.appointments (
   id uuid primary key default gen_random_uuid(),
-  request_id uuid references public.care_requests (id) on delete set null,
+  request_id uuid,
   employee_id uuid not null references public.profiles (id) on delete cascade,
   expert_id uuid references public.profiles (id) on delete set null,
   kind text not null check (kind in ('Videollamada', 'Llamada')),
@@ -24,6 +24,7 @@ on public.appointments (expert_id, scheduled_for desc);
 create index if not exists idx_appointments_request_id
 on public.appointments (request_id);
 
+drop trigger if exists trg_appointments_updated_at on public.appointments;
 create trigger trg_appointments_updated_at
 before update on public.appointments
 for each row execute function public.set_updated_at();
@@ -46,10 +47,7 @@ on public.appointments for insert
 to authenticated
 with check (
   created_by = auth.uid()
-  and (
-    employee_id = auth.uid()
-    or public.is_staff()
-  )
+  and (employee_id = auth.uid() or public.is_staff())
 );
 
 drop policy if exists "appointments_update_own_or_staff" on public.appointments;
@@ -66,3 +64,5 @@ with check (
   or expert_id = auth.uid()
   or public.is_staff()
 );
+
+notify pgrst, 'reload schema';

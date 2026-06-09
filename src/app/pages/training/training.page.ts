@@ -4,7 +4,7 @@ import { UiService } from '../../core/services/ui.service';
 import { SupabaseService } from '../../core/services/supabase.service';
 
 type TrainingTab = 'Cursos' | 'Eventos';
-type CourseLevel = 'Básico' | 'Intermedio';
+type CourseLevel = 'basic' | 'intermediate' | 'advanced';
 
 type DbCourse = {
   id: string;
@@ -15,7 +15,7 @@ type DbCourse = {
 
 type DbEnrollment = {
   course_id: string | null;
-  status: 'enrolled' | 'completed' | 'canceled';
+  status: 'enrolled' | 'completed' | 'cancelled';
   progress_percent: number;
   last_accessed_at: string | null;
 };
@@ -152,7 +152,7 @@ export class TrainingPage implements OnInit {
     await this.loadRole();
 
     const { data: courseData, error: courseError } = await this.supabase.client
-      .from('training_courses')
+      .from('pet_learning_courses')
       .select('id,title,duration_minutes,level')
       .eq('active', true)
       .order('created_at', { ascending: true });
@@ -166,7 +166,7 @@ export class TrainingPage implements OnInit {
     }
 
     const { data: enrollmentData, error: enrollmentError } = await this.supabase.client
-      .from('training_enrollments')
+      .from('pet_learning_enrollments')
       .select('course_id,status,progress_percent,last_accessed_at')
       .eq('user_id', userId)
       .not('course_id', 'is', null);
@@ -210,7 +210,7 @@ export class TrainingPage implements OnInit {
     const userId = this.userId!;
     const now = new Date().toISOString();
 
-    const { error } = await this.supabase.client.from('training_enrollments').upsert(
+    const { error } = await this.supabase.client.from('pet_learning_enrollments').upsert(
       {
         user_id: userId,
         course_id: courseId,
@@ -229,7 +229,7 @@ export class TrainingPage implements OnInit {
     const now = new Date().toISOString();
 
     const { error } = await this.supabase.client
-      .from('training_enrollments')
+      .from('pet_learning_enrollments')
       .update({
         progress_percent: next,
         status: next >= 100 ? 'completed' : 'enrolled',
@@ -245,7 +245,7 @@ export class TrainingPage implements OnInit {
     const now = new Date().toISOString();
 
     const { error } = await this.supabase.client
-      .from('training_enrollments')
+      .from('pet_learning_enrollments')
       .update({ last_accessed_at: now } as any)
       .eq('user_id', userId)
       .eq('course_id', courseId);

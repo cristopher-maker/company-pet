@@ -39,12 +39,6 @@ const routes: Routes = [
       import('./pages/care-experts/care-experts.module').then((m) => m.CareExpertsPageModule),
   },
   {
-    path: 'providers',
-    canMatch: [authGuard],
-    loadChildren: () =>
-      import('./pages/providers/providers.module').then((m) => m.ProvidersPageModule),
-  },
-  {
     path: 'resources',
     canMatch: [authGuard],
     loadChildren: () =>
@@ -87,6 +81,12 @@ const routes: Routes = [
       ),
   },
   {
+    path: 'community',
+    canMatch: [authGuard],
+    loadChildren: () =>
+      import('./pages/community/community.module').then((m) => m.CommunityPageModule),
+  },
+  {
     path: 'profile',
     canMatch: [authGuard],
     loadChildren: () => import('./pages/profile/profile.module').then((m) => m.ProfilePageModule),
@@ -94,7 +94,7 @@ const routes: Routes = [
   {
     path: 'admin',
     canMatch: [authGuard, internalAdminGuard],
-    loadChildren: () => import('./pages/admin-dashboard/admin-dashboard.module').then(m => m.AdminDashboardModule),
+    loadChildren: () => import('./pages/erp/erp.module').then(m => m.ErpModule),
   },
   {
     path: '**',

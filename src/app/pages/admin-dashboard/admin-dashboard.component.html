@@ -1,43 +1,43 @@
 
-<div class="admin-shell" [ngStyle]="adminThemeVars" [ngClass]="adminThemeClasses">
+<div class="admin-shell" [ngStyle]="adminThemeVars" [ngClass]="adminThemeClasses" [class.petcare-shell]="companyConfigMode">
  
   <!-- Sidebar -->
   <nav class="admin-sidebar">
     <div class="sidebar-logo">
       <div class="logo-mark">
-        <mat-icon style="font-size:16px;width:16px;height:16px;color:#fff">healing</mat-icon>
+        <mat-icon style="font-size:16px;width:16px;height:16px;color:#fff">pets</mat-icon>
       </div>
       <div>
-        <div class="logo-text">Care Admin</div>
-        <div class="logo-sub">Panel de gesti&oacute;n</div>
+        <div class="logo-text">Company Pet</div>
+        <div class="logo-sub">{{ shellSubtitle }}</div>
       </div>
     </div>
  
-    <div class="nav-section">
+    <div class="nav-section" *ngIf="!companyConfigMode">
       <div class="nav-label">Gesti&oacute;n</div>
       <button class="nav-item" [class.active]="currentView === 'metricas'" (click)="setView('metricas')">
         <mat-icon class="nav-icon">monitoring</mat-icon>
         M&eacute;tricas
       </button>
+      <button class="nav-item" [class.active]="currentView === 'demos'" (click)="setView('demos')">
+        <mat-icon class="nav-icon">campaign</mat-icon>
+        Prospectos
+      </button>
       <button class="nav-item" [class.active]="currentView === 'admisiones'" [class.is-locked]="isPlanLockedView('admisiones')" [disabled]="isPlanLockedView('admisiones')" (click)="setView('admisiones')">
         <mat-icon class="nav-icon">view_kanban</mat-icon>
-        Admisiones
+        Pipeline ventas
       </button>
       <button class="nav-item" [class.active]="currentView === 'tareas'" [class.is-locked]="isPlanLockedView('tareas')" [disabled]="isPlanLockedView('tareas')" (click)="setView('tareas')">
         <mat-icon class="nav-icon">checklist</mat-icon>
         Tareas
       </button>
-      <button class="nav-item" [class.active]="currentView === 'sedes'" [class.is-locked]="isPlanLockedView('sedes')" [disabled]="isPlanLockedView('sedes')" (click)="setView('sedes')">
-        <mat-icon class="nav-icon">business</mat-icon>
-        Mis sedes
-      </button>
       <button class="nav-item" [class.active]="currentView === 'camas'" [class.is-locked]="isPlanLockedView('camas')" [disabled]="isPlanLockedView('camas')" (click)="setView('camas')">
-        <mat-icon class="nav-icon">bed</mat-icon>
-        Camas y vacantes
+        <mat-icon class="nav-icon">room_service</mat-icon>
+        Servicios
       </button>
       <button class="nav-item" [class.active]="currentView === 'pacientes'" [class.is-locked]="isPlanLockedView('pacientes')" [disabled]="isPlanLockedView('pacientes')" (click)="setView('pacientes')">
-        <mat-icon class="nav-icon">people</mat-icon>
-        Pacientes
+        <mat-icon class="nav-icon">business</mat-icon>
+        Empresas
       </button>
       <button class="nav-item" [class.active]="currentView === 'facturacion'" [class.is-locked]="isPlanLockedView('facturacion')" [disabled]="isPlanLockedView('facturacion')" (click)="setView('facturacion')">
         <mat-icon class="nav-icon">receipt_long</mat-icon>
@@ -49,17 +49,72 @@
       </button>
     </div>
  
+    <div class="nav-section" *ngIf="companyConfigMode">
+      <div class="nav-label">Principal</div>
+      <button class="nav-item" [class.active]="currentView === 'metricas'" (click)="setView('metricas')">
+        <mat-icon class="nav-icon">dashboard</mat-icon>
+        Dashboard
+      </button>
+      <button class="nav-item" [class.active]="currentView === 'admisiones'" (click)="setView('admisiones')">
+        <mat-icon class="nav-icon">calendar_month</mat-icon>
+        Solicitudes
+        <span class="nav-badge" *ngIf="openPetRequestsCount">{{ openPetRequestsCount }}</span>
+      </button>
+      <button class="nav-item" [class.active]="currentView === 'tareas'" (click)="setView('tareas')">
+        <mat-icon class="nav-icon">checklist</mat-icon>
+        Seguimiento
+      </button>
+    </div>
+
+    <div class="nav-section" *ngIf="companyConfigMode">
+      <div class="nav-label">Clientes</div>
+      <button class="nav-item" [class.active]="currentView === 'empleados'" (click)="setView('empleados')">
+        <mat-icon class="nav-icon">groups</mat-icon>
+        Empleados
+      </button>
+      <button class="nav-item" [class.active]="currentView === 'pacientes'" (click)="setView('pacientes')">
+        <mat-icon class="nav-icon">pets</mat-icon>
+        Mascotas
+        <span class="nav-badge" *ngIf="petProfiles.length">{{ petProfiles.length }}</span>
+      </button>
+    </div>
+
+    <div class="nav-section" *ngIf="companyConfigMode">
+      <div class="nav-label">Operaciones</div>
+      <button class="nav-item" [class.active]="currentView === 'camas'" (click)="setView('camas')">
+        <mat-icon class="nav-icon">room_service</mat-icon>
+        Beneficios y capacidad
+      </button>
+    </div>
+
+    <div class="nav-section" *ngIf="companyConfigMode">
+      <div class="nav-label">Administraci&oacute;n</div>
+      <button class="nav-item" [class.active]="currentView === 'facturacion'" (click)="setView('facturacion')">
+        <mat-icon class="nav-icon">receipt_long</mat-icon>
+        Uso del beneficio
+        <span class="nav-badge nav-badge--alert" *ngIf="benefitUsagePendingCount">{{ benefitUsagePendingCount }}</span>
+      </button>
+      <button class="nav-item" [class.active]="currentView === 'gastos'" (click)="setView('gastos')">
+        <mat-icon class="nav-icon">account_balance_wallet</mat-icon>
+        Presupuesto y costos
+      </button>
+      <button class="nav-item" [class.active]="currentView === 'config'" (click)="setView('config')">
+        <mat-icon class="nav-icon">settings</mat-icon>
+        Configuraci&oacute;n
+      </button>
+    </div>
+ 
     <div class="nav-divider"></div>
  
-    <div class="nav-section">
+    <div class="nav-section" *ngIf="!companyConfigMode">
       <div class="nav-label">Configuraci&oacute;n</div>
       <button class="nav-item" [class.active]="currentView === 'empleados'" [class.is-locked]="isPlanLockedView('empleados')" [disabled]="isPlanLockedView('empleados')" (click)="setView('empleados')">
         <mat-icon class="nav-icon">badge</mat-icon>
-        Empleados
+        {{ companyConfigMode ? 'Clientes' : 'Empleados' }}
       </button>
       <button class="nav-item" [class.active]="currentView === 'vouchers'" [class.is-locked]="isPlanLockedView('vouchers')" [disabled]="isPlanLockedView('vouchers')" (click)="setView('vouchers')">
         <mat-icon class="nav-icon">local_activity</mat-icon>
-        Vouchers
+        {{ companyConfigMode ? 'Servicios' : 'Vouchers' }}
       </button>
       <button class="nav-item" [class.active]="currentView === 'config'" (click)="setView('config')">
         <mat-icon class="nav-icon">settings</mat-icon>
@@ -75,8 +130,8 @@
       <div class="user-row">
         <div class="user-avatar">AD</div>
         <div class="user-info">
-          <div class="user-name">Administrador</div>
-          <div class="user-role">Super admin</div>
+          <div class="user-name">{{ currentUserLabel }}</div>
+          <div class="user-role">{{ currentUserRoleLabel }}</div>
         </div>
       </div>
     </div>
@@ -98,12 +153,12 @@
       <div class="topbar-right">
         <span class="topbar-status" *ngIf="loading && hasLoadedOnce">Actualizando...</span>
         <span class="status-dot"></span>
-        <span class="topbar-status">Sistema operativo</span>
+        <span class="topbar-status">{{ topbarStatusLabel }}</span>
       </div>
     </header>
 
     <div class="mobile-nav-panel" *ngIf="mobileNavOpen">
-      <div class="mobile-nav-section" *ngFor="let section of mobileNavSections">
+      <div class="mobile-nav-section" *ngFor="let section of mobileNavSections" [hidden]="companyConfigMode">
         <div class="mobile-nav-section__label">{{ section.label }}</div>
         <button
           type="button"
@@ -128,9 +183,44 @@
           <span>Volver al portal</span>
         </span>
       </a>
+      <ng-container *ngIf="companyConfigMode">
+        <button type="button" class="mobile-nav-item" (click)="setView('metricas')">
+          <span class="mobile-nav-item__main"><mat-icon>monitoring</mat-icon><span>Resumen</span></span>
+        </button>
+        <button type="button" class="mobile-nav-item" (click)="setView('admisiones')">
+          <span class="mobile-nav-item__main"><mat-icon>forum</mat-icon><span>Reportes</span></span>
+        </button>
+        <button type="button" class="mobile-nav-item" (click)="setView('pacientes')">
+          <span class="mobile-nav-item__main"><mat-icon>pets</mat-icon><span>Mascotas</span></span>
+        </button>
+        <button type="button" class="mobile-nav-item" (click)="setView('tareas')">
+          <span class="mobile-nav-item__main"><mat-icon>checklist</mat-icon><span>Seguimiento</span></span>
+        </button>
+        <button type="button" class="mobile-nav-item" (click)="setView('camas')">
+          <span class="mobile-nav-item__main"><mat-icon>room_service</mat-icon><span>Beneficios y capacidad</span></span>
+        </button>
+        <button type="button" class="mobile-nav-item" (click)="setView('pacientes')">
+          <span class="mobile-nav-item__main"><mat-icon>pets</mat-icon><span>Mascotas</span></span>
+        </button>
+        <button type="button" class="mobile-nav-item" (click)="setView('facturacion')">
+          <span class="mobile-nav-item__main"><mat-icon>receipt_long</mat-icon><span>Uso del beneficio</span></span>
+        </button>
+        <button type="button" class="mobile-nav-item" (click)="setView('gastos')">
+          <span class="mobile-nav-item__main"><mat-icon>account_balance_wallet</mat-icon><span>Presupuesto y costos</span></span>
+        </button>
+        <button type="button" class="mobile-nav-item" (click)="setView('empleados')">
+          <span class="mobile-nav-item__main"><mat-icon>badge</mat-icon><span>Clientes</span></span>
+        </button>
+        <button type="button" class="mobile-nav-item" (click)="setView('vouchers')">
+          <span class="mobile-nav-item__main"><mat-icon>local_activity</mat-icon><span>Servicios</span></span>
+        </button>
+        <button type="button" class="mobile-nav-item" (click)="setView('config')">
+          <span class="mobile-nav-item__main"><mat-icon>settings</mat-icon><span>Configuracion</span></span>
+        </button>
+      </ng-container>
     </div>
 
-    <div class="plan-gate-banner" *ngIf="!hasOperationalAccess">
+    <div class="plan-gate-banner" *ngIf="!companyConfigMode && !hasOperationalAccess">
       <mat-icon>lock</mat-icon>
       <div>
         <strong>Modulo operativo bloqueado</strong>
@@ -149,11 +239,154 @@
 
       <!-- View: M&eacute;tricas -->
       <div *ngIf="currentView === 'metricas'" class="metrics-view">
+        <section *ngIf="companyConfigMode" class="petcare-erp-dashboard">
+          <div class="petcare-topbar">
+            <div>
+              <span class="petcare-topbar__eyebrow">Company Pet ERP</span>
+              <h1>Dashboard operativo</h1>
+              <p>{{ erpTodayLabel }} · seguimiento de solicitudes, mascotas y cobertura pet.</p>
+            </div>
+            <button type="button" class="petcare-action" (click)="setView('tareas')">
+              <mat-icon>add</mat-icon>
+              Nueva acción
+            </button>
+          </div>
+
+          <div class="petcare-metrics">
+            <article class="petcare-metric">
+              <span><mat-icon>forum</mat-icon> Solicitudes abiertas</span>
+              <strong>{{ openPetRequestsCount }}</strong>
+              <small>{{ petSupportRequests.length }} solicitudes totales</small>
+            </article>
+            <article class="petcare-metric">
+              <span><mat-icon>pets</mat-icon> Mascotas registradas</span>
+              <strong>{{ petProfiles.length }}</strong>
+              <small>{{ completePetProfilesCount }} fichas completas</small>
+            </article>
+            <article class="petcare-metric">
+              <span><mat-icon>local_activity</mat-icon> Beneficios activos</span>
+              <strong>{{ companyActiveBenefitsCount }}</strong>
+              <small>Coberturas internas configuradas</small>
+            </article>
+            <article class="petcare-metric petcare-metric--warn">
+              <span><mat-icon>pending_actions</mat-icon> Por aprobar</span>
+              <strong>{{ benefitUsagePendingCount }}</strong>
+              <small>{{ benefitUsagePendingAmount | currency:'CLP':'symbol-narrow':'1.0-0' }} solicitado</small>
+            </article>
+          </div>
+
+          <div class="petcare-main-grid">
+            <section class="petcare-card petcare-card--wide">
+              <div class="petcare-card__header">
+                <div>
+                  <h2>Agenda y solicitudes</h2>
+                  <p>Casos recientes que requieren seguimiento del equipo.</p>
+                </div>
+                <button type="button" (click)="setView('admisiones')">Ver reportes</button>
+              </div>
+              <div class="petcare-tabs">
+                <span class="active">Todos</span>
+                <span>Abiertos</span>
+                <span>Pendientes</span>
+                <span>Resueltos</span>
+              </div>
+              <div class="petcare-list" *ngIf="recentPetRequests.length; else noPetRequestsDashboard">
+                <button type="button" class="petcare-row" *ngFor="let request of recentPetRequests" (click)="setView('admisiones')">
+                  <span class="petcare-time">{{ request.created_at | date:'HH:mm' }}</span>
+                  <span class="petcare-badge" [ngClass]="'petcare-badge--' + (request.status || 'open')">{{ petRequestStatusLabel(request.status) }}</span>
+                  <span class="petcare-row__body">
+                    <strong>{{ request.title || 'Solicitud pet' }}</strong>
+                    <small>{{ request.message || request.details || 'Sin detalle registrado' }}</small>
+                  </span>
+                  <span class="petcare-dot" [class.petcare-dot--warn]="request.status === 'open' || request.status === 'assigned'"></span>
+                </button>
+              </div>
+              <ng-template #noPetRequestsDashboard>
+                <div class="petcare-empty">No hay solicitudes recientes.</div>
+              </ng-template>
+            </section>
+
+            <aside class="petcare-side">
+              <section class="petcare-card">
+                <div class="petcare-card__header">
+                  <h2>Capacidad activa</h2>
+                  <button type="button" (click)="setView('camas')">Ver todo</button>
+                </div>
+                <div class="petcare-list petcare-list--compact" *ngIf="activeBenefitsPreview.length; else noBenefitsDashboard">
+                  <div class="petcare-team-row" *ngFor="let service of activeBenefitsPreview">
+                    <span class="petcare-avatar">{{ getInitials(service.title || service.service_type || 'BP') }}</span>
+                    <span>
+                      <strong>{{ service.title || 'Beneficio pet' }}</strong>
+                      <small>{{ service.providers?.name || service.service_type || 'Cobertura interna' }}</small>
+                    </span>
+                    <span class="petcare-load"><i [style.width.%]="service.max_daily_slots ? 70 : 35"></i></span>
+                  </div>
+                </div>
+                <ng-template #noBenefitsDashboard>
+                  <div class="petcare-empty">Configura beneficios y capacidad.</div>
+                </ng-template>
+              </section>
+
+              <section class="petcare-card">
+                <div class="petcare-card__header">
+                  <h2>Costos aprobados</h2>
+                </div>
+                <div class="petcare-cost-row">
+                  <span>Reembolsos/coberturas</span>
+                  <strong>{{ benefitUsageApprovedAmount | currency:'CLP':'symbol-narrow':'1.0-0' }}</strong>
+                </div>
+                <div class="petcare-cost-row">
+                  <span>Pendiente revisión</span>
+                  <strong>{{ benefitUsagePendingAmount | currency:'CLP':'symbol-narrow':'1.0-0' }}</strong>
+                </div>
+              </section>
+            </aside>
+          </div>
+
+          <div class="petcare-bottom-grid">
+            <section class="petcare-card">
+              <div class="petcare-card__header">
+                <h2>Mascotas registradas</h2>
+                <button type="button" (click)="setView('pacientes')">Ver mascotas</button>
+              </div>
+              <div class="petcare-list" *ngIf="recentPets.length; else noPetsDashboard">
+                <button type="button" class="petcare-pet-row" *ngFor="let pet of recentPets" (click)="setView('pacientes')">
+                  <span class="petcare-pet-icon"><mat-icon>pets</mat-icon></span>
+                  <span>
+                    <strong>{{ pet.name }}</strong>
+                    <small>{{ pet.breed || pet.species || 'Mascota' }}</small>
+                  </span>
+                  <span class="petcare-chip" [class.petcare-chip--alert]="!pet.microchip_number">{{ pet.microchip_number ? 'Ficha legal' : 'Falta microchip' }}</span>
+                </button>
+              </div>
+              <ng-template #noPetsDashboard>
+                <div class="petcare-empty">Aún no hay mascotas asociadas.</div>
+              </ng-template>
+            </section>
+
+            <section class="petcare-card">
+              <div class="petcare-card__header">
+                <h2>Alertas y pendientes</h2>
+              </div>
+              <div class="petcare-list">
+                <article class="petcare-alert" *ngFor="let alert of operationalAlerts" [ngClass]="'petcare-alert--' + alert.level">
+                  <span></span>
+                  <div>
+                    <strong>{{ alert.title }}</strong>
+                    <small>{{ alert.detail }}</small>
+                  </div>
+                </article>
+              </div>
+            </section>
+          </div>
+        </section>
+
+        <ng-container *ngIf="!companyConfigMode">
         <section class="dashboard-hero">
           <div>
-            <span class="dashboard-hero__eyebrow">Panel de control</span>
-            <h1>{{ dashboardGreeting }}, Administrador</h1>
-            <p>Resumen operativo de admisiones, tareas, disponibilidad y alertas.</p>
+            <span class="dashboard-hero__eyebrow">{{ companyConfigMode ? 'Resumen operativo' : 'Panel de control B2B' }}</span>
+            <h1>{{ dashboardGreeting }}, {{ companyConfigMode ? 'equipo' : 'Administrador' }}</h1>
+            <p>{{ companyConfigMode ? 'Estado de empleados, reportes, mascotas registradas y beneficios activos.' : 'Pipeline de ventas, solicitudes, empresas cliente y alertas operativas.' }}</p>
           </div>
           <div class="dashboard-hero__meta" *ngIf="false">
             <span>{{ activePlanTier || 'Sin plan activo' }}</span>
@@ -176,8 +409,8 @@
           <section class="table-card dashboard-panel dashboard-panel--actions">
             <div class="dashboard-panel__header">
               <div>
-                <h3>Pr&oacute;ximas acciones</h3>
-                <p>Prioridades sugeridas con los datos actuales.</p>
+                <h3>Acciones prioritarias</h3>
+                <p>Prioridades comerciales y operativas con los datos actuales.</p>
               </div>
             </div>
             <div class="dashboard-action-list" *ngIf="dashboardActionItems.length">
@@ -245,27 +478,14 @@
             </div>
           </section>
 
-          <section class="table-card ops-panel">
-            <div class="ops-panel__header">
-              <h3 class="ops-panel__title">Alertas operativas</h3>
-            </div>
-            <div class="ops-alerts">
-              <article class="ops-alert" *ngFor="let alert of operationalAlerts" [ngClass]="'ops-alert--' + alert.level">
-                <div class="ops-alert__dot"></div>
-                <div class="ops-alert__body">
-                  <strong>{{ alert.title }}</strong>
-                  <p>{{ alert.detail }}</p>
-                </div>
-              </article>
-            </div>
-          </section>
         </div>
 
 
-        <div class="metrics-charts">
+        <div class="metrics-charts" [class.metrics-charts--pet]="companyConfigMode">
           <section class="table-card chart-card">
             <div class="chart-card__header">
-              <h3 class="chart-card__title">Distribuci&oacute;n de Camas</h3>
+              <h3 class="chart-card__title">{{ companyConfigMode ? 'Mascotas por especie' : 'Servicios por estado' }}</h3>
+              <p *ngIf="companyConfigMode">Composici&oacute;n de las mascotas registradas.</p>
             </div>
             <div class="chart-card__body">
               <canvas *ngIf="camasTotales > 0"
@@ -286,7 +506,8 @@
           </section>
           <section class="table-card chart-card">
             <div class="chart-card__header">
-              <h3 class="chart-card__title">Estado de Admisiones</h3>
+              <h3 class="chart-card__title">{{ companyConfigMode ? 'Estado de solicitudes' : 'Pipeline de ventas' }}</h3>
+              <p *ngIf="companyConfigMode">Permite detectar acumulaci&oacute;n y casos pendientes.</p>
             </div>
             <div class="chart-card__body">
               <canvas *ngIf="totalLeads > 0"
@@ -306,7 +527,8 @@
           </section>
           <section class="table-card chart-card">
             <div class="chart-card__header">
-              <h3 class="chart-card__title">Estado de Tareas</h3>
+              <h3 class="chart-card__title">{{ companyConfigMode ? 'Calidad de fichas pet' : 'Estado de Tareas' }}</h3>
+              <p *ngIf="companyConfigMode">Cobertura de datos legales y de salud.</p>
             </div>
             <div class="chart-card__body">
               <canvas *ngIf="totalTareas > 0"
@@ -324,12 +546,46 @@
               </div>
             </div>
           </section>
+          <section class="table-card chart-card chart-card--trend" *ngIf="companyConfigMode">
+            <div class="chart-card__header">
+              <h3 class="chart-card__title">Solicitudes de los &uacute;ltimos 7 d&iacute;as</h3>
+              <p>{{ totalPetTrendRequests }} solicitudes nuevas durante el per&iacute;odo.</p>
+            </div>
+            <div class="chart-card__body">
+              <canvas *ngIf="totalPetTrendRequests > 0"
+                baseChart
+                [labels]="petTrendChartLabels"
+                [datasets]="petTrendChartDatasets"
+                [options]="petTrendChartOptions"
+                [legend]="false"
+                type="line">
+              </canvas>
+              <div *ngIf="totalPetTrendRequests === 0" class="chart-card__empty">
+                Sin solicitudes nuevas durante los &uacute;ltimos 7 d&iacute;as.
+              </div>
+            </div>
+          </section>
         </div>
+
+        <section class="table-card ops-panel ops-panel--after-actions">
+          <div class="ops-panel__header">
+            <h3 class="ops-panel__title">Alertas operativas</h3>
+          </div>
+          <div class="ops-alerts">
+            <article class="ops-alert" *ngFor="let alert of operationalAlerts" [ngClass]="'ops-alert--' + alert.level">
+              <div class="ops-alert__dot"></div>
+              <div class="ops-alert__body">
+                <strong>{{ alert.title }}</strong>
+                <p>{{ alert.detail }}</p>
+              </div>
+            </article>
+          </div>
+        </section>
         <section class="table-card dashboard-panel">
           <div class="dashboard-panel__header">
             <div>
               <h3>Actividad reciente</h3>
-              <p>&Uacute;uultimos movimientos de tareas, admisiones y cobros.</p>
+              <p>{{ companyConfigMode ? 'Ultimas solicitudes y movimientos pet.' : 'Ultimos movimientos de ventas, tareas y cobros.' }}</p>
             </div>
           </div>
           <div class="dashboard-event-list" *ngIf="latestOperationalEvents.length">
@@ -345,10 +601,211 @@
             A&uacute;n no hay actividad para mostrar.
           </div>
         </section>
+        </ng-container>
+      </div>
+
+      <!-- View: Solicitudes demo -->
+      <div *ngIf="!companyConfigMode && currentView === 'demos'" class="demo-requests-view">
+        <section class="table-card dashboard-panel">
+          <div class="dashboard-panel__header demo-panel-header">
+            <div>
+              <h3>Solicitudes de demo</h3>
+              <p>Empresas interesadas en beneficios pet para empleados, desde el formulario web.</p>
+            </div>
+            <button type="button" class="btn-ghost" (click)="loadDemoRequests()" [disabled]="loadingDemoRequests">
+              {{ loadingDemoRequests ? 'Actualizando...' : 'Actualizar' }}
+            </button>
+          </div>
+
+          <div class="demo-summary-row">
+            <article class="demo-summary-card">
+              <span>Nuevas</span>
+              <strong>{{ newDemoRequestsCount }}</strong>
+            </article>
+            <article class="demo-summary-card">
+              <span>Contactadas</span>
+              <strong>{{ contactedDemoRequestsCount }}</strong>
+            </article>
+            <article class="demo-summary-card">
+              <span>Calificadas</span>
+              <strong>{{ qualifiedDemoRequestsCount }}</strong>
+            </article>
+          </div>
+
+          <div class="demo-table-wrap" *ngIf="demoRequests.length; else emptyDemoRequests">
+            <table class="data-table demo-table">
+              <thead>
+                <tr>
+                  <th>Empresa</th>
+                  <th>Contacto</th>
+                  <th>Mensaje</th>
+                  <th>Estado</th>
+                  <th>Fecha</th>
+                  <th>Acciones</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr *ngFor="let request of demoRequests">
+                  <td class="td-primary">
+                    <div class="demo-cell-title">{{ request.company_name || 'Empresa sin nombre' }}</div>
+                    <small>{{ request.source || 'landing' }}</small>
+                  </td>
+                  <td>
+                    <div class="demo-cell-title">{{ request.full_name || 'Sin nombre' }}</div>
+                    <small>{{ request.work_email || 'Sin email' }}</small>
+                    <small>{{ request.phone || 'Sin telefono' }}</small>
+                  </td>
+                  <td [attr.title]="request.message || ''">
+                    {{ request.message || 'Sin mensaje' }}
+                  </td>
+                  <td>
+                    <span class="status-badge" [ngClass]="demoStatusBadge(request.status)">
+                      {{ demoStatusLabel(request.status) }}
+                    </span>
+                  </td>
+                  <td>{{ request.created_at | date:'dd/MM/yyyy HH:mm' }}</td>
+                  <td class="td-actions">
+                    <button type="button" class="btn-ghost" (click)="updateDemoRequestStatus(request, 'contacted')" [disabled]="request.status === 'contacted'">
+                      Contactada
+                    </button>
+                    <button type="button" class="btn-ghost" (click)="updateDemoRequestStatus(request, 'qualified')" [disabled]="request.status === 'qualified'">
+                      Calificar
+                    </button>
+                    <button type="button" class="btn-ghost btn-ghost--danger" (click)="updateDemoRequestStatus(request, 'discarded')" [disabled]="request.status === 'discarded'">
+                      Descartar
+                    </button>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <ng-template #emptyDemoRequests>
+            <div class="dashboard-empty demo-empty">
+              A&uacute;n no hay solicitudes de demo.
+            </div>
+          </ng-template>
+        </section>
+      </div>
+
+      <!-- View: Solicitudes empresa -->
+      <div *ngIf="companyConfigMode && currentView === 'admisiones'" class="view-kanban mt-8" style="display: flex; flex-direction: column; height: 100%;">
+        <div class="view-header view-header--kanban">
+          <div class="view-header__content">
+            <span class="view-title">Pipeline de solicitudes pet</span>
+            <p class="view-subtitle">
+              {{ filteredPetSupportRequests.length }} casos visibles en seguimiento.
+              {{ filteredFinalPetSupportRequests }} ya llegaron a una salida final.
+            </p>
+          </div>
+        </div>
+
+        <div class="table-filters table-filters--kanban">
+          <div class="field-group field-group--compact field-group--search">
+            <label class="field-label">Buscar</label>
+            <input class="field-input" type="search" [(ngModel)]="petRequestFilters.query" placeholder="Mascota, colaborador, mensaje o canal" />
+          </div>
+          <div class="field-group field-group--compact">
+            <label class="field-label">Etapa</label>
+            <select class="field-input" [(ngModel)]="petRequestFilters.status">
+              <option value="all">Todas</option>
+              <option value="open">Abiertas</option>
+              <option value="assigned">Vistas</option>
+              <option value="in_progress">En curso</option>
+              <option value="resolved">Resueltas</option>
+              <option value="closed">Cerradas</option>
+            </select>
+          </div>
+          <div class="field-group field-group--compact">
+            <label class="field-label">Canal</label>
+            <input class="field-input" type="search" [(ngModel)]="petRequestFilters.channel" placeholder="Ej: chat, portal" />
+          </div>
+          <button class="btn-secondary table-filters__reset" type="button" (click)="resetPetRequestFilters()">Limpiar</button>
+        </div>
+
+        <div class="kanban-board">
+          <div class="kanban-column" *ngFor="let status of ['open','assigned','in_progress','resolved','closed']" [class.kanban-column--final]="status === 'resolved' || status === 'closed'">
+            <div class="kanban-column-header">
+              <div class="kanban-column-heading">
+                <span>{{ petRequestStatusLabel(status) }}</span>
+                <small>{{ petRequestStatusHint(status) }}</small>
+              </div>
+              <span class="kanban-counter">{{ getPetRequestsByStatus(status).length }}</span>
+            </div>
+
+            <div class="kanban-dropzone">
+              <div *ngIf="!getPetRequestsByStatus(status).length" class="kanban-empty">
+                <mat-icon>inbox</mat-icon>
+                <strong>Sin casos en {{ petRequestStatusLabel(status).toLowerCase() }}</strong>
+                <span>Los casos pet apareceran aqui segun su avance.</span>
+              </div>
+
+              <div class="kanban-card" *ngFor="let request of getPetRequestsByStatus(status)">
+                <div class="kanban-card-content">
+                  <div class="card-title">{{ request.title || 'Solicitud pet' }}</div>
+                  <div class="card-subtitle">
+                    {{ petChannelLabel(request.channel) }} · {{ request.updated_at | date:'dd/MM/yyyy HH:mm' }}
+                  </div>
+
+                  <p *ngIf="request.message" style="font-size: 12px; color: var(--text2); margin: 0.5rem 0 0;">
+                    {{ request.message }}
+                  </p>
+
+                  <div class="kanban-card__meta">
+                    <span class="status-badge"
+                          [class.badge-warn]="status === 'open'"
+                          [class.badge-blue]="status === 'assigned' || status === 'in_progress'"
+                          [class.badge-green]="status === 'resolved'"
+                          [class.badge-gray]="status === 'closed'">
+                      {{ petRequestStatusLabel(status) }}
+                    </span>
+                    <button *ngIf="petRequestNextStatus(status)" type="button" class="btn-ghost" (click)="updatePetRequestStatus(request, petRequestNextStatus(status)!)">
+                      {{ petRequestNextActionLabel(status) }}
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
 
         <!-- View: Tareas -->
-      <div *ngIf="currentView === 'tareas'" class="mt-8">
+      <div *ngIf="companyConfigMode && currentView === 'tareas'" class="mt-8">
+        <div class="view-header">
+          <div class="view-header__content">
+            <span class="view-title">Seguimiento pet</span>
+            <p class="view-subtitle">Acciones sugeridas para mantener al dia solicitudes y fichas de mascotas.</p>
+          </div>
+        </div>
+        <div class="table-card">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Accion sugerida</th>
+                <th>Solicitud</th>
+                <th>Estado</th>
+                <th>Canal</th>
+              </tr>
+            </thead>
+            <tbody *ngIf="petSupportRequests.length > 0">
+              <tr *ngFor="let request of petSupportRequests">
+                <td class="td-primary">
+                  {{ ['resolved','closed','cancelled'].includes(request.status) ? 'Revisar cierre del caso' : 'Hacer seguimiento al tutor' }}
+                </td>
+                <td>{{ request.title || 'Solicitud pet' }}</td>
+                <td><span class="status-badge badge-blue">{{ petRequestStatusLabel(request.status) }}</span></td>
+                <td>{{ petChannelLabel(request.channel) }}</td>
+              </tr>
+            </tbody>
+            <tbody *ngIf="petSupportRequests.length === 0">
+              <tr><td colspan="4" class="td-empty">No hay solicitudes pet para generar tareas de seguimiento.</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <div *ngIf="!companyConfigMode && currentView === 'tareas'" class="mt-8">
         <div class="view-header">
           <span class="view-title">Gesti&oacute;n de Tareas</span>
           <button class="btn-primary" (click)="openTareaModal()">
@@ -466,82 +923,64 @@
         </div>
       </div>
  
-      <!-- View: Sedes -->
-      <div *ngIf="currentView === 'sedes'" class="mt-8">
+      <!-- View: Camas -->
+      <div *ngIf="companyConfigMode && currentView === 'camas'" class="mt-8">
         <div class="view-header">
-          <span class="view-title">Estado de sedes</span>
-          <button class="btn-primary" (click)="openSedeModal()">
+          <span class="view-title">Beneficios y capacidad pet</span>
+          <button class="btn-primary" (click)="openCamaModal()">
             <mat-icon style="font-size:14px;width:14px;height:14px;margin-right:4px">add</mat-icon>
-            Anadir sede
+            Nuevo beneficio
           </button>
         </div>
         <div class="table-card">
           <table class="data-table">
             <thead>
               <tr>
-                <th style="width:22%">Sede</th>
-                <th style="width:18%">Ubicacion</th>
-                <th style="width:10%">Camas</th>
-                <th style="width:22%">Disponibles</th>
-                <th style="width:14%">Estado</th>
-                <th style="width:14%"></th>
+                <th>Beneficio</th>
+                <th>Responsable</th>
+                <th>Tipo</th>
+                <th>Costo ref.</th>
+                <th>Duracion</th>
+                <th>Cupos/dia</th>
+                <th>Estado</th>
+                <th></th>
               </tr>
             </thead>
-            <tbody *ngIf="sedes.length > 0">
-              <tr *ngFor="let sede of sedes" [class.row-highlight]="isSelectedEntity('sede', sede.id)">
-                <td class="td-primary">{{ sede.nombre }}</td>
-                <td>{{ sede.ubicacion }}</td>
-                <td class="td-mono">{{ sede.camasTotales }}</td>
-                <td>
-                  <div class="progress-row">
-                    <span class="td-mono" style="min-width:22px">{{ sede.camasDisponibles }}</span>
-                    <div class="progress-track">
-                      <div class="progress-fill"
-                           [style.width.%]="(sede.camasDisponibles / sede.camasTotales) * 100"
-                           [class.fill-green]="sede.camasDisponibles > 10"
-                           [class.fill-warn]="sede.camasDisponibles <= 10 && sede.camasDisponibles > 3"
-                           [class.fill-red]="sede.camasDisponibles <= 3">
-                      </div>
-                    </div>
-                    <span class="pct-label">{{ ((sede.camasDisponibles / sede.camasTotales) * 100) | number:'1.0-0' }}%</span>
-                  </div>
+            <tbody *ngIf="petProviderServices.length > 0">
+              <tr *ngFor="let service of petProviderServices">
+                <td class="td-primary">
+                  {{ service.title }}
+                  <div *ngIf="service.requirements" style="font-size:10px;color:var(--text3);margin-top:3px;">{{ service.requirements }}</div>
                 </td>
+                <td>{{ service.providers?.name || 'Sin responsable' }}</td>
+                <td>{{ service.service_type }}</td>
+                <td>{{ service.price_from ? (service.price_from | currency:(service.currency || 'CLP'):'symbol-narrow':'1.0-0') : 'Sin costo' }}</td>
+                <td>{{ service.duration_minutes ? service.duration_minutes + ' min' : '-' }}</td>
+                <td>{{ service.max_daily_slots ?? '-' }}</td>
                 <td>
-                  <span class="status-badge"
-                        [class.badge-green]="sede.estado === 'Normal'"
-                        [class.badge-warn]="sede.estado === 'Atencion'"
-                        [class.badge-red]="sede.estado === 'Critico'">
-                    {{ sede.estado }}
+                  <span class="status-badge" [class.badge-green]="service.active" [class.badge-gray]="!service.active">
+                    {{ service.active ? 'Disponible' : 'Pausado' }}
                   </span>
                 </td>
                 <td class="td-actions">
-                  <button class="btn-ghost" style="margin-right: 6px;" (click)="openSedeModal(sede)">
-                    Editar
-                  </button>
-                  <button class="btn-ghost" style="color: var(--danger); border-color: rgba(239, 68, 68, 0.3);" (click)="deleteSede(sede)">
-                    Eliminar
-                  </button>
-                </td>
-            </tr>
-            </tbody>
-            <tbody *ngIf="sedes.length === 0">
-              <tr>
-                <td colspan="6" class="td-empty">
-                  No hay sedes registradas. Usa "Anadir sede" para comenzar.
+                  <button class="btn-ghost" style="margin-right: 6px;" (click)="openCamaModal(service)">Editar</button>
+                  <button class="btn-ghost" style="color: var(--danger); border-color: rgba(239, 68, 68, 0.3);" (click)="deleteCama(service)">Eliminar</button>
                 </td>
               </tr>
+            </tbody>
+            <tbody *ngIf="petProviderServices.length === 0">
+              <tr><td colspan="8" class="td-empty">No hay beneficios o capacidad pet registrados. Crea el primero para administrar disponibilidad para empleados.</td></tr>
             </tbody>
           </table>
         </div>
       </div>
- 
-      <!-- View: Camas -->
-      <div *ngIf="currentView === 'camas'" class="mt-8">
+
+      <div *ngIf="!companyConfigMode && currentView === 'camas'" class="mt-8">
         <div class="view-header">
-          <span class="view-title">Camas y vacantes</span>
+          <span class="view-title">Servicios disponibles</span>
           <button class="btn-primary" (click)="openCamaModal()">
             <mat-icon style="font-size:14px;width:14px;height:14px;margin-right:4px">add</mat-icon>
-            Anadir cama
+            Nuevo beneficio
           </button>
         </div>
         <div class="table-card">
@@ -549,10 +988,10 @@
             <thead>
               <tr>
                 <th style="width:16%">ID / Codigo</th>
-                <th style="width:22%">Sede</th>
+                <th style="width:22%">Responsable</th>
                 <th style="width:16%">Tipo</th>
                 <th style="width:16%">Estado</th>
-                <th style="width:20%">Paciente</th>
+                <th style="width:20%">Asignado a</th>
                 <th style="width:10%"></th>
               </tr>
             </thead>
@@ -567,7 +1006,7 @@
                         [class.badge-green]="cama.estado === 'Disponible'"
                         [class.badge-warn]="cama.estado === 'En limpieza'"
                         [class.badge-gray]="cama.estado === 'Mantenimiento'">
-                    {{ cama.estado }}
+                    {{ cama.estado === 'Ocupada' ? 'En uso' : (cama.estado === 'Disponible' ? 'Disponible' : cama.estado) }}
                   </span>
                 </td>
                 <td>{{ cama.paciente }}</td>
@@ -583,7 +1022,7 @@
             </tbody>
             <tbody *ngIf="camasDetalle.length === 0">
               <tr>
-                <td colspan="6" class="td-empty">No hay camas registradas.</td>
+                <td colspan="6" class="td-empty">No hay servicios registrados.</td>
               </tr>
             </tbody>
           </table>
@@ -591,22 +1030,96 @@
       </div>
  
       <!-- View: Pacientes -->
-      <div *ngIf="currentView === 'pacientes'" class="mt-8">
+      <div *ngIf="companyConfigMode && currentView === 'pacientes'" class="mt-8 petcare-page">
+        <div class="view-header petcare-section-header">
+          <div class="view-header__content">
+            <span class="view-title">Mascotas</span>
+            <p class="view-subtitle">{{ petProfiles.length }} mascota{{ petProfiles.length === 1 ? '' : 's' }} registrada{{ petProfiles.length === 1 ? '' : 's' }}</p>
+          </div>
+          <div class="petcare-toolbar">
+            <label class="petcare-search">
+              <mat-icon>search</mat-icon>
+              <input type="search" [(ngModel)]="petTableFilters.query" placeholder="Buscar mascota, empleado..." />
+            </label>
+            <button class="btn-primary" type="button" (click)="flash('Las mascotas se registran desde el portal del empleado.')">
+              <mat-icon style="font-size:14px;width:14px;height:14px;margin-right:4px">add</mat-icon>
+              Registrar mascota
+            </button>
+          </div>
+        </div>
+        <div class="petcare-filter-row">
+          <button type="button" class="stab" [class.on]="petTableFilters.species === 'all'" (click)="petTableFilters.species = 'all'">Todos</button>
+          <button type="button" class="stab" [class.on]="petTableFilters.species === 'dog'" (click)="petTableFilters.species = 'dog'"><mat-icon>pets</mat-icon> Perros</button>
+          <button type="button" class="stab" [class.on]="petTableFilters.species === 'cat'" (click)="petTableFilters.species = 'cat'"><mat-icon>cruelty_free</mat-icon> Gatos</button>
+          <button type="button" class="stab" [class.on]="petTableFilters.species === 'other'" (click)="petTableFilters.species = 'other'"><mat-icon>favorite</mat-icon> Otros</button>
+        </div>
+        <div class="table-card petcare-table-card">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Mascota</th>
+                <th>Especie / raza</th>
+                <th>Edad</th>
+                <th>Empleado</th>
+                <th>Vacunas</th>
+                <th>Ultimo registro</th>
+                <th>Estado</th>
+              </tr>
+            </thead>
+            <tbody *ngIf="filteredCompanyPets.length > 0">
+              <tr *ngFor="let pet of filteredCompanyPets">
+                <td class="td-primary">
+                  <span class="petcare-pet-name">
+                    <span class="petcare-pet-mini"><mat-icon>{{ petSpeciesIcon(pet.species) }}</mat-icon></span>
+                    {{ pet.name || 'Sin nombre' }}
+                  </span>
+                </td>
+                <td>{{ speciesLabel(pet.species) }}<span *ngIf="pet.breed"> · {{ pet.breed }}</span></td>
+                <td>{{ petAgeLabel(pet.birth_date) }}</td>
+                <td>
+                  {{ pet.owner?.full_name || pet.owner?.email || 'Sin dato' }}
+                  <div *ngIf="pet.owner?.email && pet.owner?.full_name" class="td-small">{{ pet.owner.email }}</div>
+                </td>
+                <td>
+                  <span class="petcare-chip"
+                    [class.petcare-chip--alert]="pet.vaccine_status === 'pending'"
+                    [class.petcare-chip--muted]="!pet.vaccine_status || pet.vaccine_status === 'unknown'">
+                    {{ vaccinesStatusLabel(pet.vaccine_status) }}
+                  </span>
+                </td>
+                <td class="td-small">{{ pet.created_at | date:'dd MMM' }}</td>
+                <td>
+                  <span class="petcare-chip"
+                    [class.petcare-chip--alert]="!pet.microchip_number || pet.vaccine_status === 'pending'"
+                    [class.petcare-chip--muted]="!pet.vaccine_status || pet.vaccine_status === 'unknown'">
+                    {{ petTableStatusLabel(pet) }}
+                  </span>
+                </td>
+              </tr>
+            </tbody>
+            <tbody *ngIf="filteredCompanyPets.length === 0">
+              <tr><td colspan="7" class="td-empty">No hay mascotas que coincidan con los filtros.</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <div *ngIf="!companyConfigMode && currentView === 'pacientes'" class="mt-8">
         <div class="view-header">
-          <span class="view-title">Pacientes activos</span>
+          <span class="view-title">Empresas cliente</span>
           <button class="btn-primary" (click)="openNewPacienteModal()">
             <mat-icon style="font-size:14px;width:14px;height:14px;margin-right:4px">add</mat-icon>
-            Asignar paciente a cama
+            Registrar empresa
           </button>
         </div>
         <div class="table-card">
           <table class="data-table">
             <thead>
               <tr>
-                <th style="width:20%">Paciente</th>
-                <th style="width:25%">Tutor / Financiero</th>
-                <th style="width:20%">Contacto Emergencia</th>
-                <th style="width:15%">Cama / Sede</th>
+                <th style="width:20%">Empresa</th>
+                <th style="width:25%">Contacto / Plan</th>
+                <th style="width:20%">Estado</th>
+                <th style="width:15%">Suscripcion</th>
                 <th style="width:20%"></th>
               </tr>
             </thead>
@@ -618,7 +1131,7 @@
                 </td>
                 <td>
                   <div style="font-weight: 500;">{{ p.guarantor_name }}</div>
-                  <div style="font-size: 11px; color: var(--text3); margin-top: 2px;" *ngIf="p.monthly_fee > 0">Tarifa: {{ p.monthly_fee | currency:'CLP':'symbol-narrow':'1.0-0' }}</div>
+                  <div style="font-size: 11px; color: var(--text3); margin-top: 2px;" *ngIf="p.monthly_fee > 0">Plan: {{ p.monthly_fee | currency:'CLP':'symbol-narrow':'1.0-0' }}/mes</div>
                 </td>
                 <td>{{ p.contacto }}</td>
                 <td><span class="status-badge badge-gray">{{ p.camaAsignada }}</span></td>
@@ -627,17 +1140,17 @@
                     Editar
                   </button>
                   <button class="btn-ghost" style="color: var(--text2);" (click)="openInvoicesModal(p)">
-                    Historial
+                    Facturas
                   </button>
                   <button class="btn-ghost" style="color: var(--blue);" (click)="emitirCobro(p)">
-                    Cobro
+                    Cobrar
                   </button>
                 </td>
               </tr>
             </tbody>
             <tbody *ngIf="pacientesActivos.length === 0">
               <tr>
-                <td colspan="5" class="td-empty">No hay pacientes registrados. Asigna el nombre de un paciente a una cama para que aparezca aqui.</td>
+                <td colspan="5" class="td-empty">No hay empresas cliente registradas. Usa "Registrar empresa" para comenzar.</td>
               </tr>
             </tbody>
           </table>
@@ -647,16 +1160,88 @@
       <!-- View: Facturacion -->
       <div *ngIf="currentView === 'facturacion'" class="mt-8">
         <div class="view-header">
-          <span class="view-title">Facturacion y Cobros globales</span>
+          <span class="view-title">{{ companyConfigMode ? 'Uso del beneficio' : 'Facturacion a empresas' }}</span>
         </div>
-        <section *ngIf="companyConfigMode" class="table-card">
-          <ng-content select="[billing-content]"></ng-content>
+        <section *ngIf="companyConfigMode" class="benefit-usage-view">
+          <div class="dashboard-summary-grid dashboard-summary-grid--compact">
+            <article class="dashboard-summary-card dashboard-summary-card--primary">
+              <span class="dashboard-summary-card__icon"><mat-icon>payments</mat-icon></span>
+              <span class="dashboard-summary-card__label">Monto solicitado</span>
+              <strong>{{ benefitUsageTotalClaimed | currency:'CLP':'symbol-narrow':'1.0-0' }}</strong>
+              <small>Total pedido por empleados, antes de aprobacion.</small>
+            </article>
+            <article class="dashboard-summary-card dashboard-summary-card--warn">
+              <span class="dashboard-summary-card__icon"><mat-icon>pending_actions</mat-icon></span>
+              <span class="dashboard-summary-card__label">Pendientes</span>
+              <strong>{{ benefitUsagePendingCount }}</strong>
+              <small>Solicitudes esperando revision.</small>
+            </article>
+            <article class="dashboard-summary-card dashboard-summary-card--green">
+              <span class="dashboard-summary-card__icon"><mat-icon>task_alt</mat-icon></span>
+              <span class="dashboard-summary-card__label">Aprobados</span>
+              <strong>{{ benefitUsageApprovedCount }}</strong>
+              <small>Solicitudes aprobadas o reembolsadas.</small>
+            </article>
+          </div>
+
+          <div class="table-card">
+            <div class="erp-panel__header">
+              <div>
+                <h3>Solicitudes de beneficio por empleados</h3>
+                <p>Revisa solicitudes de reembolso o cobertura asociadas al beneficio pet.</p>
+              </div>
+            </div>
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>Empleado</th>
+                  <th>Beneficio</th>
+                  <th>Monto</th>
+                  <th>Estado</th>
+                  <th>Fecha</th>
+                  <th>Acciones</th>
+                </tr>
+              </thead>
+              <tbody *ngIf="benefitUsageRecords.length > 0">
+                <tr *ngFor="let usage of benefitUsageRecords">
+                  <td class="td-primary">
+                    {{ usage.employee?.full_name || usage.employee?.email || 'Empleado' }}
+                    <div *ngIf="usage.employee?.email" style="font-size:11px;color:var(--text3);font-weight:normal;margin-top:2px;">{{ usage.employee.email }}</div>
+                  </td>
+                  <td>
+                    {{ usage.voucher?.title || usage.notes || 'Beneficio pet' }}
+                    <div *ngIf="usage.pet?.name" style="font-size:11px;color:var(--text3);font-weight:normal;margin-top:2px;">Mascota: {{ usage.pet.name }}</div>
+                  </td>
+                  <td class="td-mono">{{ usage.amount_claimed | currency:'CLP':'symbol-narrow':'1.0-0' }}</td>
+                  <td>
+                    <span class="status-badge"
+                      [class.badge-warn]="usage.status === 'pending'"
+                      [class.badge-green]="usage.status === 'approved' || usage.status === 'reimbursed'"
+                      [class.badge-red]="usage.status === 'rejected'">
+                      {{ usage.status === 'pending' ? 'Pendiente' : usage.status === 'approved' ? 'Aprobado' : usage.status === 'reimbursed' ? 'Reembolsado' : usage.status === 'rejected' ? 'Rechazado' : usage.status }}
+                    </span>
+                  </td>
+                  <td class="td-mono">{{ usage.claimed_at | date:'dd/MM/yyyy' }}</td>
+                  <td>
+                    <button *ngIf="usage.status === 'pending'" class="btn-ghost" (click)="updateBenefitUsageStatus(usage, 'approved')">Aprobar</button>
+                    <button *ngIf="usage.status === 'pending'" class="btn-ghost btn-ghost--danger" (click)="updateBenefitUsageStatus(usage, 'rejected')">Rechazar</button>
+                    <button *ngIf="usage.status === 'approved'" class="btn-ghost" (click)="updateBenefitUsageStatus(usage, 'reimbursed')">Marcar reembolsado</button>
+                  </td>
+                </tr>
+              </tbody>
+              <tbody *ngIf="benefitUsageRecords.length === 0">
+                <tr>
+                  <td colspan="6" class="td-empty">Aun no hay solicitudes de beneficio. Cuando un empleado pida reembolso o cobertura pet, aparecera aqui.</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
         </section>
-        <div class="table-card">
+        <div *ngIf="!companyConfigMode" class="table-card">
           <table class="data-table">
             <thead>
               <tr>
-                <th style="width:25%">Paciente</th>
+                <th style="width:25%">Empresa</th>
                 <th style="width:15%">Emision</th>
                 <th style="width:15%">Vencimiento</th>
                 <th style="width:15%">Monto</th>
@@ -694,7 +1279,44 @@
       </div>
 
       <!-- View: Gastos y Finanzas -->
-      <div *ngIf="currentView === 'gastos'" class="mt-8">
+      <div *ngIf="companyConfigMode && currentView === 'gastos'" class="mt-8">
+        <div class="view-header">
+          <div class="view-header__content">
+            <span class="view-title">Presupuesto y costos pet</span>
+            <p class="view-subtitle">Resumen financiero de servicios para control del negocio.</p>
+          </div>
+        </div>
+        <div class="table-card">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Concepto</th>
+                <th>Estado</th>
+                <th>Detalle</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td class="td-primary">Plan Company Pet</td>
+                <td><span class="status-badge badge-blue">Admin plataforma</span></td>
+                <td>El plan contratado y los vouchers/codigos globales los administra Company Pet.</td>
+              </tr>
+              <tr>
+                <td class="td-primary">Solicitudes pendientes</td>
+                <td><span class="status-badge badge-warn">{{ benefitUsagePendingCount }} por revisar</span></td>
+                <td>Reembolsos o coberturas pet solicitadas por empleados.</td>
+              </tr>
+              <tr>
+                <td class="td-primary">Monto aprobado</td>
+                <td><span class="status-badge badge-green">{{ benefitUsageApprovedAmount | currency:'CLP':'symbol-narrow':'1.0-0' }}</span></td>
+                <td>Total ya aprobado o reembolsado desde Uso del beneficio.</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <div *ngIf="!companyConfigMode && currentView === 'gastos'" class="mt-8">
         <div class="view-header">
           <span class="view-title">Flujo de Caja y Gastos</span>
           <div style="display: flex; gap: 0.75rem;">
@@ -785,41 +1407,41 @@
       </div>
 
       <!-- View: Admisiones (Kanban) -->
-      <div *ngIf="currentView === 'admisiones'" class="view-kanban mt-8" style="display: flex; flex-direction: column; height: 100%;">
+      <div *ngIf="!companyConfigMode && currentView === 'admisiones'" class="view-kanban mt-8" style="display: flex; flex-direction: column; height: 100%;">
         <div class="view-header view-header--kanban">
           <div class="view-header__content">
-            <span class="view-title">Pipeline de Admisiones</span>
+            <span class="view-title">Pipeline de Ventas B2B</span>
             <p class="view-subtitle">
-              {{ filteredTotalKanbanLeads }} casos visibles en seguimiento.
+              {{ filteredTotalKanbanLeads }} prospectos en seguimiento comercial.
               {{ filteredFinalKanbanLeads }} ya llegaron a una salida final.
             </p>
           </div>
           <button class="btn-primary btn-primary--kanban" (click)="openLeadModal()">
             <mat-icon style="font-size:14px;width:14px;height:14px;margin-right:4px">add</mat-icon>
-            Nueva consulta
+            Nuevo prospecto
           </button>
         </div>
 
         <div class="table-filters table-filters--kanban">
           <div class="field-group field-group--compact field-group--search">
             <label class="field-label">Buscar</label>
-            <input class="field-input" type="search" [(ngModel)]="leadFilters.query" placeholder="Nombre, comuna o dependencia" />
+            <input class="field-input" type="search" [(ngModel)]="leadFilters.query" placeholder="Empresa, contacto o email" />
           </div>
           <div class="field-group field-group--compact">
             <label class="field-label">Etapa</label>
             <select class="field-input" [(ngModel)]="leadFilters.status">
               <option value="all">Todas</option>
-              <option value="nuevo">Nuevas</option>
+              <option value="nuevo">Nuevo</option>
               <option value="contactado">Contactado</option>
-              <option value="evaluacion">Evaluacion</option>
-              <option value="match">Propuesta</option>
+              <option value="demo">Demo</option>
+              <option value="negociacion">Negociacion</option>
               <option value="cerrado">Cerrado</option>
               <option value="perdido">Perdido</option>
             </select>
           </div>
           <div class="field-group field-group--compact">
-            <label class="field-label">Comuna</label>
-            <input class="field-input" type="search" [(ngModel)]="leadFilters.comuna" placeholder="Ej: Las Condes" />
+            <label class="field-label">Industria</label>
+            <input class="field-input" type="search" [(ngModel)]="leadFilters.comuna" placeholder="Ej: tecnologia, retail" />
           </div>
           <button class="btn-secondary table-filters__reset" type="button" (click)="resetLeadFilters()">Limpiar</button>
         </div>
@@ -858,20 +1480,23 @@
                   </div>
                 </ng-template>
                 <div class="kanban-card-content">
-                  <div class="card-title">{{ lead.nombre }}</div>
+                  <div class="card-title">{{ lead.company_name || lead.nombre }}</div>
                   <div class="card-subtitle">
-                    {{ lead.comuna || 'Sin comuna' }} 
-                    <ng-container *ngIf="lead.dependencia"> {{ lead.dependencia }}</ng-container>
+                    {{ lead.contact_name || lead.nombre || 'Sin contacto' }}
+                    <ng-container *ngIf="lead.email"> · {{ lead.email }}</ng-container>
+                  </div>
+                  <div style="font-size: 11px; color: var(--text3); margin-top: 4px;" *ngIf="lead.company_size || lead.industry">
+                    {{ lead.industry || '' }}{{ lead.industry && lead.company_size ? ' · ' : '' }}{{ lead.company_size || '' }} empleados
                   </div>
                   
                   <div class="kanban-card__meta">
                     <span class="status-badge"
                           [class.badge-warn]="column.id === 'nuevo'"
-                          [class.badge-blue]="column.id === 'contactado' || column.id === 'match'"
-                          [class.badge-gray]="column.id === 'evaluacion'"
+                          [class.badge-blue]="column.id === 'contactado' || column.id === 'demo'"
+                          [class.badge-gray]="column.id === 'negociacion'"
                           [class.badge-green]="column.id === 'cerrado'"
                           [class.badge-red]="column.id === 'perdido'">
-                      {{ column.id === 'nuevo' ? 'Pendiente' : column.label }}
+                      {{ column.label }}
                     </span>
                     <span *ngIf="lead.presupuesto" class="kanban-card__price">
                       {{ lead.presupuesto | currency:'CLP':'symbol-narrow':'1.0-0' }}
@@ -893,7 +1518,7 @@
       </div>
       <div *ngIf="currentView === 'config'" class="erp-config-view">
         <div class="view-header">
-          <span class="view-title">{{ companyConfigMode ? 'Mi empresa' : 'Configuracion ERP' }}</span>
+          <span class="view-title">{{ companyConfigMode ? 'Mi negocio pet' : 'Configuracion ERP' }}</span>
           <button *ngIf="!companyConfigMode" class="btn-ghost" (click)="exportConfigSnapshotToCSV()">
             <mat-icon style="font-size:14px;width:14px;height:14px;margin-right:4px">download</mat-icon>
             Exportar CSV
@@ -902,8 +1527,8 @@
 
         <div class="erp-toolbar table-card">
           <div>
-            <h3>{{ companyConfigMode ? 'Centro de empresa' : 'Configuracion operativa' }}</h3>
-            <p>{{ companyConfigMode ? 'Administra datos de empresa, documentos y mensajes de soporte.' : 'Ajustes que cambian el funcionamiento diario: flujos, reglas, documentos y mensajes.' }}</p>
+            <h3>{{ companyConfigMode ? 'Centro del negocio' : 'Configuracion operativa' }}</h3>
+            <p>{{ companyConfigMode ? 'Administra datos del negocio, documentos y mensajes de soporte.' : 'Ajustes que cambian el funcionamiento diario: flujos, reglas, documentos y mensajes.' }}</p>
           </div>
           <label class="erp-search" *ngIf="!companyConfigMode">
             <mat-icon>search</mat-icon>
@@ -913,7 +1538,7 @@
 
         <div class="erp-summary-strip">
           <button *ngIf="companyConfigMode" type="button" class="erp-summary-card" (click)="setConfigSection('company')">
-            <span>Mi empresa</span>
+            <span>Mi negocio</span>
             <strong>1</strong>
             <small>Datos generales</small>
           </button>
@@ -942,7 +1567,7 @@
         <div class="erp-section-tabs">
           <button *ngIf="companyConfigMode" type="button" [class.active]="configSection === 'company'" (click)="setConfigSection('company')">
             <mat-icon>business</mat-icon>
-            Mi empresa
+            Mi negocio
           </button>
           <button type="button" [class.active]="configSection === 'appearance'" (click)="setConfigSection('appearance')">
             <mat-icon>palette</mat-icon>
@@ -975,15 +1600,15 @@
             <div class="erp-panel__header">
               <div>
                 <h3>Apariencia del ERP</h3>
-                <p>Personaliza esta empresa sin afectar a las dems: colores, botones, bordes, densidad y logo.</p>
+                <p>Personaliza este negocio sin afectar a los demas: colores, botones, bordes, densidad y logo.</p>
               </div>
-              <span>Por empresa</span>
+              <span>Por negocio</span>
             </div>
 
             <div class="appearance-layout">
               <div class="appearance-controls">
                 <div class="theme-preset-row">
-                  <button type="button" class="btn-secondary" (click)="applyThemePreset('care')">company pet</button>
+                  <button type="button" class="btn-secondary" (click)="applyThemePreset('care')">Company Pet</button>
                   <button type="button" class="btn-secondary" (click)="applyThemePreset('clinical')">Clnico</button>
                   <button type="button" class="btn-secondary" (click)="applyThemePreset('corporate')">Corporativo</button>
                   <button type="button" class="btn-secondary" (click)="applyThemePreset('warm')">Clido</button>
@@ -1060,7 +1685,7 @@
 
                 <label class="theme-select-field">
                   <span>Logo URL</span>
-                  <input class="field-input" [(ngModel)]="brandingDraft.logo_url" placeholder="https://empresa.com/logo.svg">
+                  <input class="field-input" [(ngModel)]="brandingDraft.logo_url" placeholder="https://tunegocio.cl/logo.svg">
                 </label>
 
                 <button class="btn-primary" (click)="saveBranding()">Guardar apariencia</button>
@@ -1087,7 +1712,7 @@
                 </div>
                 <div class="theme-preview__table">
                   <div>
-                    <strong>Activacion de empresa</strong>
+                    <strong>Activacion del negocio</strong>
                     <span class="status-badge badge-green">Activo</span>
                   </div>
                   <div>
@@ -1132,7 +1757,7 @@
             <div class="erp-panel__header">
               <div>
                 <h3>Flujos operativos</h3>
-                <p>Define las opciones que el equipo usa en solicitudes, tareas, documentos, proveedores y leads.</p>
+                <p>Define las opciones que el equipo usa en solicitudes, tareas, documentos y leads.</p>
               </div>
               <span>{{ systemCategories.length }} categorias  {{ systemStatuses.length }} estados</span>
             </div>
@@ -1149,7 +1774,6 @@
                     <select class="field-input" [(ngModel)]="categoryDraft.scope">
                       <option value="request">Solicitud</option>
                       <option value="task">Tarea</option>
-                      <option value="provider">Proveedor</option>
                       <option value="document">Documento</option>
                       <option value="lead">Lead</option>
                     </select>
@@ -1233,7 +1857,7 @@
             <div class="erp-panel__header">
               <div>
                 <h3>Categorias editables</h3>
-                <p>Ordena solicitudes, tareas, documentos, proveedores y leads.</p>
+                <p>Ordena solicitudes, tareas, documentos y leads.</p>
               </div>
               <span>{{ systemCategories.length }} categorias</span>
             </div>
@@ -1241,7 +1865,6 @@
               <select class="field-input" [(ngModel)]="categoryDraft.scope">
                 <option value="request">Solicitud</option>
                 <option value="task">Tarea</option>
-                <option value="provider">Proveedor</option>
                 <option value="document">Documento</option>
                 <option value="lead">Lead</option>
               </select>
@@ -1336,7 +1959,7 @@
             <div class="erp-form-grid erp-form-grid--two">
               <select class="field-input" [(ngModel)]="documentDraft.document_type">
                 <option value="contract">Contrato</option>
-                <option value="company_file">Archivo empresa</option>
+                <option value="company_file">Archivo del negocio</option>
                 <option value="case_file">Archivo caso</option>
                 <option value="certificate">Certificado</option>
                 <option value="proposal">Propuesta</option>
@@ -1394,7 +2017,7 @@
             <div class="erp-panel__header">
               <div>
                 <h3>{{ companyConfigMode ? 'Mensajes y soporte' : 'Mensajeria interna' }}</h3>
-                <p>{{ companyConfigMode ? 'Deja mensajes para el equipo company pet.' : 'Deja notas operativas asociadas a empresa, tareas, leads o documentos.' }}</p>
+                <p>{{ companyConfigMode ? 'Deja mensajes para el equipo Company Pet.' : 'Deja notas operativas asociadas a empresa, tareas, leads o documentos.' }}</p>
               </div>
               <span>{{ entityComments.length }} mensajes</span>
             </div>
@@ -1407,10 +2030,10 @@
               </select>
               <select class="field-input" [(ngModel)]="commentDraft.visibility">
                 <option value="internal">Interno</option>
-                <option value="company">Visible empresa</option>
+                <option value="company">Visible negocio</option>
               </select>
             </div>
-            <textarea class="field-input" rows="3" [(ngModel)]="commentDraft.body" [placeholder]="companyConfigMode ? 'Escribe un mensaje para soporte company pet...' : 'Escribe un comentario o nota operacional...'"></textarea>
+            <textarea class="field-input" rows="3" [(ngModel)]="commentDraft.body" [placeholder]="companyConfigMode ? 'Escribe un mensaje para soporte Company Pet...' : 'Escribe un comentario o nota operacional...'"></textarea>
             <button class="btn-primary" (click)="addComment()">Agregar comentario</button>
             <div class="erp-list">
               <div class="erp-list-row" *ngFor="let comment of entityComments | slice:0:5">
@@ -1447,15 +2070,15 @@
 <div class="modal-backdrop" *ngIf="showSedeModal" (click)="showSedeModal = false">
   <div class="modal-box" (click)="$event.stopPropagation()">
     <div class="modal-header">
-      <span class="modal-title">Anadir sede</span>
+      <span class="modal-title">Anadir responsable de servicio</span>
       <button class="modal-close" (click)="showSedeModal = false">
         <mat-icon style="font-size:18px;width:18px;height:18px">close</mat-icon>
       </button>
     </div>
     <div class="modal-body">
       <div class="field-group">
-        <label class="field-label">Nombre de la sede</label>
-        <input class="field-input" type="text" [(ngModel)]="sedeDraft.nombre" placeholder="Ej: Sede Central">
+        <label class="field-label">Nombre del responsable</label>
+        <input class="field-input" type="text" [(ngModel)]="sedeDraft.nombre" placeholder="Ej: Petshop Central">
       </div>
       <div class="field-group">
         <label class="field-label">Ubicacion / comuna</label>
@@ -1465,7 +2088,7 @@
     <div class="modal-footer">
       <button class="btn-secondary" (click)="showSedeModal = false">Cancelar</button>
       <button class="btn-primary" (click)="saveSede()" [disabled]="savingSede">
-        {{ savingSede ? 'Guardando...' : 'Guardar sede' }}
+        {{ savingSede ? 'Guardando...' : 'Guardar responsable' }}
       </button>
     </div>
   </div>
@@ -1561,7 +2184,7 @@
     <div class="modal-body">
       <div class="field-group">
         <label class="field-label">Titulo de la tarea</label>
-        <textarea class="field-input" rows="3" [(ngModel)]="tareaDraft.title" placeholder="Ej: Llamar al proveedor de insumos medicos"></textarea>
+        <textarea class="field-input" rows="3" [(ngModel)]="tareaDraft.title" placeholder="Ej: Confirmar antecedentes de una solicitud"></textarea>
       </div>
       <div class="field-group">
         <label class="field-label">Asignar a</label>
@@ -1629,7 +2252,7 @@
 <div class="modal-backdrop" *ngIf="showLeadDetailModal" (click)="closeLeadDetail()">
   <div class="modal-box modal-box--wide" (click)="$event.stopPropagation()">
     <div class="modal-header">
-      <span class="modal-title">Detalle de admision</span>
+      <span class="modal-title">Detalle del prospecto</span>
       <button class="modal-close" (click)="closeLeadDetail()">
         <mat-icon style="font-size:18px;width:18px;height:18px">close</mat-icon>
       </button>
@@ -1638,13 +2261,13 @@
     <div class="modal-body lead-detail" *ngIf="selectedLead">
       <div class="lead-detail__header">
         <div>
-          <h3>{{ selectedLead.nombre }}</h3>
-          <p>{{ selectedLead.comuna || 'Sin comuna' }}</p>
+          <h3>{{ selectedLead.company_name || selectedLead.nombre }}</h3>
+          <p>{{ selectedLead.contact_name || 'Sin contacto' }}<span *ngIf="selectedLead.email"> · {{ selectedLead.email }}</span></p>
         </div>
         <span class="status-badge"
               [class.badge-warn]="selectedLead.estado === 'nuevo'"
-              [class.badge-blue]="selectedLead.estado === 'contactado' || selectedLead.estado === 'match'"
-              [class.badge-gray]="selectedLead.estado === 'evaluacion'"
+              [class.badge-blue]="selectedLead.estado === 'contactado' || selectedLead.estado === 'demo'"
+              [class.badge-gray]="selectedLead.estado === 'negociacion'"
               [class.badge-green]="selectedLead.estado === 'cerrado'"
               [class.badge-red]="selectedLead.estado === 'perdido'">
           {{ leadStatusLabel(selectedLead.estado) }}
@@ -1653,16 +2276,40 @@
 
       <div class="lead-detail__grid">
         <div class="lead-detail__item">
-          <span>Dependencia</span>
-          <strong>{{ selectedLead.dependencia || 'Sin dato' }}</strong>
+          <span>Empresa</span>
+          <strong>{{ selectedLead.company_name || 'Sin dato' }}</strong>
         </div>
         <div class="lead-detail__item">
-          <span>Presupuesto</span>
-          <strong>{{ selectedLead.presupuesto ? (selectedLead.presupuesto | currency:'CLP':'symbol-narrow':'1.0-0') : 'Sin dato' }}</strong>
+          <span>Contacto</span>
+          <strong>{{ selectedLead.contact_name || 'Sin dato' }}</strong>
+        </div>
+        <div class="lead-detail__item">
+          <span>Cargo</span>
+          <strong>{{ selectedLead.contact_position || 'Sin dato' }}</strong>
+        </div>
+        <div class="lead-detail__item">
+          <span>Email</span>
+          <strong>{{ selectedLead.email || 'Sin dato' }}</strong>
         </div>
         <div class="lead-detail__item">
           <span>Telefono</span>
-          <strong>{{ selectedLead.telefono || 'Sin dato' }}</strong>
+          <strong>{{ selectedLead.phone || 'Sin dato' }}</strong>
+        </div>
+        <div class="lead-detail__item">
+          <span>Tamaño empresa</span>
+          <strong>{{ selectedLead.company_size ? (selectedLead.company_size + ' empleados') : 'Sin dato' }}</strong>
+        </div>
+        <div class="lead-detail__item">
+          <span>Industria</span>
+          <strong>{{ selectedLead.industry || 'Sin dato' }}</strong>
+        </div>
+        <div class="lead-detail__item">
+          <span>Presupuesto estimado</span>
+          <strong>{{ selectedLead.presupuesto ? (selectedLead.presupuesto | currency:'CLP':'symbol-narrow':'1.0-0') : 'Sin dato' }}</strong>
+        </div>
+        <div class="lead-detail__item">
+          <span>Fuente</span>
+          <strong>{{ selectedLead.source || 'website' }}</strong>
         </div>
         <div class="lead-detail__item">
           <span>Creada</span>
@@ -1670,118 +2317,106 @@
         </div>
       </div>
 
-      <div class="lead-detail__loading" *ngIf="loadingLeadDetail">
-        Cargando ficha...
-      </div>
-
-      <ng-container *ngIf="selectedLeadIntake?.payload as intake">
-        <div class="lead-detail__section">
-          <h4>Ficha de cuidado</h4>
-          <div class="lead-detail__grid">
-            <div class="lead-detail__item">
-              <span>Tipo de apoyo</span>
-              <strong>{{ careTypeLabel(intake.care_type) }}</strong>
-            </div>
-            <div class="lead-detail__item">
-              <span>Edad persona cuidada</span>
-              <strong>{{ intake.care_receiver?.age || 'Sin dato' }}</strong>
-            </div>
-            <div class="lead-detail__item">
-              <span>Condicion principal</span>
-              <strong>{{ intake.care_receiver?.primary_condition || 'Sin dato' }}</strong>
-            </div>
-            <div class="lead-detail__item">
-              <span>Nivel dependencia</span>
-              <strong>{{ dependencyLevelLabel(intake.care_receiver?.dependency_level) }}</strong>
-            </div>
-            <div class="lead-detail__item">
-              <span>Ciudad o comuna</span>
-              <strong>{{ intake.location?.city || 'Sin dato' }}</strong>
-            </div>
-            <div class="lead-detail__item">
-              <span>Codigo postal</span>
-              <strong>{{ intake.location?.postal_code || 'Sin dato' }}</strong>
-            </div>
-            <div class="lead-detail__item">
-              <span>Red de apoyo</span>
-              <strong>{{ intake.family_context?.support_network || 'Sin dato' }}</strong>
-            </div>
-            <div class="lead-detail__item">
-              <span>Financiamiento</span>
-              <strong>{{ fundingLabel(intake.budget?.funding) }}</strong>
-            </div>
-            <div class="lead-detail__item">
-              <span>Contacto preferido</span>
-              <strong>{{ preferredContactLabel(intake.preferences?.preferred_contact) }}</strong>
-            </div>
-            <div class="lead-detail__item">
-              <span>Urgencia</span>
-              <strong>{{ urgencyLabel(intake.urgency) }}</strong>
-            </div>
-            <div class="lead-detail__item">
-              <span>Cuidador</span>
-              <strong>{{ intake.caregiver?.name || 'Sin dato' }}</strong>
-            </div>
-            <div class="lead-detail__item">
-              <span>Relacion</span>
-              <strong>{{ intake.caregiver?.relation || 'Sin dato' }}</strong>
-            </div>
-          </div>
-        </div>
-
-        <div class="lead-detail__notes" *ngIf="intake.notes">
-          <span>Notas relevantes</span>
-          <p>{{ intake.notes }}</p>
-        </div>
-      </ng-container>
-
-      <div class="lead-detail__empty" *ngIf="!loadingLeadDetail && selectedLead.employee_id && !selectedLeadIntake">
-        No se encontro ficha asociada a esta admision.
-      </div>
-
-      <div class="lead-detail__empty" *ngIf="!selectedLead.employee_id">
-        Esta admision fue creada manualmente y no tiene ficha de empleado asociada.
+      <div class="lead-detail__notes" *ngIf="selectedLead.notes">
+        <span>Notas</span>
+        <p>{{ selectedLead.notes }}</p>
       </div>
     </div>
 
     <div class="modal-footer">
       <button class="btn-secondary" (click)="closeLeadDetail()">Cerrar</button>
-      <button class="btn-primary" (click)="showLeadDetailModal = false; openLeadModal(selectedLead)">Editar admision</button>
+      <button class="btn-primary" (click)="showLeadDetailModal = false; openLeadModal(selectedLead)">Editar prospecto</button>
     </div>
   </div>
 </div>
 
-<!-- Modal: Nueva Consulta (Lead) -->
+<!-- Modal: Nuevo Prospecto (Lead) -->
 <div class="modal-backdrop" *ngIf="showLeadModal" (click)="showLeadModal = false">
   <div class="modal-box" (click)="$event.stopPropagation()">
     <div class="modal-header">
-      <span class="modal-title">{{ leadDraft.id ? 'Editar admision' : 'Nueva consulta / Lead' }}</span>
+      <span class="modal-title">{{ leadDraft.id ? 'Editar prospecto' : 'Nuevo prospecto empresa' }}</span>
       <button class="modal-close" (click)="showLeadModal = false">
         <mat-icon style="font-size:18px;width:18px;height:18px">close</mat-icon>
       </button>
     </div>
     <div class="modal-body">
       <div class="field-group">
-        <label class="field-label">Nombre del prospecto</label>
-        <input class="field-input" type="text" [(ngModel)]="leadDraft.nombre" placeholder="Ej: Familia Perez Soto">
+        <label class="field-label">Nombre de la empresa *</label>
+        <input class="field-input" type="text" [(ngModel)]="leadDraft.company_name" placeholder="Ej: TechCorp Chile S.A.">
       </div>
       <div class="field-group">
-        <label class="field-label">Comuna de hotel para mascotas</label>
-        <input class="field-input" type="text" [(ngModel)]="leadDraft.comuna" placeholder="Ej: Las Condes">
+        <label class="field-label">Nombre del contacto</label>
+        <input class="field-input" type="text" [(ngModel)]="leadDraft.contact_name" placeholder="Ej: Maria Gonzalez">
+      </div>
+      <div class="grid grid-cols-2" style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+        <div class="field-group">
+          <label class="field-label">Cargo</label>
+          <input class="field-input" type="text" [(ngModel)]="leadDraft.contact_position" placeholder="Ej: CHRO">
+        </div>
+        <div class="field-group">
+          <label class="field-label">Industria</label>
+          <select class="field-input" [(ngModel)]="leadDraft.industry">
+            <option value="">Seleccionar...</option>
+            <option value="Tecnologia">Tecnologia</option>
+            <option value="Retail">Retail</option>
+            <option value="Financiero">Financiero</option>
+            <option value="Salud">Salud</option>
+            <option value="Educacion">Educacion</option>
+            <option value="Manufactura">Manufactura</option>
+            <option value="Servicios">Servicios</option>
+            <option value="Otros">Otros</option>
+          </select>
+        </div>
+      </div>
+      <div class="grid grid-cols-2" style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+        <div class="field-group">
+          <label class="field-label">Email</label>
+          <input class="field-input" type="email" [(ngModel)]="leadDraft.email" placeholder="maria@techcorp.cl">
+        </div>
+        <div class="field-group">
+          <label class="field-label">Telefono</label>
+          <input class="field-input" type="text" [(ngModel)]="leadDraft.phone" placeholder="+56 9 1234 5678">
+        </div>
+      </div>
+      <div class="grid grid-cols-2" style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+        <div class="field-group">
+          <label class="field-label">Tamaño de la empresa</label>
+          <select class="field-input" [(ngModel)]="leadDraft.company_size">
+            <option value="">Seleccionar...</option>
+            <option value="1-10">1-10 empleados</option>
+            <option value="11-50">11-50 empleados</option>
+            <option value="51-200">51-200 empleados</option>
+            <option value="201-500">201-500 empleados</option>
+            <option value="500+">500+ empleados</option>
+          </select>
+        </div>
+        <div class="field-group">
+          <label class="field-label">Presupuesto mensual estimado</label>
+          <input class="field-input" type="number" [(ngModel)]="leadDraft.presupuesto" placeholder="Ej: 500000">
+        </div>
       </div>
       <div class="field-group">
-        <label class="field-label">Nivel de dependencia</label>
-        <input class="field-input" type="text" [(ngModel)]="leadDraft.dependencia" placeholder="Ej: Autovalente con apoyo">
+        <label class="field-label">Fuente del prospecto</label>
+        <select class="field-input" [(ngModel)]="leadDraft.source">
+          <option value="website">Website / Landing</option>
+          <option value="referral">Referido</option>
+          <option value="linkedin">LinkedIn</option>
+          <option value="call">Llamada entrante</option>
+          <option value="event">Evento / Feria</option>
+          <option value="outbound">Outbound</option>
+          <option value="partner">Partner</option>
+          <option value="other">Otro</option>
+        </select>
       </div>
       <div class="field-group">
-        <label class="field-label">Presupuesto mensual (CLP)</label>
-        <input class="field-input" type="number" [(ngModel)]="leadDraft.presupuesto" placeholder="Ej: 1500000">
+        <label class="field-label">Notas</label>
+        <textarea class="field-input" rows="3" [(ngModel)]="leadDraft.notes" placeholder="Detalles relevantes del prospecto..."></textarea>
       </div>
     </div>
     <div class="modal-footer">
       <button class="btn-secondary" (click)="showLeadModal = false">Cancelar</button>
       <button class="btn-primary" (click)="saveLead()" [disabled]="savingLead">
-        {{ savingLead ? 'Guardando...' : (leadDraft.id ? 'Guardar cambios' : 'Crear consulta') }}
+        {{ savingLead ? 'Guardando...' : (leadDraft.id ? 'Guardar cambios' : 'Crear prospecto') }}
       </button>
     </div>
   </div>
@@ -1912,25 +2547,78 @@
 <div class="modal-backdrop" *ngIf="showCamaModal" (click)="showCamaModal = false">
   <div class="modal-box" (click)="$event.stopPropagation()">
     <div class="modal-header">
-      <span class="modal-title">Anadir cama / vacante</span>
+          <span class="modal-title">{{ companyConfigMode ? 'Nuevo beneficio pet' : 'Nuevo servicio' }}</span>
       <button class="modal-close" (click)="showCamaModal = false">
         <mat-icon style="font-size:18px;width:18px;height:18px">close</mat-icon>
       </button>
     </div>
     <div class="modal-body">
+      <ng-container *ngIf="companyConfigMode; else legacyServiceFields">
+        <div class="field-group">
+          <label class="field-label">Nombre del beneficio</label>
+          <input class="field-input" type="text" [(ngModel)]="camaDraft.title" placeholder="Ej: Guarderia pet empresa">
+        </div>
+        <div class="field-group">
+          <label class="field-label">Descripcion</label>
+          <textarea class="field-input" rows="3" [(ngModel)]="camaDraft.description" placeholder="Que cubre para empleados, modalidad, condiciones internas..."></textarea>
+        </div>
+        <div class="field-group">
+          <label class="field-label">Responsable</label>
+          <select class="field-input" [(ngModel)]="camaDraft.provider_id">
+            <option value="">Operacion pet principal</option>
+            <option *ngFor="let s of sedes" [value]="s.id">{{ s.nombre }}</option>
+          </select>
+        </div>
+        <div class="modal-form-grid">
+          <div class="field-group">
+            <label class="field-label">Tipo</label>
+            <select class="field-input" [(ngModel)]="camaDraft.service_type">
+              <option value="consulta">Consulta</option>
+              <option value="paseo">Paseo</option>
+              <option value="guarderia">Guarderia</option>
+              <option value="peluqueria">Peluqueria</option>
+              <option value="veterinaria">Veterinaria</option>
+              <option value="entrenamiento">Entrenamiento</option>
+              <option value="hospedaje">Hospedaje</option>
+              <option value="otros">Otros</option>
+            </select>
+          </div>
+          <div class="field-group">
+            <label class="field-label">Costo referencial</label>
+            <input class="field-input" type="number" [(ngModel)]="camaDraft.price_from" placeholder="CLP">
+          </div>
+          <div class="field-group">
+            <label class="field-label">Duracion min.</label>
+            <input class="field-input" type="number" [(ngModel)]="camaDraft.duration_minutes" placeholder="60">
+          </div>
+          <div class="field-group">
+            <label class="field-label">Capacidad diaria</label>
+            <input class="field-input" type="number" [(ngModel)]="camaDraft.max_daily_slots" placeholder="4">
+          </div>
+        </div>
+        <div class="field-group">
+          <label class="field-label">Requisitos o notas internas</label>
+          <textarea class="field-input" rows="3" [(ngModel)]="camaDraft.requirements" placeholder="Vacunas al dia, condiciones de cobertura, aprobacion previa..."></textarea>
+        </div>
+        <label class="erp-check">
+          <input type="checkbox" [(ngModel)]="camaDraft.active">
+          Beneficio disponible para empleados
+        </label>
+      </ng-container>
+      <ng-template #legacyServiceFields>
       <div class="field-group">
-        <label class="field-label">ID / Codigo de la cama</label>
-        <input class="field-input" type="text" [(ngModel)]="camaDraft.resource_code" placeholder="Ej: CAMA-101">
+        <label class="field-label">ID / Codigo del servicio</label>
+        <input class="field-input" type="text" [(ngModel)]="camaDraft.resource_code" placeholder="Ej: SV-101">
       </div>
       <div class="field-group">
-        <label class="field-label">Sede</label>
+        <label class="field-label">Responsable</label>
         <select class="field-input" [(ngModel)]="camaDraft.provider_id">
-          <option value="">Selecciona una sede...</option>
+          <option value="">Selecciona un responsable...</option>
           <option *ngFor="let s of sedes" [value]="s.id">{{ s.nombre }}</option>
         </select>
       </div>
       <div class="field-group">
-        <label class="field-label">Tipo de cuidado</label>
+        <label class="field-label">Tipo de servicio</label>
         <select class="field-input" [(ngModel)]="camaDraft.care_type">
           <option value="Basico">Basico</option>
           <option value="Intermedio">Intermedio</option>
@@ -1946,11 +2634,12 @@
           <option value="Mantenimiento">Mantenimiento</option>
         </select>
       </div>
+      </ng-template>
     </div>
     <div class="modal-footer">
       <button class="btn-secondary" (click)="showCamaModal = false">Cancelar</button>
       <button class="btn-primary" (click)="saveCama()" [disabled]="savingCama">
-        {{ savingCama ? 'Guardando...' : 'Guardar cama' }}
+        {{ savingCama ? 'Guardando...' : (companyConfigMode ? 'Guardar beneficio' : 'Guardar servicio') }}
       </button>
     </div>
   </div>

@@ -1,121 +1,85 @@
-import { Component, OnDestroy, OnInit, ChangeDetectorRef } from '@angular/core';
-import { ActivatedRoute } from '@angular/router';
+import { Component, OnInit } from '@angular/core';
+import { AuthService } from '../../core/services/auth.service';
 import { SupabaseService } from '../../core/services/supabase.service';
 import { UiService } from '../../core/services/ui.service';
 
-type CompanyTab = 'general' | 'employees' | 'vouchers' | 'admin';
+type ClientSummary = {
+  id: string;
+  full_name: string;
+  email: string;
+  phone: string | null;
+  direccion: string | null;
+  comuna: string | null;
+  notas_entrega_llaves: string | null;
+  pets: PetSummary[];
+  emergencias: EmergencyContact[];
+  member_role?: string | null;
+};
 
-type CompanyRow = {
+type PetSummary = {
   id: string;
   name: string;
-  legal_name?: string | null;
-  tax_id: string | null;
-  domain: string | null;
-  plan_tier?: string | null;
-  industry?: string | null;
-  employee_count?: number | null;
-  billing_email?: string | null;
-  phone?: string | null;
-  address?: string | null;
-  operational_status?: 'onboarding' | 'active' | 'paused' | 'inactive';
+  species: string;
+  breed: string | null;
+  birth_date: string | null;
+  sex: string | null;
+  weight_kg: number | null;
+  photo_url: string | null;
 };
 
-type CompanyMemberRole = 'employee' | 'manager' | 'hr_admin' | 'company_admin';
-
-type CompanyMember = {
-  user_id: string;
-  email: string;
-  full_name: string | null;
-  member_role: CompanyMemberRole;
-};
-
-type VoucherRow = {
-  id: string;
-  code: string;
-  title: string;
-  description: string | null;
-  discount_type: 'percentage' | 'fixed_amount';
-  discount_value: number;
-  active: boolean;
-};
-
-type VoucherDraft = Omit<VoucherRow, 'id'> & { id: string | null };
-
-type CompanyContactType = 'hr' | 'billing' | 'legal' | 'operations' | 'executive' | 'other';
-
-type CompanyContact = {
-  id: string;
-  company_id: string;
-  full_name: string;
-  role_title: string | null;
-  email: string | null;
-  phone: string | null;
-  contact_type: CompanyContactType;
-  is_primary: boolean;
+type PetFull = PetSummary & {
+  neutered: string | null;
+  microchip_number: string | null;
+  vaccine_status: string | null;
+  veterinary_clinic_name: string | null;
+  veterinary_clinic_commune: string | null;
+  treating_vet_name: string | null;
+  treating_vet_contact: string | null;
+  chronic_conditions_allergies: string | null;
+  current_medications: string | null;
+  behavior_notes: string | null;
+  feeding_schedule: string | null;
+  food_brand: string | null;
+  food_portion: string | null;
+  food_allergies: string | null;
+  emergency_vet_name: string | null;
+  emergency_vet_phone: string | null;
+  emergency_vet_address: string | null;
   notes: string | null;
 };
 
-type CompanyContactDraft = Omit<CompanyContact, 'id' | 'company_id'> & { id: string | null };
-
-type CompanyContractStatus = 'draft' | 'active' | 'pending_renewal' | 'expired' | 'cancelled';
-
-type CompanyContract = {
+type EmergencyContact = {
   id: string;
-  company_id: string;
-  plan_tier: string;
-  status: CompanyContractStatus;
-  starts_at: string | null;
-  renews_at: string | null;
-  ends_at: string | null;
-  billing_cycle: 'monthly' | 'annual' | 'custom';
-  amount: number | null;
-  currency: string;
-  document_id: string | null;
-  notes: string | null;
+  nombre: string;
+  telefono: string;
+  parentesco: string | null;
 };
 
-type CompanyContractDraft = Omit<CompanyContract, 'id' | 'company_id'> & { id: string | null };
-
-type CompanyDocumentOption = {
-  id: string;
-  title: string;
-  document_type: string;
-  status: string;
-};
-
-type OnboardingProjectSummary = {
-  id: string;
-  title: string;
-  status: string;
-};
-
-type CompanySubscriptionStatus = 'draft' | 'pending' | 'active' | 'past_due' | 'suspended' | 'cancelled';
-type PaymentReturnStatus = 'success' | 'failure' | 'pending';
-
-type CompanySubscription = {
-  id: string;
-  company_id: string;
-  contract_id: string | null;
-  provider: 'stripe' | 'flow' | 'mercadopago' | 'manual';
-  plan_tier: string;
-  status: CompanySubscriptionStatus;
-  payment_url: string | null;
-  current_period_start: string | null;
-  current_period_end: string | null;
-};
-
-type CompanyInvoice = {
-  id: string;
-  company_id: string;
-  subscription_id: string | null;
-  status: 'draft' | 'open' | 'paid' | 'overdue' | 'void' | 'uncollectible';
-  amount_due: number;
-  amount_paid: number;
-  currency: string;
-  due_at: string | null;
-  paid_at: string | null;
-  hosted_invoice_url: string | null;
-  invoice_pdf_url: string | null;
+type PetDraft = {
+  name: string;
+  species: string;
+  breed: string;
+  birth_date: string;
+  sex: string;
+  weight_kg: number | null;
+  neutered: string;
+  microchip_number: string;
+  vaccine_status: string;
+  veterinary_clinic_name: string;
+  veterinary_clinic_commune: string;
+  treating_vet_name: string;
+  treating_vet_contact: string;
+  chronic_conditions_allergies: string;
+  current_medications: string;
+  behavior_notes: string;
+  feeding_schedule: string;
+  food_brand: string;
+  food_portion: string;
+  food_allergies: string;
+  emergency_vet_name: string;
+  emergency_vet_phone: string;
+  emergency_vet_address: string;
+  notes: string;
 };
 
 @Component({
@@ -123,765 +87,480 @@ type CompanyInvoice = {
   templateUrl: './company.page.html',
   styleUrls: ['./company.page.scss'],
 })
-export class CompanyPage implements OnInit, OnDestroy {
-  public loading = true;
-  public saving = false;
-  public error: string | null = null;
-  public company: CompanyRow | null = null;
-  public members: CompanyMember[] = [];
-  public vouchers: VoucherRow[] = [];
-  public contacts: CompanyContact[] = [];
-  public contracts: CompanyContract[] = [];
-  public documents: CompanyDocumentOption[] = [];
-  public onboardingProjects: OnboardingProjectSummary[] = [];
-  public subscriptions: CompanySubscription[] = [];
-  public invoices: CompanyInvoice[] = [];
-  public requestsSummary = { total: 0, open: 0, resolved: 0 };
-  public currentTab: CompanyTab = 'admin';
-  public showInviteModal = false;
-  public inviteEmail = '';
-  public inviteRole: CompanyMemberRole = 'employee';
-  public showVoucherModal = false;
-  public voucherDraft: VoucherDraft = this.createVoucherDraft();
-  public showContactModal = false;
-  public contactDraft: CompanyContactDraft = this.createContactDraft();
-  public showContractModal = false;
-  public contractDraft: CompanyContractDraft = this.createContractDraft();
-  public requestingPaymentLink = false;
-  public selectedPaymentPlan: 'empresa' | 'premium' = 'empresa';
-  public selectedIntake: any | null = null;
-  public paymentReturnStatus: PaymentReturnStatus | null = null;
+export class CompanyPage implements OnInit {
+  loading = true;
+  clients: ClientSummary[] = [];
+  searchQuery = '';
+  profileRole: string | null = null;
 
-  public readonly paymentPlanOptions = [
-    {
-      id: 'empresa' as const,
-      label: 'Plataforma',
-      description: 'Portal, empleados, solicitudes, documentos y seguimiento.',
-      price: '$199.000',
-    },
-    {
-      id: 'premium' as const,
-      label: 'Acompañamiento',
-      description: 'Plataforma mas soporte prioritario y acompanamiento operativo.',
-      price: '$499.000',
-    },
-  ];
+  // Pet modal
+  showPetModal = false;
+  editingPetId: string | null = null;
+  editingClientId: string | null = null;
+  petDraft: PetDraft = this.emptyPetDraft();
+  saving = false;
 
-  public readonly tabs: { id: CompanyTab; label: string }[] = [
-    { id: 'admin', label: 'Resumen' },
-    { id: 'employees', label: 'Empleados' },
-    { id: 'vouchers', label: 'Vouchers' },
-    { id: 'general', label: 'Configuración' },
-  ];
-
-  private unsub?: { data: { subscription: { unsubscribe: () => void } } };
+  // Emergency modal
+  showEmergenciaModal = false;
+  editingEmergenciaId: string | null = null;
+  emergenciaDraft: { nombre: string; telefono: string; parentesco: string } = {
+    nombre: '', telefono: '', parentesco: ''
+  };
+  emergenciaClientId: string | null = null;
 
   constructor(
-    private readonly route: ActivatedRoute,
-    private readonly supabase: SupabaseService,
-    public readonly ui: UiService,
-    private readonly cdr: ChangeDetectorRef
+    private auth: AuthService,
+    private supabase: SupabaseService,
+    public ui: UiService,
   ) {}
 
-  public getTabLabel(id: CompanyTab): string {
-    return this.tabs.find((t) => t.id === id)?.label || 'Panel';
+  async ngOnInit() {
+    this.profileRole = await this.auth.getCurrentProfileRole();
+    await this.loadClients();
   }
 
-  public get activeVoucherCount(): number {
-    return this.vouchers.filter((voucher) => voucher.active).length;
+  get isCuidador(): boolean {
+    return this.profileRole === 'cuidador';
   }
 
-  public get adminCount(): number {
-    return this.members.filter((member) => member.member_role === 'hr_admin' || member.member_role === 'manager').length;
+  get isCompanyAdmin(): boolean {
+    return this.profileRole === 'company_admin' || this.profileRole === 'manager';
   }
 
-  public get employeeCount(): number {
-    return this.members.filter((member) => member.member_role === 'employee').length;
+  get filteredClients(): ClientSummary[] {
+    if (!this.searchQuery) return this.clients;
+    const q = this.searchQuery.toLowerCase();
+    return this.clients.filter(c =>
+      c.full_name.toLowerCase().includes(q) ||
+      c.email.toLowerCase().includes(q) ||
+      c.pets.some(p => p.name.toLowerCase().includes(q))
+    );
   }
 
-  public get primaryContact(): CompanyContact | null {
-    return this.contacts.find((contact) => contact.is_primary) || this.contacts[0] || null;
+  get totalPets(): number {
+    return this.clients.reduce((sum, c) => sum + c.pets.length, 0);
   }
 
-  public get activeContract(): CompanyContract | null {
-    return this.contracts.find((contract) => contract.status === 'active') || this.contracts[0] || null;
+  speciesLabel(s: string): string {
+    const map: Record<string, string> = { dog: 'Perro', cat: 'Gato', other: 'Otra' };
+    return map[s] || s;
   }
 
-  public get currentSubscription(): CompanySubscription | null {
-    return this.subscriptions.find((subscription) => subscription.status === 'active') || this.subscriptions[0] || null;
+  sexLabel(s: string | null): string {
+    const map: Record<string, string> = { male: 'Macho', female: 'Hembra', unknown: 'Sin dato' };
+    return s ? (map[s] || s) : 'Sin dato';
   }
 
-  public get selectedPlanSubscription(): CompanySubscription | null {
-    return this.subscriptions.find((subscription) => subscription.plan_tier === this.selectedPaymentPlan) || null;
+  vacunaLabel(s: string | null): string {
+    const map: Record<string, string> = { up_to_date: 'Al día', pending: 'Pendientes', unknown: 'Sin dato' };
+    return s ? (map[s] || s) : 'Sin dato';
   }
 
-  public get latestInvoice(): CompanyInvoice | null {
-    return this.invoices[0] || null;
+  memberRoleLabel(role: string | null | undefined): string {
+    const labels: Record<string, string> = {
+      employee: 'Colaborador',
+      hr_admin: 'RR.HH.',
+      manager: 'Manager',
+    };
+    return labels[role || ''] || 'Colaborador';
   }
 
-  public get paymentUrl(): string | null {
-    return this.selectedPlanSubscription?.payment_url || null;
-  }
-
-  public get invoiceUrl(): string | null {
-    return this.latestInvoice?.invoice_pdf_url || this.latestInvoice?.hosted_invoice_url || null;
-  }
-
-  public get invoiceHelperText(): string {
-    if (this.invoiceUrl) {
-      return this.latestInvoice?.status === 'paid'
-        ? 'La boleta ya esta disponible para revision.'
-        : 'La factura de este cobro ya fue emitida.';
+  calculateAge(birthDate: string | null): string {
+    if (!birthDate) return '';
+    const bd = new Date(birthDate + 'T12:00:00');
+    if (isNaN(bd.getTime())) return '';
+    const today = new Date();
+    let months = (today.getFullYear() - bd.getFullYear()) * 12 + (today.getMonth() - bd.getMonth());
+    if (today.getDate() < bd.getDate()) {
+      months--;
     }
-
-    if (this.latestInvoice) {
-      return 'El cobro existe, pero aun no tiene boleta publicada.';
-    }
-
-    return 'La boleta se genera cuando Mercado Pago confirma el cobro.';
-  }
-
-  public get paymentReturnTitle(): string {
-    if (this.paymentReturnStatus === 'success') return '¡Felicidades! Tu pago fue aprobado.';
-    if (this.paymentReturnStatus === 'pending') return 'Tu pago quedo pendiente de confirmacion.';
-    return 'No se pudo completar el pago.';
-  }
-
-  public get paymentReturnMessage(): string {
-    if (this.paymentReturnStatus === 'success') {
-      return 'Estamos activando tu plan. En unos segundos podras disfrutar los beneficios de company pet.';
-    }
-    if (this.paymentReturnStatus === 'pending') {
-      return 'Mercado Pago todavia no confirma la operacion. Cuando se acredite, activaremos los beneficios.';
-    }
-    return 'Puedes intentar nuevamente con Mercado Pago o elegir otro medio de pago.';
-  }
-
-  public get connectedModules(): { label: string; value: string; detail: string }[] {
-    return [
-      { label: 'Empleados', value: String(this.members.length), detail: `${this.adminCount} admins RR.HH.` },
-      { label: 'Vouchers', value: String(this.activeVoucherCount), detail: `${this.vouchers.length} creados` },
-      { label: 'Documentos', value: String(this.documents.length), detail: `${this.documents.filter((doc) => doc.status === 'approved').length} aprobados` },
-      { label: 'Onboarding', value: String(this.onboardingProjects.filter((project) => project.status === 'active').length), detail: `${this.onboardingProjects.length} proyectos` },
-      { label: 'Solicitudes', value: String(this.requestsSummary.open), detail: `${this.requestsSummary.total} historicas` },
-      { label: 'Pago', value: this.subscriptionStatusLabel(this.currentSubscription?.status || null), detail: this.planTierLabel(this.currentSubscription?.plan_tier || this.activeContract?.plan_tier || this.company?.plan_tier || null) },
-    ];
-  }
-
-  public ngOnInit(): void {
-    this.route.queryParamMap.subscribe((params) => {
-      const payment = params.get('payment');
-      this.paymentReturnStatus = this.normalizePaymentReturnStatus(payment);
-      if (this.paymentReturnStatus === 'success' || this.paymentReturnStatus === 'pending') {
-        window.setTimeout(() => void this.refresh(), 1500);
+    if (months < 0) return 'Recién nacido';
+    if (months < 12) {
+      if (months === 0) {
+        const diffDays = Math.ceil(Math.abs(today.getTime() - bd.getTime()) / (1000 * 60 * 60 * 24));
+        return diffDays <= 1 ? '1 día' : `${diffDays} días`;
       }
-    });
-    void this.refresh();
-    this.unsub = this.supabase.client.auth.onAuthStateChange(() => void this.refresh());
+      return months === 1 ? '1 mes' : `${months} meses`;
+    }
+    const y = Math.floor(months / 12);
+    const m = months % 12;
+    if (m === 0) return y === 1 ? '1 año' : `${y} años`;
+    return `${y} ${y === 1 ? 'año' : 'años'} y ${m} ${m === 1 ? 'mes' : 'meses'}`;
   }
 
-  public ngOnDestroy(): void {
-    this.unsub?.data.subscription.unsubscribe();
-  }
-
-  public dismissPaymentReturn(): void {
-    this.paymentReturnStatus = null;
-  }
-
-  private normalizePaymentReturnStatus(value: string | null): PaymentReturnStatus | null {
-    return value === 'success' || value === 'failure' || value === 'pending' ? value : null;
-  }
-
-  private createVoucherDraft(): VoucherDraft {
-    return {
-      id: null,
-      code: Math.random().toString(36).substring(2, 10).toUpperCase(),
-      title: '',
-      description: '',
-      discount_type: 'percentage',
-      discount_value: 10,
-      active: true,
-    };
-  }
-
-  private createContactDraft(): CompanyContactDraft {
-    return {
-      id: null,
-      full_name: '',
-      role_title: '',
-      email: '',
-      phone: '',
-      contact_type: 'operations',
-      is_primary: this.contacts.length === 0,
-      notes: '',
-    };
-  }
-
-  private createContractDraft(): CompanyContractDraft {
-    return {
-      id: null,
-      plan_tier: this.normalizePlanTier(this.company?.plan_tier),
-      status: 'active',
-      starts_at: new Date().toISOString().slice(0, 10),
-      renews_at: '',
-      ends_at: '',
-      billing_cycle: 'monthly',
-      amount: null,
-      currency: 'CLP',
-      document_id: null,
-      notes: '',
-    };
-  }
-
-  public async refresh(): Promise<void> {
+  async loadClients() {
     this.loading = true;
-    this.error = null;
     try {
-      const { data: sessionData } = await this.supabase.client.auth.getSession();
-      const userId = sessionData.session?.user?.id;
-      if (!userId) throw new Error('No hay sesión activa.');
+      const user = this.auth.user;
+      if (!user) return;
 
-      const { data: membership, error: memberError } = await this.supabase.client
-        .from('company_members')
-        .select('company_id, member_role')
-        .eq('user_id', userId)
-        .maybeSingle();
-
-      if (memberError) throw memberError;
-      if (!membership?.company_id || !['hr_admin', 'company_admin'].includes(membership.member_role)) {
-        throw new Error('No tienes permisos para administrar esta empresa.');
+      if (this.isCompanyAdmin) {
+        await this.loadCompanyMembers(user.id);
+        return;
       }
 
-      const companyId = membership.company_id;
-      const [
-        companyRes,
-        membersRes,
-        vouchersRes,
-        contactsRes,
-        contractsRes,
-        documentsRes,
-        onboardingRes,
-        subscriptionsRes,
-        invoicesRes,
-      ] = await Promise.all([
-        this.supabase.client.from('companies').select('*').eq('id', companyId).single(),
-        this.supabase.client.from('company_members_view').select('*').eq('company_id', companyId),
-        this.supabase.client.from('vouchers').select('*').eq('company_id', companyId).order('created_at'),
-        this.supabase.client
-          .from('company_contacts')
-          .select('*')
-          .eq('company_id', companyId)
-          .order('is_primary', { ascending: false })
-          .order('created_at', { ascending: true }),
-        this.supabase.client
-          .from('company_contracts')
-          .select('*')
-          .eq('company_id', companyId)
-          .order('status', { ascending: true })
-          .order('starts_at', { ascending: false }),
-        this.supabase.client
-          .from('company_documents')
-          .select('id,title,document_type,status')
-          .eq('company_id', companyId)
-          .order('created_at', { ascending: false }),
-        this.supabase.client
-          .from('onboarding_projects')
-          .select('id,title,status')
-          .eq('company_id', companyId)
-          .order('created_at', { ascending: false }),
-        this.supabase.client
-          .from('company_subscriptions')
-          .select('id,company_id,contract_id,provider,plan_tier,status,payment_url,current_period_start,current_period_end')
-          .eq('company_id', companyId)
-          .order('created_at', { ascending: false }),
-        this.supabase.client
-          .from('company_invoices')
-          .select('id,company_id,subscription_id,status,amount_due,amount_paid,currency,due_at,paid_at,hosted_invoice_url,invoice_pdf_url')
-          .eq('company_id', companyId)
-          .order('created_at', { ascending: false })
-          .limit(5),
-      ]);
+      // Get tutor IDs from reservas for this cuidador
+      const { data: reservas, error: reservasError } = await this.supabase.client
+        .from('reservas')
+        .select('tutor_id')
+        .eq('cuidador_id', user.id);
 
-      if (companyRes.error) throw companyRes.error;
-      this.company = companyRes.data as CompanyRow;
+      if (reservasError) throw reservasError;
 
-      if (membersRes.error) throw membersRes.error;
-      this.members = (membersRes.data ?? []) as CompanyMember[];
+      const tutorIds = [...new Set((reservas ?? []).map((r: any) => r.tutor_id))];
 
-      if (vouchersRes.error) throw vouchersRes.error;
-      this.vouchers = (vouchersRes.data ?? []) as VoucherRow[];
+      if (tutorIds.length === 0) {
+        this.clients = [];
+        this.loading = false;
+        return;
+      }
 
-      if (contactsRes.error) throw contactsRes.error;
-      this.contacts = (contactsRes.data ?? []) as CompanyContact[];
+      // Load profiles
+      const { data: profiles } = await this.supabase.client
+        .from('profiles')
+        .select('id, full_name, email')
+        .in('id', tutorIds);
 
-      if (contractsRes.error) throw contractsRes.error;
-      this.contracts = (contractsRes.data ?? []) as CompanyContract[];
+      // Load tutor profiles
+      const { data: tutorProfiles } = await this.supabase.client
+        .from('tutor_profiles')
+        .select('*')
+        .in('id', tutorIds);
 
-      if (documentsRes.error) throw documentsRes.error;
-      this.documents = (documentsRes.data ?? []) as CompanyDocumentOption[];
+      // Load pets for all tutors
+      const { data: pets } = await this.supabase.client
+        .from('pets')
+        .select('*')
+        .in('owner_id', tutorIds);
 
-      if (onboardingRes.error) throw onboardingRes.error;
-      this.onboardingProjects = (onboardingRes.data ?? []) as OnboardingProjectSummary[];
+      // Load emergency contacts
+      const { data: emergencias } = await this.supabase.client
+        .from('emergencias')
+        .select('*')
+        .in('tutor_id', tutorIds);
 
-      if (subscriptionsRes.error) throw subscriptionsRes.error;
-      this.subscriptions = (subscriptionsRes.data ?? []) as CompanySubscription[];
+      const profileMap = new Map((profiles ?? []).map((p: any) => [p.id, p]));
+      const tutorProfileMap = new Map((tutorProfiles ?? []).map((tp: any) => [tp.id, tp]));
+      const petsByOwner = new Map<string, any[]>();
+      for (const pet of (pets ?? [])) {
+        const arr = petsByOwner.get((pet as any).owner_id) || [];
+        arr.push(pet);
+        petsByOwner.set((pet as any).owner_id, arr);
+      }
+      const emergenciasByTutor = new Map((emergencias ?? []).map((e: any) => [e.tutor_id, e]));
 
-      if (invoicesRes.error) throw invoicesRes.error;
-      this.invoices = (invoicesRes.data ?? []) as CompanyInvoice[];
-      this.selectedPaymentPlan = this.normalizePlanTier(
-        this.currentSubscription?.plan_tier || this.activeContract?.plan_tier || this.company?.plan_tier
-      );
+      this.clients = tutorIds.map(tutorId => {
+        const profile = profileMap.get(tutorId) as any || {};
+        const tp = tutorProfileMap.get(tutorId) as any || {};
+        const clientPets = (petsByOwner.get(tutorId) || []) as any[];
+        const emg = (emergenciasByTutor.get(tutorId) || []) as any[];
 
-      await this.loadRequestsSummary(companyId);
-    } catch (err: any) {
-      this.error = err.message;
+        return {
+          id: tutorId,
+          full_name: profile.full_name ?? 'Sin nombre',
+          email: profile.email ?? '',
+          phone: tp.phone ?? null,
+          direccion: tp.direccion ?? null,
+          comuna: tp.comuna ?? null,
+          notas_entrega_llaves: tp.notas_entrega_llaves ?? null,
+          pets: clientPets.map((p: any) => ({
+            id: p.id,
+            name: p.name,
+            species: p.species,
+            breed: p.breed,
+            birth_date: p.birth_date,
+            sex: p.sex,
+            weight_kg: p.weight_kg,
+            photo_url: p.pet_photo_url,
+          } as PetSummary)),
+          emergencias: emg.map((e: any) => ({
+            id: e.id,
+            nombre: e.nombre,
+            telefono: e.telefono,
+            parentesco: e.parentesco,
+          })),
+        };
+      });
+
+    } catch (error) {
+      console.error('Error cargando clientes:', error);
     } finally {
       this.loading = false;
-      this.cdr.detectChanges();
     }
   }
 
-  private async loadRequestsSummary(companyId: string): Promise<void> {
-    this.requestsSummary = { total: 0, open: 0, resolved: 0 };
-    const { data: companyMembers } = await this.supabase.client
+  private async loadCompanyMembers(userId: string): Promise<void> {
+    const { data: membership, error: membershipError } = await this.supabase.client
       .from('company_members')
-      .select('user_id')
+      .select('company_id')
+      .eq('user_id', userId)
+      .maybeSingle();
+
+    if (membershipError) throw membershipError;
+    const companyId = membership?.company_id;
+    if (!companyId) {
+      this.clients = [];
+      return;
+    }
+
+    const { data: members, error: membersError } = await this.supabase.client
+      .from('company_members_view')
+      .select('user_id, full_name, email, member_role')
       .eq('company_id', companyId);
+    if (membersError) throw membersError;
 
-    const employeeIds = (companyMembers ?? []).map((member: { user_id: string }) => member.user_id);
-    if (employeeIds.length === 0) return;
-
-    const { data, error } = await this.supabase.client
-      .from('care_requests')
-      .select('status')
-      .in('employee_id', employeeIds);
-
-    if (error) return;
-    const statuses = (data ?? []) as { status: string }[];
-    this.requestsSummary = {
-      total: statuses.length,
-      open: statuses.filter((request) => !['resolved', 'closed'].includes(request.status)).length,
-      resolved: statuses.filter((request) => ['resolved', 'closed'].includes(request.status)).length,
-    };
-  }
-
-  public async saveCompany(): Promise<void> {
-    if (!this.company) return;
-    this.saving = true;
-    try {
-      const { error } = await this.supabase.client
-        .from('companies')
-        .update({
-          name: this.company.name,
-          legal_name: this.company.legal_name,
-          tax_id: this.company.tax_id,
-          domain: this.company.domain,
-          industry: this.company.industry,
-          employee_count: this.company.employee_count,
-          billing_email: this.company.billing_email,
-          phone: this.company.phone,
-          address: this.company.address,
-          operational_status: this.company.operational_status || 'onboarding',
-        })
-        .eq('id', this.company.id);
-      if (error) throw error;
-      // Aquí podrías mostrar una notificación de éxito
-    } catch (err: any) {
-      this.error = `Error al guardar: ${err.message}`;
-    } finally {
-      this.saving = false;
-      this.cdr.detectChanges();
+    const memberIds = (members ?? []).map((member: any) => member.user_id);
+    if (!memberIds.length) {
+      this.clients = [];
+      return;
     }
-  }
 
-  public async sendInvite(): Promise<void> {
-    if (!this.company || !this.inviteEmail) return;
-    this.saving = true;
-    try {
-      const { error } = await this.supabase.client.functions.invoke('send-company-invitation', {
-        body: {
-          companyId: this.company.id,
-          email: this.inviteEmail.trim().toLowerCase(),
-          role: this.inviteRole,
-        },
-      });
-      if (error) throw error;
-      this.showInviteModal = false;
-      this.inviteEmail = '';
-      // Aquí podrías mostrar una notificación de éxito
-    } catch (err: any) {
-      this.error = await this.getFunctionErrorMessage(err, 'Error al invitar.');
-    } finally {
-      this.saving = false;
-      this.cdr.detectChanges();
+    const [{ data: tutorProfiles }, { data: pets }, { data: emergencias }] = await Promise.all([
+      this.supabase.client.from('tutor_profiles').select('*').in('id', memberIds),
+      this.supabase.client.from('pets').select('*').eq('company_id', companyId),
+      this.supabase.client.from('emergencias').select('*').in('tutor_id', memberIds),
+    ]);
+
+    const tutorProfileMap = new Map((tutorProfiles ?? []).map((profile: any) => [profile.id, profile]));
+    const petsByOwner = new Map<string, any[]>();
+    for (const pet of pets ?? []) {
+      const ownerPets = petsByOwner.get((pet as any).owner_id) || [];
+      ownerPets.push(pet);
+      petsByOwner.set((pet as any).owner_id, ownerPets);
     }
-  }
-
-  private async getFunctionErrorMessage(error: any, fallback: string): Promise<string> {
-    const response = error?.context;
-    if (response && typeof response.json === 'function') {
-      const body = await response.json().catch(() => null);
-      if (body?.error) return `${fallback} ${body.error}`;
+    const emergenciasByTutor = new Map<string, any[]>();
+    for (const emergencia of emergencias ?? []) {
+      const contacts = emergenciasByTutor.get((emergencia as any).tutor_id) || [];
+      contacts.push(emergencia);
+      emergenciasByTutor.set((emergencia as any).tutor_id, contacts);
     }
-    return `${fallback} ${error?.message || ''}`.trim();
+
+    this.clients = (members ?? []).map((member: any) => {
+      const tutorProfile = tutorProfileMap.get(member.user_id) as any || {};
+      const memberPets = petsByOwner.get(member.user_id) || [];
+      const memberEmergencias = emergenciasByTutor.get(member.user_id) || [];
+      return {
+        id: member.user_id,
+        full_name: member.full_name || 'Sin nombre',
+        email: member.email || '',
+        phone: tutorProfile.phone ?? null,
+        direccion: tutorProfile.direccion ?? null,
+        comuna: tutorProfile.comuna ?? null,
+        notas_entrega_llaves: tutorProfile.notas_entrega_llaves ?? null,
+        member_role: member.member_role ?? null,
+        pets: memberPets.map((pet: any) => ({
+          id: pet.id,
+          name: pet.name,
+          species: pet.species,
+          breed: pet.breed,
+          birth_date: pet.birth_date,
+          sex: pet.sex,
+          weight_kg: pet.weight_kg,
+          photo_url: pet.pet_photo_url,
+        })),
+        emergencias: memberEmergencias.map((contact: any) => ({
+          id: contact.id,
+          nombre: contact.nombre,
+          telefono: contact.telefono,
+          parentesco: contact.parentesco,
+        })),
+      };
+    });
   }
 
-  public async removeMember(member: CompanyMember): Promise<void> {
-    if (!confirm(`¿Seguro que quieres eliminar a ${member.full_name || member.email}?`)) return;
-    this.saving = true;
-    try {
-      const { error } = await this.supabase.client
-        .from('company_members')
-        .delete()
-        .eq('user_id', member.user_id)
-        .eq('company_id', this.company?.id);
-      if (error) throw error;
-      await this.refresh();
-    } catch (err: any) {
-      this.error = `Error al eliminar: ${err.message}`;
-    } finally {
-      this.saving = false;
-      this.cdr.detectChanges();
+  // ── Pet modal ──
+
+  async openPetModal(clientId: string, pet: any | null) {
+    this.editingClientId = clientId;
+    if (pet) {
+      this.editingPetId = pet.id;
+      const { data } = await this.supabase.client
+        .from('pets')
+        .select('*')
+        .eq('id', pet.id)
+        .single();
+      const p = (data ?? {}) as any;
+      this.petDraft = {
+        name: p.name ?? '',
+        species: p.species ?? 'dog',
+        breed: p.breed ?? '',
+        birth_date: p.birth_date ?? '',
+        sex: p.sex ?? 'unknown',
+        weight_kg: p.weight_kg ?? null,
+        neutered: p.neutered ?? 'unknown',
+        microchip_number: p.microchip_number ?? '',
+        vaccine_status: p.vaccine_status ?? 'unknown',
+        veterinary_clinic_name: p.veterinary_clinic_name ?? '',
+        veterinary_clinic_commune: p.veterinary_clinic_commune ?? '',
+        treating_vet_name: p.treating_vet_name ?? '',
+        treating_vet_contact: p.treating_vet_contact ?? '',
+        chronic_conditions_allergies: p.chronic_conditions_allergies ?? '',
+        current_medications: p.current_medications ?? '',
+        behavior_notes: p.behavior_notes ?? '',
+        feeding_schedule: p.feeding_schedule ?? '',
+        food_brand: p.food_brand ?? '',
+        food_portion: p.food_portion ?? '',
+        food_allergies: p.food_allergies ?? '',
+        emergency_vet_name: p.emergency_vet_name ?? '',
+        emergency_vet_phone: p.emergency_vet_phone ?? '',
+        emergency_vet_address: p.emergency_vet_address ?? '',
+        notes: p.notes ?? '',
+      };
+    } else {
+      this.editingPetId = null;
+      this.petDraft = this.emptyPetDraft();
     }
-  }
-  
-  public newVoucher(): void {
-    this.voucherDraft = this.createVoucherDraft();
-    this.showVoucherModal = true;
+    this.showPetModal = true;
   }
 
-  public editVoucher(voucher: VoucherRow): void {
-    this.voucherDraft = { ...voucher };
-    this.showVoucherModal = true;
+  closePetModal() {
+    this.showPetModal = false;
+    this.editingPetId = null;
+    this.editingClientId = null;
   }
 
-  public async saveVoucher(): Promise<void> {
-    if (!this.company) return;
+  async savePet() {
+    if (this.isCompanyAdmin) return;
+    if (!this.editingClientId) return;
     this.saving = true;
     try {
       const payload = {
-        company_id: this.company.id,
-        code: this.voucherDraft.code,
-        title: this.voucherDraft.title,
-        description: this.voucherDraft.description,
-        discount_type: this.voucherDraft.discount_type,
-        discount_value: this.voucherDraft.discount_value,
-        active: this.voucherDraft.active,
+        owner_id: this.editingClientId,
+        name: this.petDraft.name.trim() || 'Mascota sin nombre',
+        species: this.petDraft.species,
+        breed: this.petDraft.breed.trim() || null,
+        birth_date: this.petDraft.birth_date || null,
+        sex: this.petDraft.sex || 'unknown',
+        weight_kg: this.petDraft.weight_kg,
+        neutered: this.petDraft.neutered || 'unknown',
+        microchip_number: this.petDraft.microchip_number.trim() || null,
+        vaccine_status: this.petDraft.vaccine_status || 'unknown',
+        veterinary_clinic_name: this.petDraft.veterinary_clinic_name.trim() || null,
+        veterinary_clinic_commune: this.petDraft.veterinary_clinic_commune.trim() || null,
+        treating_vet_name: this.petDraft.treating_vet_name.trim() || null,
+        treating_vet_contact: this.petDraft.treating_vet_contact.trim() || null,
+        chronic_conditions_allergies: this.petDraft.chronic_conditions_allergies.trim() || null,
+        current_medications: this.petDraft.current_medications.trim() || null,
+        behavior_notes: this.petDraft.behavior_notes.trim() || null,
+        feeding_schedule: this.petDraft.feeding_schedule.trim() || null,
+        food_brand: this.petDraft.food_brand.trim() || null,
+        food_portion: this.petDraft.food_portion.trim() || null,
+        food_allergies: this.petDraft.food_allergies.trim() || null,
+        emergency_vet_name: this.petDraft.emergency_vet_name.trim() || null,
+        emergency_vet_phone: this.petDraft.emergency_vet_phone.trim() || null,
+        emergency_vet_address: this.petDraft.emergency_vet_address.trim() || null,
+        notes: this.petDraft.notes.trim() || null,
       };
-      const query = this.voucherDraft.id
-        ? this.supabase.client.from('vouchers').update(payload).eq('id', this.voucherDraft.id)
-        : this.supabase.client.from('vouchers').insert(payload);
-      
-      const { error } = await query;
-      if (error) throw error;
-      
-      this.showVoucherModal = false;
-      await this.refresh();
+
+      if (this.editingPetId) {
+        const { error } = await this.supabase.client
+          .from('pets')
+          .update(payload)
+          .eq('id', this.editingPetId);
+        if (error) throw error;
+      } else {
+        const { error } = await this.supabase.client
+          .from('pets')
+          .insert(payload);
+        if (error) throw error;
+      }
+
+      this.closePetModal();
+      await this.loadClients();
     } catch (err: any) {
-      this.error = `Error al guardar voucher: ${err.message}`;
+      alert(`Error al guardar mascota: ${err?.message ?? 'Desconocido'}`);
     } finally {
       this.saving = false;
-      this.cdr.detectChanges();
     }
   }
 
-  public async toggleVoucherActive(voucher: VoucherRow): Promise<void> {
-    this.saving = true;
-    try {
-      const { error } = await this.supabase.client
-        .from('vouchers')
-        .update({ active: !voucher.active })
-        .eq('id', voucher.id);
-      if (error) throw error;
-      await this.refresh();
-    } catch (err: any) {
-      this.error = `Error al actualizar voucher: ${err.message}`;
-    } finally {
-      this.saving = false;
-      this.cdr.detectChanges();
-    }
+  // ── Emergency contact modal ──
+
+  openEmergenciaModal(clientId: string, emergencia: any | null) {
+    this.emergenciaClientId = clientId;
+    this.editingEmergenciaId = emergencia?.id ?? null;
+    this.emergenciaDraft = {
+      nombre: emergencia?.nombre ?? '',
+      telefono: emergencia?.telefono ?? '',
+      parentesco: emergencia?.parentesco ?? '',
+    };
+    this.showEmergenciaModal = true;
   }
 
-  public newContact(): void {
-    this.contactDraft = this.createContactDraft();
-    this.showContactModal = true;
+  closeEmergenciaModal() {
+    this.showEmergenciaModal = false;
+    this.editingEmergenciaId = null;
+    this.emergenciaClientId = null;
   }
 
-  public editContact(contact: CompanyContact): void {
-    this.contactDraft = { ...contact };
-    this.showContactModal = true;
-  }
-
-  public async saveContact(): Promise<void> {
-    if (!this.company) return;
+  async saveEmergencia() {
+    if (this.isCompanyAdmin) return;
+    if (!this.emergenciaClientId) return;
     this.saving = true;
     try {
       const payload = {
-        company_id: this.company.id,
-        full_name: this.contactDraft.full_name,
-        role_title: this.contactDraft.role_title,
-        email: this.contactDraft.email,
-        phone: this.contactDraft.phone,
-        contact_type: this.contactDraft.contact_type,
-        is_primary: this.contactDraft.is_primary,
-        notes: this.contactDraft.notes,
+        tutor_id: this.emergenciaClientId,
+        nombre: this.emergenciaDraft.nombre.trim(),
+        telefono: this.emergenciaDraft.telefono.trim(),
+        parentesco: this.emergenciaDraft.parentesco.trim() || null,
       };
 
-      const query = this.contactDraft.id
-        ? this.supabase.client.from('company_contacts').update(payload).eq('id', this.contactDraft.id)
-        : this.supabase.client.from('company_contacts').insert(payload);
-
-      const { error } = await query;
-      if (error) throw error;
-
-      this.showContactModal = false;
-      await this.refresh();
-    } catch (err: any) {
-      this.error = `Error al guardar contacto: ${err.message}`;
-    } finally {
-      this.saving = false;
-      this.cdr.detectChanges();
-    }
-  }
-
-  public async deleteContact(contact: CompanyContact): Promise<void> {
-    if (!confirm(`¿Eliminar el contacto ${contact.full_name}?`)) return;
-    this.saving = true;
-    try {
-      const { error } = await this.supabase.client.from('company_contacts').delete().eq('id', contact.id);
-      if (error) throw error;
-      await this.refresh();
-    } catch (err: any) {
-      this.error = `Error al eliminar contacto: ${err.message}`;
-    } finally {
-      this.saving = false;
-      this.cdr.detectChanges();
-    }
-  }
-
-  public newContract(): void {
-    this.contractDraft = this.createContractDraft();
-    this.showContractModal = true;
-  }
-
-  public editContract(contract: CompanyContract): void {
-    this.contractDraft = { ...contract };
-    this.showContractModal = true;
-  }
-
-  public async saveContract(): Promise<void> {
-    if (!this.company) return;
-    this.saving = true;
-    try {
-      if (this.contractDraft.status === 'active') {
-        let activeQuery = this.supabase.client
-          .from('company_contracts')
-          .update({ status: 'expired' })
-          .eq('company_id', this.company.id)
-          .eq('status', 'active');
-
-        if (this.contractDraft.id) {
-          activeQuery = activeQuery.neq('id', this.contractDraft.id);
-        }
-
-        const { error: activeError } = await activeQuery;
-        if (activeError) throw activeError;
+      if (this.editingEmergenciaId) {
+        const { error } = await this.supabase.client
+          .from('emergencias')
+          .update(payload)
+          .eq('id', this.editingEmergenciaId);
+        if (error) throw error;
+      } else {
+        const { error } = await this.supabase.client
+          .from('emergencias')
+          .insert(payload);
+        if (error) throw error;
       }
 
-      const payload = {
-        company_id: this.company.id,
-        plan_tier: this.contractDraft.plan_tier,
-        status: this.contractDraft.status,
-        starts_at: this.contractDraft.starts_at || null,
-        renews_at: this.contractDraft.renews_at || null,
-        ends_at: this.contractDraft.ends_at || null,
-        billing_cycle: this.contractDraft.billing_cycle,
-        amount: this.contractDraft.amount,
-        currency: this.contractDraft.currency || 'CLP',
-        document_id: this.contractDraft.document_id || null,
-        notes: this.contractDraft.notes,
-      };
-
-      const query = this.contractDraft.id
-        ? this.supabase.client.from('company_contracts').update(payload).eq('id', this.contractDraft.id)
-        : this.supabase.client.from('company_contracts').insert(payload);
-
-      const { error } = await query;
-      if (error) throw error;
-
-      if (payload.status === 'active') {
-        this.company.plan_tier = payload.plan_tier;
-        const { error: planError } = await this.supabase.client
-          .from('companies')
-          .update({ plan_tier: payload.plan_tier })
-          .eq('id', this.company.id);
-        if (planError) throw planError;
-      }
-
-      this.showContractModal = false;
-      await this.refresh();
+      this.closeEmergenciaModal();
+      await this.loadClients();
     } catch (err: any) {
-      this.error = `Error al guardar contrato: ${err.message}`;
+      alert(`Error al guardar emergencia: ${err?.message ?? 'Desconocido'}`);
     } finally {
       this.saving = false;
-      this.cdr.detectChanges();
     }
   }
 
-  public async deleteContract(contract: CompanyContract): Promise<void> {
-    if (!confirm(`¿Eliminar el contrato ${this.planTierLabel(contract.plan_tier)}?`)) return;
-    this.saving = true;
+  async deleteEmergencia(id: string) {
+    if (this.isCompanyAdmin) return;
+    if (!confirm('¿Eliminar este contacto de emergencia?')) return;
     try {
-      const { error } = await this.supabase.client.from('company_contracts').delete().eq('id', contract.id);
-      if (error) throw error;
-      await this.refresh();
+      await this.supabase.client.from('emergencias').delete().eq('id', id);
+      await this.loadClients();
     } catch (err: any) {
-      this.error = `Error al eliminar contrato: ${err.message}`;
-    } finally {
-      this.saving = false;
-      this.cdr.detectChanges();
+      alert(`Error: ${err?.message ?? 'Desconocido'}`);
     }
   }
 
-  public async requestPaymentLink(): Promise<void> {
-    if (!this.company) return;
-    this.requestingPaymentLink = true;
+  async deletePet(id: string, name: string) {
+    if (this.isCompanyAdmin) return;
+    if (!confirm(`¿Eliminar a ${name}? No se puede deshacer.`)) return;
     try {
-      const { data, error } = await this.supabase.client.functions.invoke('mercadopago-create-preference', {
-        body: {
-          companyId: this.company.id,
-          planTier: this.selectedPaymentPlan,
-        },
-      });
-
-      if (error) throw error;
-      const paymentUrl = (data as { paymentUrl?: string | null } | null)?.paymentUrl;
-      if (paymentUrl) {
-        window.open(paymentUrl, '_blank', 'noopener');
-      }
-      await this.refresh();
+      await this.supabase.client.from('pets').delete().eq('id', id);
+      await this.loadClients();
     } catch (err: any) {
-      this.error = `Error al generar link Mercado Pago: ${await this.describeFunctionError(err)}`;
-    } finally {
-      this.requestingPaymentLink = false;
-      this.cdr.detectChanges();
+      alert(`Error: ${err?.message ?? 'Desconocido'}`);
     }
   }
 
-  private async describeFunctionError(err: any): Promise<string> {
-    const response = err?.context;
-    if (response instanceof Response) {
-      const payload = await response.clone().json().catch(() => null);
-      const detail = payload?.detail ? ` ${JSON.stringify(payload.detail)}` : '';
-      return `${payload?.error || err?.message || 'Error desconocido.'}${detail}`;
-    }
-    return err?.message || 'Error desconocido.';
-  }
-
-  public memberRoleLabel(role: CompanyMemberRole | null): string {
-    const labels: Record<string, string> = {
-      employee: 'Empleado',
-      manager: 'Manager',
-      hr_admin: 'Admin RRHH',
-      company_admin: 'Admin Empresa',
+  private emptyPetDraft(): PetDraft {
+    return {
+      name: '', species: 'dog', breed: '', birth_date: '',
+      sex: 'unknown', weight_kg: null, neutered: 'unknown',
+      microchip_number: '', vaccine_status: 'unknown',
+      veterinary_clinic_name: '', veterinary_clinic_commune: '',
+      treating_vet_name: '', treating_vet_contact: '',
+      chronic_conditions_allergies: '', current_medications: '',
+      behavior_notes: '', feeding_schedule: '', food_brand: '',
+      food_portion: '', food_allergies: '',
+      emergency_vet_name: '', emergency_vet_phone: '', emergency_vet_address: '',
+      notes: '',
     };
-    return role ? labels[role] || role : 'N/A';
-  }
-
-  public contactTypeLabel(type: CompanyContactType | null): string {
-    const labels: Record<string, string> = {
-      hr: 'RR.HH.',
-      billing: 'Facturacion',
-      legal: 'Legal',
-      operations: 'Operacion',
-      executive: 'Ejecutivo',
-      other: 'Otro',
-    };
-    return type ? labels[type] || type : 'Sin tipo';
-  }
-
-  public contractStatusLabel(status: CompanyContractStatus | null): string {
-    const labels: Record<string, string> = {
-      draft: 'Borrador',
-      active: 'Activo',
-      pending_renewal: 'Por renovar',
-      expired: 'Vencido',
-      cancelled: 'Cancelado',
-    };
-    return status ? labels[status] || status : 'Sin contrato';
-  }
-
-  public subscriptionStatusLabel(status: CompanySubscriptionStatus | null): string {
-    const labels: Record<string, string> = {
-      draft: 'Borrador',
-      pending: 'Pendiente',
-      active: 'Activo',
-      past_due: 'Vencido',
-      suspended: 'Suspendido',
-      cancelled: 'Cancelado',
-    };
-    return status ? labels[status] || status : 'Sin pago';
-  }
-
-  public invoiceStatusLabel(status: CompanyInvoice['status'] | null): string {
-    const labels: Record<string, string> = {
-      draft: 'Borrador',
-      open: 'Pendiente',
-      paid: 'Pagada',
-      overdue: 'Vencida',
-      void: 'Anulada',
-      uncollectible: 'Incobrable',
-    };
-    return status ? labels[status] || status : 'Sin factura';
-  }
-
-  public providerLabel(provider: CompanySubscription['provider'] | null | undefined): string {
-    const labels: Record<string, string> = {
-      stripe: 'Stripe',
-      flow: 'Flow',
-      mercadopago: 'MercadoPago',
-      manual: 'Manual',
-    };
-    return provider ? labels[provider] || provider : 'Sin proveedor';
-  }
-
-  public operationalStatusLabel(status: CompanyRow['operational_status'] | null | undefined): string {
-    const labels: Record<string, string> = {
-      onboarding: 'Onboarding',
-      active: 'Activa',
-      paused: 'Pausada',
-      inactive: 'Inactiva',
-    };
-    return status ? labels[status] || status : 'Onboarding';
-  }
-
-  public planTierLabel(plan: string | null | undefined): string {
-    const labels: Record<string, string> = {
-      lite: 'Plataforma',
-      empresa: 'Plataforma',
-      premium: 'Acompanamiento',
-    };
-    return plan ? labels[plan] || plan : 'Sin plan';
-  }
-
-  private normalizePlanTier(plan: string | null | undefined): 'empresa' | 'premium' {
-    return plan === 'premium' ? 'premium' : 'empresa';
-  }
-
-  public billingCycleLabel(cycle: CompanyContract['billing_cycle'] | null): string {
-    const labels: Record<string, string> = {
-      monthly: 'Mensual',
-      annual: 'Anual',
-      custom: 'Personalizado',
-    };
-    return cycle ? labels[cycle] || cycle : 'Sin ciclo';
-  }
-
-  public documentTitle(documentId: string | null): string {
-    return this.documents.find((document) => document.id === documentId)?.title || 'Sin documento asociado';
-  }
-
-  public closeIntakeModal(): void {
-    this.selectedIntake = null;
   }
 }

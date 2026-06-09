@@ -4,25 +4,24 @@ import { Subscription } from 'rxjs';
 
 import { AuthService } from '../../../core/services/auth.service';
 
-type RegisterRole = 'employee' | 'company_admin';
-
 @Component({
   selector: 'app-register',
   templateUrl: './register.page.html',
   styleUrls: ['./register.page.scss'],
 })
 export class RegisterPage implements OnDestroy {
-  public role: RegisterRole = 'employee';
-
   public fullName = '';
-  public companyName = '';
-  public companyRut = '';
   public email = '';
   public password = '';
   public showPassword = false;
   public loading = false;
   public error: string | null = null;
   public success: string | null = null;
+
+  public selectedRole: 'company_admin' | 'employee' | 'cuidador' = 'company_admin';
+  public tipoCuidador: string = 'cuidador_domiciliario';
+  public companyName = '';
+  public companyTaxId = '';
 
   private readonly sessionSub: Subscription;
 
@@ -31,20 +30,20 @@ export class RegisterPage implements OnDestroy {
     private readonly router: Router,
     private readonly route: ActivatedRoute
   ) {
-    this.setRoleFromQuery();
-
-    this.sessionSub = this.route.queryParamMap.subscribe(() => {
-      this.setRoleFromQuery();
+    this.sessionSub = this.route.queryParamMap.subscribe((params) => {
+      const roleParam = params.get('role');
+      if (roleParam === 'company' || roleParam === 'company_admin') {
+        this.selectedRole = 'company_admin';
+      } else if (roleParam === 'cuidador') {
+        this.selectedRole = 'cuidador';
+      } else if (roleParam === 'employee') {
+        this.selectedRole = 'employee';
+      }
     });
   }
 
   public ngOnDestroy(): void {
     this.sessionSub.unsubscribe();
-  }
-
-  private setRoleFromQuery(): void {
-    const q = (this.route.snapshot.queryParamMap.get('role') ?? 'employee').toLowerCase();
-    this.role = q === 'company' || q === 'company_admin' ? 'company_admin' : 'employee';
   }
 
   public async submit(): Promise<void> {
@@ -56,36 +55,40 @@ export class RegisterPage implements OnDestroy {
       const email = this.email.trim();
       const passwordRaw = (this.password ?? '').toString();
       const password = passwordRaw.trim();
-      let fullName = this.fullName.trim();
-      const companyName = this.companyName.trim();
-      const companyRut = this.normalizeRut(this.companyRut);
+      const fullName = this.fullName.trim();
 
       if (!email) throw new Error('Ingresa tu email.');
+      if (!fullName) throw new Error('Ingresa tu nombre y apellido.');
       if (!password) throw new Error('Ingresa una contraseña.');
       if (password.length < 6) throw new Error('La contraseña debe tener al menos 6 caracteres.');
 
-      if (this.role === 'company_admin') {
-        if (!companyRut) throw new Error('Ingresa el RUT de la empresa.');
-        if (!this.isRutValid(companyRut)) throw new Error('RUT inválido.');
-        if (!companyName) throw new Error('Ingresa el nombre de tu empresa.');
-        if (!fullName) fullName = `Admin ${companyName}`;
-      } else {
-        if (!fullName) throw new Error('Ingresa tu nombre.');
+      if (this.selectedRole === 'company_admin' && !this.companyName.trim()) {
+        throw new Error('Ingresa el nombre de tu empresa.');
       }
 
-      const { data, error } = await this.auth.signUpWithMeta(email, password, {
+      const meta: Record<string, string> = {
         full_name: fullName,
-        role: this.role,
-        company_name: this.role === 'company_admin' ? companyName : undefined,
-      });
+        role: this.selectedRole,
+      };
+
+      if (this.selectedRole === 'company_admin') {
+        meta['company_name'] = this.companyName.trim();
+        meta['company_tax_id'] = this.companyTaxId.trim();
+      }
+      if (this.selectedRole === 'cuidador') {
+        meta['tipo_cuidador'] = this.tipoCuidador;
+      }
+
+      const { data, error } = await this.auth.signUpWithMeta(email, password, meta);
       if (error) throw error;
 
       if (!data.session) {
         this.auth.savePendingRegistration({
-          role: this.role,
+          role: this.selectedRole,
           fullName,
-          companyName: this.role === 'company_admin' ? companyName : null,
-          companyTaxId: this.role === 'company_admin' ? companyRut : null,
+          companyName: this.selectedRole === 'company_admin' ? this.companyName.trim() : null,
+          companyTaxId: this.selectedRole === 'company_admin' ? this.companyTaxId.trim() : null,
+          tipoCuidador: this.selectedRole === 'cuidador' ? this.tipoCuidador : null,
         });
 
         this.success =
@@ -94,42 +97,20 @@ export class RegisterPage implements OnDestroy {
       }
 
       await this.auth.completeRegistration({
-        role: this.role,
+        role: this.selectedRole,
         fullName,
-        companyName: this.role === 'company_admin' ? companyName : null,
-        companyTaxId: this.role === 'company_admin' ? companyRut : null,
+        companyName: this.selectedRole === 'company_admin' ? this.companyName.trim() : null,
+        companyTaxId: this.selectedRole === 'company_admin' ? this.companyTaxId.trim() : null,
+        tipoCuidador: this.selectedRole === 'cuidador' ? this.tipoCuidador : null,
       });
 
-      await this.router.navigateByUrl('/dashboard');
+      const defaultUrl =
+        this.selectedRole === 'company_admin' ? '/company' : '/dashboard';
+      await this.router.navigateByUrl(defaultUrl);
     } catch (e: any) {
       this.error = e?.message ?? 'No se pudo crear la cuenta.';
     } finally {
       this.loading = false;
     }
-  }
-
-  private normalizeRut(value: string): string {
-    return (value ?? '').toString().trim().toUpperCase().replace(/\./g, '').replace(/\s+/g, '');
-  }
-
-  private isRutValid(value: string): boolean {
-    // Accept both 12345678-9 and 123456789 formats; validate with modulo 11.
-    const cleaned = value.includes('-') ? value : value.replace(/^(\d+)([0-9K])$/, '$1-$2');
-    const m = cleaned.match(/^(\d{7,8})-([0-9K])$/);
-    if (!m) return false;
-
-    const body = m[1];
-    const dv = m[2];
-
-    let sum = 0;
-    let multiplier = 2;
-    for (let i = body.length - 1; i >= 0; i--) {
-      sum += Number(body[i]) * multiplier;
-      multiplier = multiplier === 7 ? 2 : multiplier + 1;
-    }
-
-    const mod = 11 - (sum % 11);
-    const expected = mod === 11 ? '0' : mod === 10 ? 'K' : String(mod);
-    return expected === dv;
   }
 }

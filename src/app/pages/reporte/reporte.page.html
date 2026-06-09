@@ -1,0 +1,139 @@
+<app-site-header></app-site-header>
+
+<main class="rp-bg min-h-screen pt-20 pb-12">
+  <div class="rp-shell">
+
+    <!-- Loading -->
+    <div *ngIf="loading" class="rp-loading">
+      <mat-icon class="spin">refresh</mat-icon>
+      <p>Cargando reporte...</p>
+    </div>
+
+    <!-- Error -->
+    <div *ngIf="!loading && errorMsg" class="rp-error">
+      <mat-icon>error_outline</mat-icon>
+      <p>{{ errorMsg }}</p>
+      <button class="rp-btn" (click)="volver()">Volver a agenda</button>
+    </div>
+
+    <!-- Content -->
+    <ng-container *ngIf="!loading && !errorMsg && reserva">
+
+      <!-- Header -->
+      <div class="rp-header">
+        <button class="rp-btn rp-btn--ghost" (click)="volver()">
+          <mat-icon>arrow_back</mat-icon> Agenda
+        </button>
+      </div>
+
+      <!-- Hero -->
+      <div class="rp-hero">
+        <div class="rp-hero__type">
+          <mat-icon>{{ serviceTypeIcon }}</mat-icon>
+          <span>{{ serviceTypeLabel }}</span>
+        </div>
+        <h1 class="rp-hero__title">Reporte de servicio</h1>
+        <p class="rp-hero__subtitle">Resumen del {{ serviceTypeLabel | lowercase }} con {{ reserva.pets?.name ?? 'la mascota' }}</p>
+      </div>
+
+      <!-- Summary Card -->
+      <div class="rp-summary">
+        <div class="rp-summary__pet">
+          <div class="rp-summary__avatar">
+            <mat-icon>pets</mat-icon>
+          </div>
+          <div>
+            <strong class="rp-summary__name">{{ reserva.pets?.name ?? 'Mascota' }}</strong>
+            <span class="rp-summary__meta">{{ tutorName }}</span>
+          </div>
+        </div>
+
+        <div class="rp-summary__stats">
+          <div class="rp-stat">
+            <span class="rp-stat__value">{{ duracion ?? '--' }}</span>
+            <span class="rp-stat__label">Minutos</span>
+          </div>
+          <div class="rp-stat">
+            <span class="rp-stat__value">{{ fotos.length }}</span>
+            <span class="rp-stat__label">Fotos</span>
+          </div>
+          <div class="rp-stat">
+            <span class="rp-stat__value">{{ completados }}/{{ checklist.length }}</span>
+            <span class="rp-stat__label">Checklist</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Photos -->
+      <section class="rp-section">
+        <div class="rp-section__head">
+          <mat-icon>photo_library</mat-icon>
+          <h3>Fotos del servicio</h3>
+        </div>
+        <div class="rp-fotos" *ngIf="fotos.length > 0">
+          <div *ngFor="let foto of fotos; track: trackFoto" class="rp-foto">
+            <img [src]="foto.url" alt="Foto servicio" />
+          </div>
+        </div>
+        <div class="rp-empty-sm" *ngIf="fotos.length === 0">
+          No se tomaron fotos durante el servicio.
+        </div>
+      </section>
+
+      <!-- Checklist -->
+      <section class="rp-section">
+        <div class="rp-section__head">
+          <mat-icon>checklist</mat-icon>
+          <h3>Actividades realizadas</h3>
+        </div>
+        <div class="rp-checklist" *ngIf="tieneChecklist">
+          <div *ngFor="let item of checklist; track: trackChecklist" class="rp-checklist__item" [class.is-done]="item.completado">
+            <mat-icon>{{ item.completado ? 'check_circle' : 'radio_button_unchecked' }}</mat-icon>
+            <span>{{ item.nombre }}</span>
+          </div>
+        </div>
+        <div class="rp-empty-sm" *ngIf="!tieneChecklist">
+          Sin actividades registradas.
+        </div>
+      </section>
+
+      <!-- Notes / Resumen -->
+      <section class="rp-section">
+        <div class="rp-section__head">
+          <mat-icon>edit_note</mat-icon>
+          <h3>Resumen para el tutor</h3>
+        </div>
+        <textarea
+          class="rp-textarea"
+          rows="4"
+          [(ngModel)]="resumen"
+          placeholder="Escribe un mensaje para el tutor contándole cómo estuvo el servicio..."
+          [disabled]="compartido"
+        ></textarea>
+      </section>
+
+      <!-- Sharing Actions -->
+      <div class="rp-share">
+        <p class="rp-share__label">Compartir reporte con {{ tutorName || 'el tutor' }}</p>
+        <div class="rp-share__buttons">
+          <button class="rp-btn rp-btn--whatsapp" (click)="compartirWhatsApp()">
+            <mat-icon>chat</mat-icon> WhatsApp
+          </button>
+          <button class="rp-btn rp-btn--email" (click)="compartirEmail()">
+            <mat-icon>email</mat-icon> Email
+          </button>
+          <button class="rp-btn rp-btn--link" (click)="compartirLink()" [disabled]="saving">
+            <mat-icon>link</mat-icon> {{ saving ? 'Guardando...' : 'Copiar enlace' }}
+          </button>
+        </div>
+        <div *ngIf="compartido" class="rp-share__done">
+          <mat-icon>check_circle</mat-icon> Reporte guardado
+        </div>
+      </div>
+
+    </ng-container>
+
+  </div>
+</main>
+
+<app-site-footer></app-site-footer>

@@ -1,86 +1,89 @@
-<header class="header">
-  <div class="header__inner">
-    <div class="header__left">
-      <button (click)="ui.toggleMenu()" type="button" class="header__menu-btn" aria-label="Abrir menú">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-          <line x1="3" y1="6" x2="21" y2="6"/>
-          <line x1="3" y1="12" x2="21" y2="12"/>
-          <line x1="3" y1="18" x2="21" y2="18"/>
-        </svg>
-      </button>
-      <span class="header__title">Recursos Digitales</span>
-    </div>
-  </div>
-</header>
- 
-<main class="page">
-  <div class="page__container">
- 
-    <section class="hero">
-      <div class="hero__icon">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/>
-          <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/>
-        </svg>
-      </div>
+<app-site-header></app-site-header>
+
+<main class="resources-page">
+  <div class="resources-shell">
+    <section class="resources-hero">
       <div>
-        <h1 class="hero__title">Biblioteca de Recursos</h1>
-        <p class="hero__subtitle">Guías y herramientas para tomar mejores decisiones.</p>
+        <span class="resources-hero__eyebrow">Centro de conocimiento</span>
+        <h1>Biblioteca para cuidar mejor a tus mascotas</h1>
+        <p>Guías breves y herramientas prácticas para tutores, empleados y cuidadores.</p>
+      </div>
+      <div class="resources-hero__visual">
+        <span><strong>{{ resources.length }}</strong> recursos disponibles</span>
+        <div><mat-icon>pets</mat-icon></div>
       </div>
     </section>
- 
-    <div class="filters" role="tablist">
-      <button
-        type="button"
-        role="tab"
-        [class.filters__pill--active]="selectedCategory === 'Todos'"
-        class="filters__pill"
-        (click)="setCategory('Todos')"
-      >Todos</button>
- 
-      <button
-        *ngFor="let c of categories; trackBy: trackByCat"
-        type="button"
-        role="tab"
-        [class.filters__pill--active]="selectedCategory === c"
-        class="filters__pill"
-        (click)="setCategory(c)"
-      >{{ c }}</button>
-    </div>
- 
-    <div class="grid">
-      <article
-        *ngFor="let r of filteredResources; trackBy: trackById"
-        class="card"
-        [class]="'card card--' + categoryKey(r.category)"
-      >
-        <div class="card__body">
-          <div class="card__top">
-            <div class="card__icon">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" [innerHTML]="categoryIconPath(r.category)"></svg>
-            </div>
-            <span *ngIf="r.isPriority" class="card__badge">Prioritario</span>
-          </div>
-          <h3 class="card__title">{{ r.title }}</h3>
-          <p class="card__summary">{{ r.summary }}</p>
-        </div>
- 
-        <div class="card__footer">
-          <span class="card__cat-label">{{ r.category }}</span>
-          <button type="button" class="card__read-btn" (click)="open(r)">
-            Leer más
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <line x1="5" y1="12" x2="19" y2="12"/>
-              <polyline points="12 5 19 12 12 19"/>
-            </svg>
+
+    <section class="resources-content">
+      <div class="filters" role="tablist">
+        <button type="button" role="tab" [class.filters__pill--active]="selectedCategory === 'Todos'" class="filters__pill" (click)="setCategory('Todos')">Todos</button>
+        <button *ngFor="let category of categories; trackBy: trackByCat" type="button" role="tab" [class.filters__pill--active]="selectedCategory === category" class="filters__pill" (click)="setCategory(category)">{{ category }}</button>
+      </div>
+
+      <div class="grid">
+        <article *ngFor="let resource of filteredResources; trackBy: trackById" class="card" [class]="'card card--' + categoryKey(resource.category)">
+          <button type="button" class="card__visual" (click)="open(resource)">
+            <mat-icon>{{ resource.icon }}</mat-icon>
+            <span *ngIf="resource.is_featured" class="card__badge" style="background: #edf3f4; color: #0f766e;">Destacado</span>
           </button>
+          <div class="card__body">
+            <span class="card__cat-label">{{ resource.category }}</span>
+            <h3 class="card__title">{{ resource.title }}</h3>
+            <p class="card__summary">{{ resource.summary }}</p>
+            <button type="button" class="card__read-btn" (click)="open(resource)">Leer recurso <mat-icon>arrow_forward</mat-icon></button>
+          </div>
+        </article>
+        <p *ngIf="filteredResources.length === 0" class="grid__empty">No hay recursos en esta categoría.</p>
+      </div>
+    </section>
+  </div>
+
+  <div class="resource-modal-backdrop" *ngIf="selectedResource" (click)="selectedResource = null">
+    <article class="resource-modal" (click)="$event.stopPropagation()" style="max-height: 85vh; display: flex; flex-direction: column; overflow: hidden; width: min(640px, 100%);">
+      <button type="button" class="resource-modal__close" (click)="selectedResource = null"><mat-icon>close</mat-icon></button>
+      
+      <div style="flex: 1; overflow-y: auto; padding-right: 8px;">
+        <div class="resource-modal__icon" [class]="'resource-modal__icon card--' + categoryKey(selectedResource.category)">
+          <mat-icon>{{ selectedResource.icon }}</mat-icon>
         </div>
-      </article>
- 
-      <p *ngIf="filteredResources.length === 0" class="grid__empty">
-        No hay recursos en esta categoría.
-      </p>
-    </div>
- 
+        <span>{{ selectedResource.category }}</span>
+        <h2 style="margin: 8px 0 16px; font-size: 26px; font-weight: 800; color: #1e293b;">{{ selectedResource.title }}</h2>
+        
+        <p style="color: #475569; font-weight: 500; font-size: 14.5px; border-left: 3px solid #cbd5e1; padding-left: 10px; margin-bottom: 20px; line-height: 1.5;">
+          {{ selectedResource.summary }}
+        </p>
+        
+        <div *ngIf="selectedResource.body_markdown" [innerHTML]="getFormattedBody(selectedResource.body_markdown)" style="font-size: 14px; color: #334155; margin-top: 16px;"></div>
+        
+        <div *ngIf="selectedResource.external_url" style="margin-top: 24px;">
+          <!-- Video Player -->
+          <div *ngIf="isExternalUrlVideo(selectedResource.external_url)">
+            <video [src]="selectedResource.external_url" controls style="width: 100%; border-radius: 12px; max-height: 320px; background: #0f172a; box-shadow: 0 8px 20px rgba(0,0,0,0.15); display: block; margin: 0 auto;"></video>
+          </div>
+          
+          <!-- PDF Document Link -->
+          <div *ngIf="isExternalUrlPdf(selectedResource.external_url)">
+            <a [href]="selectedResource.external_url" target="_blank" style="display: inline-flex; align-items: center; gap: 8px; text-decoration: none; padding: 10px 20px; font-size: 13.5px; border-radius: 12px; background: linear-gradient(135deg, #0ea5e9 0%, #0d9488 100%); color: #fff; font-weight: 600; box-shadow: 0 4px 12px rgba(14, 165, 233, 0.2); transition: transform 0.2s;">
+              <mat-icon style="font-size: 20px; width: 20px; height: 20px; margin: 0;">picture_as_pdf</mat-icon>
+              <span>Descargar Guía (PDF)</span>
+            </a>
+          </div>
+          
+          <!-- Regular Link -->
+          <div *ngIf="!isExternalUrlVideo(selectedResource.external_url) && !isExternalUrlPdf(selectedResource.external_url)">
+            <a [href]="selectedResource.external_url" target="_blank" class="card__read-btn" style="text-decoration: underline; font-weight: bold; font-size: 14px;">
+              Ver recurso externo <mat-icon style="font-size: 14px; width: 14px; height: 14px; margin-left: 4px;">open_in_new</mat-icon>
+            </a>
+          </div>
+        </div>
+      </div>
+      
+      <div class="resource-modal__tip" style="flex: 0 0 auto; margin-top: 16px;">
+        <mat-icon>lightbulb</mat-icon>
+        <p>Este contenido sirve como orientación general. Ante síntomas o emergencias, contacta siempre a un profesional veterinario.</p>
+      </div>
+    </article>
   </div>
 </main>
+
+<app-site-footer></app-site-footer>

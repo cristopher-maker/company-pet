@@ -50,7 +50,6 @@ Importante: NO uses la service_role key en el frontend (Ionic). Esa va solo en s
 ## Páginas incluidas
 - Inicio: `/home`
 - Asesoría personalizada: `/care-experts`
-- Proveedores verificados: `/providers`
 - Recursos digitales: `/resources`
 - Formación: `/training`
 - Nosotros: `/about`

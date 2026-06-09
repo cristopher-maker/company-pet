@@ -1,12 +1,5 @@
-alter table public.care_tasks
-add column if not exists entity_type text
-check (entity_type in ('lead', 'sede', 'cama', 'paciente'));
+-- Company Pet
+-- Deprecated compatibility migration.
+-- Legacy care task entity links are no longer part of the Company Pet schema.
 
-alter table public.care_tasks
-add column if not exists entity_id uuid;
-
-alter table public.care_tasks
-add column if not exists entity_label text;
-
-create index if not exists idx_care_tasks_entity_type_entity_id
-on public.care_tasks (entity_type, entity_id);
+notify pgrst, 'reload schema';

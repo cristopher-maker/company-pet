@@ -1,5 +1,5 @@
-drop policy if exists "care_intakes_select_staff" on public.care_intakes;
-create policy "care_intakes_select_staff"
-on public.care_intakes for select
-to authenticated
-using (public.is_staff());
+-- Company Pet
+-- Deprecated compatibility migration.
+-- Staff support visibility now uses public.pet_support_requests.
+
+notify pgrst, 'reload schema';

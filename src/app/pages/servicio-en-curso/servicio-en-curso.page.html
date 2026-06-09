@@ -1,0 +1,144 @@
+<app-site-header></app-site-header>
+
+<main class="sc-bg min-h-screen pt-20 pb-12">
+  <div class="sc-shell">
+
+    <!-- Loading -->
+    <div *ngIf="loading" class="sc-loading">
+      <mat-icon class="spin">refresh</mat-icon>
+      <p>Cargando servicio...</p>
+    </div>
+
+    <!-- Content -->
+    <ng-container *ngIf="!loading && reserva">
+
+      <!-- Header -->
+      <div class="sc-header">
+        <button class="sc-btn sc-btn--ghost" (click)="volver()">
+          <mat-icon>arrow_back</mat-icon> Agenda
+        </button>
+      </div>
+
+      <div class="sc-hero">
+        <!-- Timer -->
+        <div class="sc-timer">
+          <div class="sc-timer__icon">
+            <mat-icon>{{ serviceTypeIcon }}</mat-icon>
+          </div>
+          <div class="sc-timer__info">
+            <span class="sc-timer__label">{{ serviceTypeLabel }} en curso</span>
+            <span class="sc-timer__value">{{ formattedElapsed }}</span>
+            <span class="sc-timer__sub" *ngIf="reserva.duracion_minutos">
+              Duración estimada: {{ reserva.duracion_minutos }} min
+            </span>
+          </div>
+          <div class="sc-timer__badge is-live">EN VIVO</div>
+        </div>
+
+        <!-- Pet + Service Summary -->
+        <div class="sc-summary">
+          <div class="sc-summary__pet">
+            <div class="sc-summary__avatar" [class.is-dog]="reserva.pet_species === 'dog'" [class.is-cat]="reserva.pet_species === 'cat'">
+              <mat-icon>pets</mat-icon>
+            </div>
+            <div>
+              <strong class="sc-summary__name">{{ reserva.pet_name }}</strong>
+              <span class="sc-summary__meta">{{ especieLabel }}</span>
+            </div>
+          </div>
+          <div class="sc-summary__info">
+            <span>
+              <mat-icon>person</mat-icon> {{ reserva.tutor_name }}
+            </span>
+            <span *ngIf="reserva.tutor_phone">
+              <mat-icon>phone</mat-icon> {{ reserva.tutor_phone }}
+            </span>
+            <span *ngIf="reserva.direccion">
+              <mat-icon>location_on</mat-icon> {{ reserva.direccion }}
+            </span>
+            <span *ngIf="reserva.tutor_comuna">
+              <mat-icon>map</mat-icon> {{ reserva.tutor_comuna }}
+            </span>
+          </div>
+          <div class="sc-summary__direccion" *ngIf="reserva.notas_tutor">
+            <mat-icon>info</mat-icon>
+            <span>{{ reserva.notas_tutor }}</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Body -->
+      <div class="sc-body">
+
+        <!-- Checklist -->
+        <section class="sc-section">
+          <div class="sc-section__head">
+            <mat-icon>checklist</mat-icon>
+            <h3>Checklist</h3>
+          </div>
+          <div class="sc-checklist" *ngIf="checklistTemplates.length > 0">
+            <button
+              *ngFor="let item of checklistTemplates; track: trackChecklist"
+              class="sc-checklist__item"
+              [class.is-done]="isChecked(item.id)"
+              (click)="toggleChecklist(item.id)"
+            >
+              <mat-icon>{{ isChecked(item.id) ? 'check_box' : 'check_box_outline_blank' }}</mat-icon>
+              <span>{{ item.nombre }}</span>
+            </button>
+          </div>
+          <div class="sc-empty-sm" *ngIf="checklistTemplates.length === 0">
+            Sin ítems de checklist para este servicio.
+          </div>
+        </section>
+
+        <!-- Photos -->
+        <section class="sc-section">
+          <div class="sc-section__head">
+            <mat-icon>photo_camera</mat-icon>
+            <h3>Fotos</h3>
+            <label class="sc-btn sc-btn--sm sc-btn--primary sc-btn--file">
+              <mat-icon>add_a_photo</mat-icon>
+              <input type="file" accept="image/*" (change)="uploadPhoto($event)" />
+            </label>
+          </div>
+          <div class="sc-fotos" *ngIf="fotos.length > 0">
+            <div *ngFor="let foto of fotos; track: trackFoto" class="sc-foto">
+              <img [src]="foto.url" alt="Foto" />
+            </div>
+          </div>
+          <div class="sc-empty-sm" *ngIf="fotos.length === 0">
+            Aún no hay fotos. Toma la primera.
+          </div>
+        </section>
+
+        <!-- Notes -->
+        <section class="sc-section">
+          <div class="sc-section__head">
+            <mat-icon>notes</mat-icon>
+            <h3>Notas del cuidador</h3>
+          </div>
+          <textarea
+            class="sc-textarea"
+            rows="4"
+            [(ngModel)]="notasCuidador"
+            placeholder="Observaciones, comportamiento, novedades..."
+          ></textarea>
+        </section>
+
+      </div>
+
+      <!-- Complete Action -->
+      <div class="sc-action">
+        <button class="sc-btn sc-btn--complete" (click)="completarServicio()" [disabled]="saving">
+          <mat-icon>check_circle</mat-icon>
+          {{ saving ? 'Completando...' : 'Completar servicio' }}
+        </button>
+      </div>
+
+    </ng-container>
+
+  </div>
+</main>
+
+<app-site-footer></app-site-footer>
